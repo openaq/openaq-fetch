@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://agaar.mn/aqdata/stationlist?period=h&count=1&language=en",
+        "adapter": "agaar_mn",
+        "name": "Agaar.mn",
+        "city": "Ulaanbaatar",
+        "country": "MN",
+        "description": "",
+        "resolution": "1 hr",
+        "sourceURL": "http://agaar.mn/index",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]

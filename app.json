@@ -1,0 +1,25 @@
+{
+  "name": "OpenAQ Fetch",
+  "description": "A flexible tool to grab and serve global air pollution data, easily extendable to other data sources.",
+  "keywords": [
+    "air pollution",
+    "node.js",
+    "javascript",
+    "hapi.js"
+  ],
+  "website": "https://openaq.org",
+  "repository": "https://github.com/openaq/openaq-api",
+  "logo": "https://avatars1.githubusercontent.com/u/11806583?v=3&s=200",
+  "env": {
+    "INDIA_KIMONO_TOKEN": {
+      "description": "Your Kimono API token to use if needed to query sources.",
+      "required": false
+    }
+  },
+  "addons": [
+    "newrelic",
+    "mongolab",
+    "sendgrid",
+    "scheduler"
+  ]
+}

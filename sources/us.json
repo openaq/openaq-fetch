@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://www.tceq.state.tx.us/cgi-bin/compliance/monops/daily_summary.pl",
+        "adapter": "texas",
+        "name": "Texas",
+        "city": "",
+        "country": "US",
+        "description": "",
+        "resolution": "",
+        "sourceURL": "http://www.tceq.state.tx.us/cgi-bin/compliance/monops/daily_summary.pl",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]

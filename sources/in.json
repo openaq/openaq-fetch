@@ -1,0 +1,54 @@
+[
+    {
+        "url": "https://www.kimonolabs.com/api/30b0dj1s",
+        "adapter": "india",
+        "name": "Punjabi Bagh",
+        "city": "Delhi",
+        "country": "IN",
+        "description": "",
+        "resolution": "15 min",
+        "sourceURL": "http://www.dpccairdata.com/dpccairdata/display/pbView15MinData.php",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    },
+    {
+        "url": "https://www.kimonolabs.com/api/5mc6ho1s",
+        "adapter": "india",
+        "name": "Mandir Marg",
+        "city": "Delhi",
+        "country": "IN",
+        "description": "",
+        "resolution": "15 min",
+        "sourceURL": "http://www.dpccairdata.com/dpccairdata/display/mmView15MinData.php",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    },
+    {
+        "url": "https://www.kimonolabs.com/api/a9akl4xi",
+        "adapter": "india",
+        "name": "RK Puram",
+        "city": "Delhi",
+        "country": "IN",
+        "description": "",
+        "resolution": "15 min",
+        "sourceURL": "http://www.dpccairdata.com/dpccairdata/display/rkPuramView15MinData.php",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    },
+    {
+        "url": "https://www.kimonolabs.com/api/2m04inns",
+        "adapter": "india",
+        "name": "Anand Vihar",
+        "city": "Delhi",
+        "country": "IN",
+        "description": "",
+        "resolution": "15 min",
+        "sourceURL": "http://www.dpccairdata.com/dpccairdata/display/avView15MinData.php",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]

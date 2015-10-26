@@ -1,0 +1,11 @@
+language: node_js
+node_js:
+- '0.12'
+deploy:
+  provider: heroku
+  api_key:
+    secure: oFSFUawGi2M6NEh5eSLYGYVsGcpHGtVtP/c808eOsxpa5NCb2qxN5FqF2yZRdUjrfg2vftDLJLmUtbv/6DDc1nh+qGWEABAjmxzIXVH1tAJTBtLu0um6w+uQAXcakTdkJkbpcf5pXW/2pnS6EM0FTIVfS3Bw2O6mjeKx9sEWjcG5/5uZX6f/NtnHqQTRrIdbahDQXW4YCDBoUq4Osk/PtQJ2b7n0UEg+y72oMmZfUtfSXuc57jFOs9J49RP/rn/0M7RvcRcu7akUeP6eIXElYsJmT9cbQUvoMlcBlt5le89lE4hmsxuT9GeLAWU9uEfMvLvS3HBbFpBFZX8Qgk/NnT3QW4aq0FyFhwvgDN79c6yswfPHfJ5Urx1cf/DohBZFYLCQW/MeOHdNIHinh+UTGeO0QbRCfKEN1M89iqq4xiyf6lC+TbYsVEbxvIqRoSkldoqYnskXEKfYHbosY9QK81PF6OTeRcdzHu8cODC4e4rAWYfOoxvYVRDiub8blnCtlfOK6YiXAJMj3xhjbyv+NdyD6MMarHlpaEUx0TR3aMDaRAO3VDa+kqNrM5VQ87KN23W8dmMG3z3oO+8y9pfaSx+n9+khmUTQyG329LK47reP0lifKQkm3py1+qJoLrYWSVOCNSDvIBWj/c5aU7dek2jQ93NFOov9430mm46lQPQ=
+  app: openaq-fetch
+  on:
+    repo: openaq/openaq-fetch
+    branch: master

@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://www.aqmthai.com/index.php?lang=en",
+        "adapter": "thailand",
+        "name": "Thailand",
+        "city": "",
+        "country": "TH",
+        "description": "",
+        "resolution": "",
+        "sourceURL": "http://www.aqmthai.com/index.php",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]

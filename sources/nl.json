@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://www.lml.rivm.nl/sos/",
+        "adapter": "netherlands",
+        "name": "Netherlands",
+        "city": "",
+        "country": "NL",
+        "description": "",
+        "resolution": "1 hr",
+        "sourceURL": "http://www.lml.rivm.nl/sos/",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]

@@ -1,0 +1,67 @@
+[
+    {
+        "url": "https://www.kimonolabs.com/api/5gbpkj4a",
+        "adapter": "beijing",
+        "name": "Beijing US Embassy",
+        "city": "Beijing",
+        "country": "CN",
+        "description": "",
+        "resolution": "1 hr",
+        "sourceURL": "http://www.stateair.net/web/post/1/1.html",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    },
+    {
+        "url": "https://www.kimonolabs.com/api/bd87c7js",
+        "adapter": "beijing",
+        "name": "Chengdu",
+        "city": "Chengdu",
+        "country": "CN",
+        "description": "",
+        "resolution": "1 hr",
+        "sourceURL": "http://www.stateair.net/web/post/1/2.html",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    },
+    {
+        "url": "https://www.kimonolabs.com/api/d4wfxfl2",
+        "adapter": "beijing",
+        "name": "Guangzhou",
+        "city": "Guangzhou",
+        "country": "CN",
+        "description": "",
+        "resolution": "1 hr",
+        "sourceURL": "http://www.stateair.net/web/post/1/3.html",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    },
+    {
+        "url": "https://www.kimonolabs.com/api/7jec7wh2",
+        "adapter": "beijing",
+        "name": "Shanghai",
+        "city": "Shanghai",
+        "country": "CN",
+        "description": "",
+        "resolution": "1 hr",
+        "sourceURL": "http://www.stateair.net/web/post/1/4.html",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    },
+    {
+        "url": "https://www.kimonolabs.com/api/4lw816j4",
+        "adapter": "beijing",
+        "name": "Shenyang",
+        "city": "Shenyang",
+        "country": "CN",
+        "description": "",
+        "resolution": "1 hr",
+        "sourceURL": "http://www.stateair.net/web/post/1/5.html",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]

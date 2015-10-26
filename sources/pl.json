@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://sojp.wios.warszawa.pl/",
+        "adapter": "poland",
+        "name": "Poland",
+        "city": "unused",
+        "country": "PL",
+        "description": "",
+        "resolution": "1 hr",
+        "sourceURL": "http://sojp.wios.warszawa.pl/",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]

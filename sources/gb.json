@@ -1,0 +1,15 @@
+[
+    {
+        "url": "https://www.kimonolabs.com/api/ap7bzdcw",
+        "adapter": "london",
+        "name": "Greater London",
+        "city": "London",
+        "country": "GB",
+        "description": "",
+        "resolution": "1 hr",
+        "sourceURL": "http://uk-air.defra.gov.uk/latest/currentlevels",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]

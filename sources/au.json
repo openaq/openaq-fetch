@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://airquality.environment.nsw.gov.au/aquisnetnswphp/getPage.php?reportid=2",
+        "adapter": "nsw",
+        "name": "Australia - New South Wales",
+        "city": "",
+        "country": "AU",
+        "description": "Measurements from the Office of Environment & Heritage of the New South Wales government.",
+        "resolution": "1 hr",
+        "sourceURL": "http://www.environment.nsw.gov.au/AQMS/hourlydata.htm",
+        "contacts": [
+            "olaf@developmentseed.org"
+        ]
+    }
+]

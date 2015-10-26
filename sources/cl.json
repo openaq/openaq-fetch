@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://sinca.mma.gob.cl/index.php/json",
+        "adapter": "chile",
+        "name": "Chile - SINCA",
+        "city": "",
+        "country": "CL",
+        "description": "Measurements from SINCA, a Chilean agency part of the Ministry of Environment.",
+        "resolution": "1 hr",
+        "sourceURL": "http://sinca.mma.gob.cl/index.php/json",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]

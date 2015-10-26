@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://sistemasinter.cetesb.sp.gov.br/Ar/php/ar_dados_horarios_resultado.php",
+        "adapter": "saopaulo",
+        "name": "Sao Paulo",
+        "city": "Sao Paulo",
+        "country": "BR",
+        "description": "",
+        "resolution": "1 hr",
+        "sourceURL": "http://sistemasinter.cetesb.sp.gov.br/Ar/php/ar_dados_horarios.php",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]
