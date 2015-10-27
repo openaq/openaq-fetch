@@ -1,12 +1,12 @@
-# OpenAQ Platform API [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
-[![Build Status](https://travis-ci.org/openaq/openaq-api.svg?branch=master)](https://travis-ci.org/openaq/openaq-api)
+# OpenAQ Data Ingest Pipeline 
+[![Build Status](https://travis-ci.org/openaq/openaq-fetch.svg?branch=master)](https://travis-ci.org/openaq/openaq-fetch)
 
 ## Overview
-This is the main API for the [OpenAQ](https://openaq.org) project. The code in this repository serves two purposes.
+This is the main data ingest pipeline for the [OpenAQ](https://openaq.org) project.
 
 Starting with `fetch.js`, there is an ingest mechanism to gather global air quality measurements from a variety of sources. This is currently run every 10 minutes and saves all unique measurements to a database.
 
-Starting with `index.js`, there is a web-accessible API that provides endpoints to query the air quality measurements. Documentation can be found at [https://docs.openaq.org/](https://docs.openaq.org/).
+[openaq-api](https://github.com/openaq/openaq-api) powers the API and more information on the data format can be found in [openaq-data-format](https://github.com/openaq/openaq-data-format).
 
 ## Installing & Running
 To run the API locally, you will need both [Node.js](https://nodejs.org) and [MongoDB](https://www.mongodb.org/) installed.
@@ -15,17 +15,16 @@ Install necessary Node.js packages by running
 
 `npm install`
 
-Make sure you have MongoDB running locally and then you can start the app with
+Make sure you have MongoDB running locally and then you can get help with
 
-`npm start`
+`npm fetch.js --help`
 
 For the above to work, you will need to have certain environment variables set as in the table below
 
 | Name | Description | Default |
 |---|---|---|
-INDIA_KIMONO_TOKEN | Token to be used for accessing Kimono API | not set |
-MONGOLAB_URI | Database URL | mongodb://localhost:27017/openAQ |
-| NEW_RELIC_LICENSE_KEY | New Relic API key for system monitoring | not set |
+| INDIA_KIMONO_TOKEN | Token to be used for accessing Kimono API | not set |
+| MONGOLAB_URI | Database URL | mongodb://localhost:27017/openAQ |
 | SENDGRID_PASSWORD | Email service password | not set |
 | SENDGRID_USERNAME | Email service username | not set |
 
