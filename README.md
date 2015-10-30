@@ -27,6 +27,8 @@ For the above to work, you will need to have certain environment variables set a
 | MONGOLAB_URI | Database URL | mongodb://localhost:27017/openAQ |
 | SENDGRID_PASSWORD | Email service password | not set |
 | SENDGRID_USERNAME | Email service username | not set |
+| API_URL | URL of openaq-api | http://localhost:3004/v1/webhooks |
+| WEBHOOK_KEY | Secret key to interact with openaq-api | '123' |
 
 ## Tests
 To confirm that everything is working as expected, you can run the tests with
