@@ -20,11 +20,14 @@ var _ = require('lodash');
 var MongoClient = require('mongodb').MongoClient;
 var mailer = require('./lib/mailer');
 var utils = require('./lib/utils');
+var request = require('request');
 
 var adapters = require('./adapters');
 var sources = require('./sources');
 
 var dbURL = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/openAQ';
+var apiURL = process.env.API_URL || 'http://localhost:3004/v1/webhooks';
+var webhookKey = process.env.WEBHOOK_KEY || '123';
 var measurementsCollection;
 
 // Flatten the sources into a single array, taking into account sources argument
@@ -46,6 +49,20 @@ if (argv.source) {
 var findAdapter = function (name) {
   return _.find(adapters, function (a) {
     return a.name === name;
+  });
+};
+
+var sendUpdatedWebhook = function (cb) {
+  var form = {
+    key: webhookKey,
+    action: 'DATABASE_UPDATED'
+  };
+  request.post(apiURL, {form: form}, function (err, res, body) {
+    if (err) {
+      cb(err);
+    }
+
+    cb(null);
   });
 };
 
@@ -164,7 +181,18 @@ var runTasks = function (db) {
       db.close();
     }
 
-    return console.info('Have a good day!');
+    // Send out the webhook to openaq-api since we're all done
+    if (argv.dryrun) {
+      return console.info('Dryrun completed, have a good day!');
+    } else {
+      sendUpdatedWebhook(function (err) {
+        if (err) {
+          console.error(err);
+        }
+
+        return console.info('Webhook posted, have a good day!');
+      });
+    }
   });
 };
 

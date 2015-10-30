@@ -28,6 +28,8 @@ MONGOLAB_URI | Database URL | mongodb://localhost:27017/openAQ |
 | NEW_RELIC_LICENSE_KEY | New Relic API key for system monitoring | not set |
 | SENDGRID_PASSWORD | Email service password | not set |
 | SENDGRID_USERNAME | Email service username | not set |
+| API_URL | URL of openaq-api | http://localhost:3004/v1/webhooks |
+| WEBHOOK_KEY | Secret key to interact with openaq-api | '123' |
 
 ## Tests
 To confirm that everything is working as expected, you can run the tests with
