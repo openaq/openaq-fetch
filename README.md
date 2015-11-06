@@ -17,7 +17,7 @@ Install necessary Node.js packages by running
 
 Make sure you have MongoDB running locally and then you can get help with
 
-`npm fetch.js --help`
+`node fetch.js --help`
 
 For the above to work, you will need to have certain environment variables set as in the table below
 
