@@ -226,6 +226,11 @@ if (argv.dryrun) {
         });
       },
       function (done) {
+        measurementsCollection.createIndex({ 'city': 1, 'location': 1 }, { background: true }, function (err) {
+          done(err);
+        });
+      },
+      function (done) {
         measurementsCollection.createIndex({ 'country': 1, 'date.utc': -1 }, { background: true }, function (err) {
           done(err);
         });
