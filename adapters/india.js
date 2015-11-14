@@ -3,6 +3,7 @@
 var request = require('request');
 var _ = require('lodash');
 var moment = require('moment-timezone');
+var utils = require('../lib/utils');
 
 exports.name = 'india';
 
@@ -81,6 +82,9 @@ var formatData = function (data) {
   // Make sure the parameters/units names match with what the platform expects.
   renameParameters(parsed.measurements);
 
+  // Convert units to standards
+  parsed.measurements = utils.convertUnits(parsed.measurements);
+
   return parsed;
 };
 
@@ -99,6 +103,12 @@ var renameParameters = function (measurements) {
         break;
       case 'Ozone':
         m.parameter = 'o3';
+        break;
+      case 'Carbon Monoxide':
+        m.parameter = 'co';
+        break;
+      case 'Sulphur Dioxide':
+        m.parameter = 'so2';
         break;
     }
 
