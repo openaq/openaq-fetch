@@ -134,10 +134,7 @@ var formatData = function (body) {
     m.coordinates = coordinates[$($(row).children().get(0)).text().trim()];
 
     // Attribution
-    m.attribution = {
-      'name': 'Pollution Control Department',
-      'url': 'http://www.aqmthai.com/index.php'
-    };
+    m.attribution = [{'name': 'Pollution Control Department', 'url': 'http://www.aqmthai.com/index.php'}];
 
     // Unique CO measurement, if valid
     var value = $($(row).children().get(4)).text().trim();

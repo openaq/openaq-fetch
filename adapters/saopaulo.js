@@ -120,7 +120,7 @@ var formatData = function (results) {
 
     var base = {
       location: location,
-      attribution: {'name': 'CETESB', 'url': 'http://cetesb.sp.gov.br/'},
+      attribution: [{'name': 'CETESB', 'url': 'http://cetesb.sp.gov.br/'}],
       averagingPeriod: {'value': 1, 'unit': 'hours'}
     };
 

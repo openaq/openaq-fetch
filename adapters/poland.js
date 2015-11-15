@@ -130,7 +130,7 @@ var formatData = function (results) {
     var base = {
       location: location,
       city: city,
-      attribution: {'name': 'WIOS', 'url': 'http://sojp.wios.warszawa.pl/'},
+      attribution: [{'name': 'WIOS', 'url': 'http://sojp.wios.warszawa.pl/'}],
       averagingPeriod: {'value': 1, 'unit': 'hours'},
       coordinates: getCoordinates(id)
     };
