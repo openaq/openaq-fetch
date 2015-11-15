@@ -5,6 +5,7 @@ var _ = require('lodash');
 var moment = require('moment-timezone');
 var async = require('async');
 var cheerio = require('cheerio');
+var utils = require('../lib/utils');
 
 exports.name = 'saopaulo';
 
@@ -101,8 +102,10 @@ var formatData = function (results) {
   var niceUnit = function (string) {
     if (string.indexOf('&micro;g/m&sup3;') !== -1) {
       return 'µg/m³';
+    } else if (string.indexOf('ppm') !== -1) {
+      return 'ppm';
     } else {
-      console.warn('Unknown unit');
+      console.warn('Unknown unit', string);
       return undefined;
     }
   };
@@ -138,7 +141,7 @@ var formatData = function (results) {
       } else {
         // Other parameters, get title and see if we want to keep them
         var parameter = niceStrip($($(this).find('strong')).html());
-        if (['MP10', 'MP2.5', 'O3', 'SO2', 'NO2'].indexOf(parameter) !== -1) {
+        if (['MP10', 'MP2.5', 'O3', 'SO2', 'NO2', 'CO'].indexOf(parameter) !== -1) {
           var unit = niceUnit($($($(this).find('strong')).parent()).text());
           $(this).children().each(function (j) {
             if (j >= 2) { // Skip firs two rows
@@ -161,5 +164,7 @@ var formatData = function (results) {
     });
   });
 
+  // Convert units to platform standard
+  measurements = utils.convertUnits(measurements);
   return {name: 'unused', measurements: measurements};
 };
