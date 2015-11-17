@@ -1,13 +1,12 @@
 [
     {
-        "url": "http://www.tceq.state.tx.us/cgi-bin/compliance/monops/daily_summary.pl",
-        "adapter": "texas",
-        "name": "Texas",
+        "url": "http://www.airnow.gov/",
+        "adapter": "airnow",
+        "name": "AirNow",
         "city": "",
-        "country": "US",
+        "country": "",
         "description": "",
-        "resolution": "",
-        "sourceURL": "http://www.tceq.state.tx.us/cgi-bin/compliance/monops/daily_summary.pl",
+        "sourceURL": "ftp.airnowapi.org",
         "contacts": [
             "info@openaq.org"
         ]
