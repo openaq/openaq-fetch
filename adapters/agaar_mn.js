@@ -84,7 +84,11 @@ var formatData = function (data) {
         date: date,
         value: Number(m.value),
         unit: 'µg/m³',
-        coordinates: m.coordinates
+        coordinates: m.coordinates,
+        attribution: [
+          {name: 'Agaar.mn', url: 'http://agaar.mn/'},
+          {name: 'National Agency of Meteorology and Environmental Monitoring', url: 'http://namem.gov.mn'}
+        ]
       };
     });
     l.measurements = measurements;
