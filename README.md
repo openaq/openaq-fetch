@@ -35,5 +35,19 @@ To confirm that everything is working as expected, you can run the tests with
 
 `npm test`
 
+## Data Source Criteria
+This section lists the key criteria for air quality data aggregated onto the platform. A full explanation can be accessed here [will add once posted].OpenAQ is an ever-evolving process that is shaped by its community: your feedback and questions are actively invited on the criteria listed in this section. 
+
+(1) Data must be of one of these pollutant types: PM10, PM2.5, sulfur dioxide (SO2), carbon monoxide (CO), nitrogen dioxide (NO2), ozone (O3), and black carbon (BC). 
+
+(2) Data must be from an official-level outdoor air quality source, as defined as data produced by a government entity or international organization. We do not, at this stage, include data from low-cost, temporary, and/or indoor sensors. 
+
+(3) Data must be ‘raw’ and reported in physical concentrations on their originating site. Data cannot be shared in an 'Air Quality Index' or equivalent (e.g. AQI, PSI, API) format.
+
+(4) Data must be at the ‘station-level,’ associable with geographic coordinates, not aggregated into a higher (e.g. city) level.
+
+(5) Data must be from measurements averaged between 10 minutes and 24 hours. 
+
+
 ## Contributing
 There are a lot of ways to contribute to this project, more details can be found in the [contributing guide](CONTRIBUTING.md). 
