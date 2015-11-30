@@ -36,7 +36,7 @@ To confirm that everything is working as expected, you can run the tests with
 `npm test`
 
 ## Data Source Criteria
-This section lists the key criteria for air quality data aggregated onto the platform. A full explanation can be accessed here [https://medium.com/@openaq/where-does-openaq-data-come-from-a5cf9f3a5c85#.919hlx2by].OpenAQ is an ever-evolving process that is shaped by its community: your feedback and questions are actively invited on the criteria listed in this section. 
+This section lists the key criteria for air quality data aggregated onto the platform. A full explanation can be accessed here [https://medium.com/@openaq/where-does-openaq-data-come-from-a5cf9f3a5c85#.919hlx2by]. OpenAQ is an ever-evolving process that is shaped by its community: your feedback and questions are actively invited on the criteria listed in this section. 
 
 (1) Data must be of one of these pollutant types: PM10, PM2.5, sulfur dioxide (SO2), carbon monoxide (CO), nitrogen dioxide (NO2), ozone (O3), and black carbon (BC). 
 
