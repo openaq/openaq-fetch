@@ -11,5 +11,17 @@
         "contacts": [
             "info@openaq.org"
         ]
+    },
+    {
+        "url": "http://stateair.net/dos/RSS/Ulaanbaatar/Ulaanbaatar-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Ulaanbaatar",
+        "city": "Ulaanbaatar",
+        "country": "MN",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ]
     }
 ]
