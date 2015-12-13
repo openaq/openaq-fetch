@@ -1,0 +1,14 @@
+{
+    "family": "openaq-fetch",
+    "containerDefinitions": [
+        {
+            "name": "openaq-fetch",
+            "image": "flasher/openaq-fetch",
+            "memory": 400,
+            "command": [
+                "npm",
+                "start"
+            ]
+        }
+    ]
+}

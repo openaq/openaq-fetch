@@ -21,6 +21,7 @@ var MongoClient = require('mongodb').MongoClient;
 var mailer = require('./lib/mailer');
 var utils = require('./lib/utils');
 var request = require('request');
+var log = require('./lib/logger');
 
 var adapters = require('./adapters');
 var sources = require('./sources');
@@ -28,6 +29,7 @@ var sources = require('./sources');
 var dbURL = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/openAQ';
 var apiURL = process.env.API_URL || 'http://localhost:3004/v1/webhooks';
 var webhookKey = process.env.WEBHOOK_KEY || '123';
+var fetchInterval = process.env.FETCH_INTERVAL || 10 * 60 * 1000; // Default to 10 minutes
 var measurementsCollection;
 
 // Flatten the sources into a single array, taking into account sources argument
@@ -37,7 +39,7 @@ if (argv.source) {
 
   // Check here to make sure we have at least one valid source
   if (!sources) {
-    console.error('I\'m sorry Dave, I searched all known sources and can\'t ' +
+    log.error('I\'m sorry Dave, I searched all known sources and can\'t ' +
       'find anything for', argv.source);
     process.exit(1);
   }
@@ -75,7 +77,9 @@ var getAndSaveData = function (source) {
       return done(null, err);
     }
 
+    log.profile(source.name + ' fetch completed');
     adapter.fetchData(source, function (err, data) {
+      log.profile(source.name + ' fetch completed');
       // If we have an error, send an email to the contacts and stop
       if (err) {
         // Don't send an email if it's a dry run or noemail flag is set
@@ -134,7 +138,7 @@ var getAndSaveData = function (source) {
 
         // Save or print depending on the state
         if (argv.dryrun) {
-          console.info(m);
+          log.info(JSON.stringify(m));
         } else {
           bulk.insert(m);
         }
@@ -166,31 +170,29 @@ var tasks = _.map(sources, function (source) {
 });
 
 var runTasks = function (db) {
+  log.info('Running all fetch tasks.');
   async.parallel(tasks, function (err, results) {
     if (err) {
-      console.error(err);
+      log.error(err);
     } else {
       if (!argv.dryrun) {
-        console.info('All data grabbed and saved.');
+        log.info('All data grabbed and saved.');
       }
-      console.info(results);
-    }
-
-    // Close the database if it exists
-    if (db) {
-      db.close();
+      results.forEach(function (r) {
+        log.info(r);
+      });
     }
 
     // Send out the webhook to openaq-api since we're all done
     if (argv.dryrun) {
-      return console.info('Dryrun completed, have a good day!');
+      return log.info('Dryrun completed, have a good day!');
     } else {
       sendUpdatedWebhook(function (err) {
         if (err) {
-          console.error(err);
+          log.error(err);
         }
 
-        return console.info('Webhook posted, have a good day!');
+        return log.info('Webhook posted, have a good day!');
       });
     }
   });
@@ -198,14 +200,14 @@ var runTasks = function (db) {
 
 // Branch here depending on whether this is a dryrun or not
 if (argv.dryrun) {
-  console.info('--- Dry run for Testing, nothing is saved to the database. ---');
+  log.info('--- Dry run for Testing, nothing is saved to the database. ---');
   runTasks();
 } else {
   MongoClient.connect(dbURL, function (err, db) {
     if (err) {
-      return console.error(err);
+      return log.error(err);
     }
-    console.info('Connected to database.');
+    log.info('Connected to database.');
 
     // Get collection and ensure indexes
     measurementsCollection = db.collection('measurements');
@@ -248,10 +250,12 @@ if (argv.dryrun) {
     ], function (err, results) {
       if (err) {
         db.close();
-        return console.error(err);
+        log.error(err);
+        process.exit(1);
       }
-      console.info('Indexes created and database ready to go.');
+      log.info('Indexes created and database ready to go.');
       runTasks(db);
+      setInterval(function () { runTasks(db); }, fetchInterval);
     });
   });
 }

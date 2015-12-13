@@ -38,7 +38,7 @@ exports.fetchData = function (source, cb) {
 
     async.series(tasks, function (err, results) {
       if (err) {
-        return console.error(err);
+        return cb({message: 'Failure to load data urls.'});
       }
 
       // Wrap everything in a try/catch in case something goes wrong

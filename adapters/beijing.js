@@ -3,6 +3,7 @@
 var request = require('request');
 var _ = require('lodash');
 var moment = require('moment-timezone');
+var log = require('../lib/logger');
 
 exports.name = 'beijing';
 
@@ -10,7 +11,7 @@ exports.fetchData = function (source, cb) {
   var finalURL = source.url + '?apitoken=' + process.env.INDIA_KIMONO_TOKEN;
   request(finalURL, function (err, res, body) {
     if (err || res.statusCode !== 200) {
-      console.error(err || res);
+      log.error(err || res);
       return cb({message: 'Failure to load data url.'});
     }
 

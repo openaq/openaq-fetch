@@ -5,6 +5,7 @@ var _ = require('lodash');
 var cheerio = require('cheerio');
 var async = require('async');
 var moment = require('moment-timezone');
+var log = require('../lib/logger');
 
 exports.name = 'netherlands';
 
@@ -12,7 +13,7 @@ exports.fetchData = function (source, cb) {
   var finalURL = source.url;
   request(finalURL, function (err, res, body) {
     if (err || res.statusCode !== 200) {
-      console.error(err || res);
+      log.error(err || res);
       return cb({message: 'Failure to load data url.'});
     }
 
@@ -46,7 +47,7 @@ exports.fetchData = function (source, cb) {
 
     async.parallel(tasks, function (err, results) {
       if (err) {
-        return console.error(err);
+        return cb({message: 'Failure to load data urls.'});
       }
 
       var result = {

@@ -4,7 +4,7 @@
 ## Overview
 This is the main data ingest pipeline for the [OpenAQ](https://openaq.org) project.
 
-Starting with `fetch.js`, there is an ingest mechanism to gather global air quality measurements from a variety of sources. This is currently run every 10 minutes and saves all unique measurements to a database.
+Starting with `index.js`, there is an ingest mechanism to gather global air quality measurements from a variety of sources. This is currently run every 10 minutes and saves all unique measurements to a database.
 
 [openaq-api](https://github.com/openaq/openaq-api) powers the API and more information on the data format can be found in [openaq-data-format](https://github.com/openaq/openaq-data-format).
 
@@ -17,7 +17,7 @@ Install necessary Node.js packages by running
 
 Make sure you have MongoDB running locally and then you can get help with
 
-`node fetch.js --help`
+`node index.js --help`
 
 For the above to work, you will need to have certain environment variables set as in the table below
 
@@ -29,11 +29,15 @@ For the above to work, you will need to have certain environment variables set a
 | SENDGRID_USERNAME | Email service username | not set |
 | API_URL | URL of openaq-api | http://localhost:3004/v1/webhooks |
 | WEBHOOK_KEY | Secret key to interact with openaq-api | '123' |
+| FETCH_INTERVAL | How often to run fetch tasks | 10 minutes |
 
 ## Tests
 To confirm that everything is working as expected, you can run the tests with
 
 `npm test`
+
+## Deployment
+Deployment is handled automatically via Travis on the `master` branch and is deployed to Amazon's ECS.
 
 ## Data Source Criteria
 This section lists the key criteria for air quality data aggregated onto the platform. A full explanation can be accessed here [https://medium.com/@openaq/where-does-openaq-data-come-from-a5cf9f3a5c85#.919hlx2by]. OpenAQ is an ever-evolving process that is shaped by its community: your feedback and questions are actively invited on the criteria listed in this section. 

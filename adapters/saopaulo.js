@@ -6,6 +6,7 @@ var moment = require('moment-timezone');
 var async = require('async');
 var cheerio = require('cheerio');
 var utils = require('../lib/utils');
+var log = require('../lib/logger');
 
 exports.name = 'saopaulo';
 
@@ -41,7 +42,7 @@ exports.fetchData = function (source, cb) {
 
     async.parallelLimit(tasks, 4, function (err, results) {
       if (err) {
-        return console.error(err);
+        return cb({message: 'Failure to load data urls.'});
       }
 
       // Wrap everything in a try/catch in case something goes wrong
@@ -105,7 +106,7 @@ var formatData = function (results) {
     } else if (string.indexOf('ppm') !== -1) {
       return 'ppm';
     } else {
-      console.warn('Unknown unit', string);
+      log.warn('Unknown unit', string);
       return undefined;
     }
   };

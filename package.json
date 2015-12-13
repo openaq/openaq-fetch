@@ -5,7 +5,9 @@
   "repository": "https://github.com/openaq/openaq-fetch",
   "scripts": {
     "lint": "semistandard",
-    "test": "mocha test/**"
+    "test": "semistandard && mocha test/**",
+    "start": "node index.js --noemail",
+    "docker": "docker-compose --project openaq run --rm fetch"
   },
   "author": "Joe Flasher",
   "license": "MIT",
@@ -16,9 +18,12 @@
     "moment": "^2.10.3",
     "moment-timezone": "^0.4.0",
     "mongodb": "^2.0.45",
+    "newrelic": "^1.24.0",
     "request": "^2.58.0",
     "require-dir": "^0.3.0",
     "sendgrid": "^1.9.0",
+    "winston": "^2.1.1",
+    "winston-papertrail": "^1.0.2",
     "yargs": "^3.25.0"
   },
   "devDependencies": {

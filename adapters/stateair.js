@@ -4,13 +4,14 @@ var request = require('request');
 var _ = require('lodash');
 var moment = require('moment-timezone');
 var cheerio = require('cheerio');
+var log = require('../lib/logger');
 
 exports.name = 'stateair';
 
 exports.fetchData = function (source, cb) {
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
-      console.error(err || res);
+      log.error(err || res);
       return cb({message: 'Failure to load data url.'});
     }
 
