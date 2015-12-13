@@ -27,7 +27,7 @@ exports.fetchData = function (source, cb) {
 
   async.parallel(tasks, function (err, results) {
     if (err) {
-      return console.log(err);
+      return cb({message: 'Failure to load data urls.'});
     }
 
     // Wrap everything in a try/catch in case something goes wrong
