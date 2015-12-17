@@ -1,3 +1,10 @@
+/**
+ * This code is responsible for implementing all methods related to fetching
+ * and returning data for the Chilean data sources.
+ *
+ * This is a two-stage adapter requiring loading multiple urls before parsing
+ * data.
+ */
 'use strict';
 
 var request = require('request');
@@ -7,6 +14,11 @@ var async = require('async');
 
 exports.name = 'chile';
 
+/**
+ * Fetches the data for a given source and returns an appropriate object
+ * @param {object} source A valid source object
+ * @param {function} cb A callback of the form cb(err, data)
+ */
 exports.fetchData = function (source, cb) {
   // Fetch both the measurements and meta-data about the locations
   var sources = [source.url, 'http://sinca.mma.gob.cl/index.php/json/listado'];
@@ -44,6 +56,11 @@ exports.fetchData = function (source, cb) {
   });
 };
 
+/**
+ * Given fetched data, turn it into a format our system can use.
+ * @param {array} results Fetched source data and other metadata
+ * @return {object} Parsed and standarized data our system can use
+ */
 var formatData = function (results) {
   try {
     var data = JSON.parse(results[0]);
@@ -67,19 +84,32 @@ var formatData = function (results) {
     '0008': 'o3' // Ozono
   };
 
-  // Fetch the city (comuna) from a separate meta endpoint
+  /**
+   * Fetch the city (comuna) from the metadata endpoint
+   * @param {string} id The communa id
+   * @return {string} The communa name
+   */
   var getComuna = function (id) {
     var s = _.get(_.find(meta, _.matchesProperty('key', id)), 'comuna');
     return s;
   };
 
+  /**
+   * Given a measurement object, convert to system appropriate times.
+   * @param {object} m A source measurement object
+   * @return {object} An object containing both UTC and local times
+   */
   var parseDate = function (m) {
     var date = moment.tz(m.date + m.hour, 'YYYY-MM-DDHH:mm', 'America/Santiago');
 
     return {utc: date.toDate(), local: date.format()};
   };
 
-  // Make 'µg/m³' pretty
+  /**
+   * Make 'µg/m³' pretty
+   * @param {string} u The measurement unit
+   * @return {string} It's pretty!
+   */
   var parseUnit = function (u) {
     return (u === '&micro;g/m<sup>3</sup>' || u === '&micro;g/Nm<sup>3</sup>') ? 'µg/m³' : u;
   };

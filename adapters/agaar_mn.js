@@ -1,3 +1,10 @@
+/**
+ * This code is responsible for implementing all methods related to fetching
+ * and returning data for the Agaar.mn data sources.
+ *
+ * This is a fairly clean adapter since we're able to call a data API and not
+ * scrape the source.
+ */
 'use strict';
 
 var request = require('request');
@@ -7,6 +14,11 @@ var log = require('../lib/logger');
 
 exports.name = 'agaar_mn';
 
+/**
+ * Fetches the data for a given source and returns an appropriate object
+ * @param {object} source A valid source object
+ * @param {function} cb A callback of the form cb(err, data)
+ */
 exports.fetchData = function (source, cb) {
   var finalURL = source.url;
   request(finalURL, function (err, res, body) {
@@ -31,6 +43,11 @@ exports.fetchData = function (source, cb) {
   });
 };
 
+/**
+ * Given fetched data, turn it into a format our system can use.
+ * @param {object} data Fetched source data
+ * @return {object} Parsed and standarized data our system can use
+ */
 var formatData = function (data) {
   // Wrap the JSON.parse() in a try/catch in case it fails
   try {
@@ -40,6 +57,11 @@ var formatData = function (data) {
     return undefined;
   }
 
+  /**
+   * Given a date string, convert to system appropriate times.
+   * @param {string} dateString Date in string format coming from source data
+   * @return {object} An object containing both UTC and local times
+   */
   var getDate = function (dateString) {
     var m = moment.tz(dateString, 'YYYY-MM-DD HH:mm', 'Asia/Ulaanbaatar');
 
