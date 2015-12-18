@@ -1,3 +1,10 @@
+/**
+ * This is the main code to kick off the data fetching processes, handle their
+ * results, saving to a database and repeating the process... forever.
+ *
+ * There are helpful command line shortcuts, all described with
+ * `node index.js --help`.
+ */
 'use strict';
 
 // Set up command line arguments
@@ -48,12 +55,21 @@ if (argv.source) {
   sources = [sources];
 }
 
+/**
+ * Find the adapter for a given source
+ * @param {string} name An adapter name
+ * @return {Adapter} The associated adapter
+ */
 var findAdapter = function (name) {
   return _.find(adapters, function (a) {
     return a.name === name;
   });
 };
 
+/**
+* Ping openaq-api to let it know data fetching is complete
+* @param {function} cb A function of form func(error) called on completion
+*/
 var sendUpdatedWebhook = function (cb) {
   var form = {
     key: webhookKey,
@@ -68,6 +84,12 @@ var sendUpdatedWebhook = function (cb) {
   });
 };
 
+/**
+ * Create a function to ask the adapter for data, verify the data and attempt
+ * to save to a database when appropriate (i.e., not running with `--dryrun`).
+ * @param {object} source A source object
+ * @return {function} The function to make the magic happen
+ */
 var getAndSaveData = function (source) {
   return function (done) {
     // Get the appropriate adapter
@@ -169,7 +191,10 @@ var tasks = _.map(sources, function (source) {
   return getAndSaveData(source);
 });
 
-var runTasks = function (db) {
+/**
+ * Run all the data fetch tasks in parallel, simply logs out results
+ */
+var runTasks = function () {
   log.info('Running all fetch tasks.');
   async.parallel(tasks, function (err, results) {
     if (err) {

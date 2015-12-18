@@ -1,3 +1,9 @@
+/**
+ * This code is responsible for implementing all methods related to fetching
+ * and returning data for the Beijing Kimono data source.
+ *
+ * @todo This should most likely be moved to a new, consolidated adapter in the future.
+ */
 'use strict';
 
 var request = require('request');
@@ -7,6 +13,11 @@ var log = require('../lib/logger');
 
 exports.name = 'beijing';
 
+/**
+ * Fetches the data for a given source and returns an appropriate object
+ * @param {object} source A valid source object
+ * @param {function} cb A callback of the form cb(err, data)
+ */
 exports.fetchData = function (source, cb) {
   var finalURL = source.url + '?apitoken=' + process.env.INDIA_KIMONO_TOKEN;
   request(finalURL, function (err, res, body) {
@@ -31,6 +42,11 @@ exports.fetchData = function (source, cb) {
   });
 };
 
+/**
+ * Given fetched data, turn it into a format our system can use.
+ * @param {object} data Fetched source data
+ * @return {object} Parsed and standarized data our system can use
+ */
 var formatData = function (data) {
   // Wrap the JSON.parse() in a try/catch in case it fails
   try {
@@ -40,6 +56,11 @@ var formatData = function (data) {
     return undefined;
   }
 
+  /**
+   * Turns the source value strings into something useable by the system.
+   * @param {string} measuredValue Value string from source
+   * @return {object} An object containing value and unit for measure value
+   */
   var getValue = function (measuredValue) {
     var idx = measuredValue.indexOf('\n');
     var idx2 = measuredValue.indexOf(' ', idx);
@@ -49,6 +70,11 @@ var formatData = function (data) {
     };
   };
 
+  /**
+   * Given a date string, convert to system appropriate times.
+   * @param {string} dateString Date in string format coming from source data
+   * @return {object} An object containing both UTC and local times
+   */
   var getDate = function (dateString) {
     var date = moment.tz(dateString, 'MMM DD, YYYY h A', 'Asia/Shanghai');
 
