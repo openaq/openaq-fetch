@@ -1,0 +1,14 @@
+[
+    {
+        "url": "http://stateair.net/dos/RSS/JakartaSouth/JakartaSouth-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_JakartaSouth",
+        "city": "Jakarta",
+        "country": "ID",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]
