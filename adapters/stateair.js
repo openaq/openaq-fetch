@@ -45,6 +45,8 @@ var formatData = function (data) {
           return 'Asia/Ho_Chi_Minh';
         case 'Ulaanbaatar':
           return 'Asia/Ulaanbaatar';
+        case 'Jakarta South':
+          return 'Asia/Jakarta';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -88,6 +90,11 @@ var formatData = function (data) {
         return {
           latitude: 47.928444,
           longitude: 106.930189
+        }; // Jakarta coordinates assume location is at Embassy
+      case 'Jakarta South':
+        return {
+          latitude: -6.181315,
+          longitude: 106.830393
         };
     }
   };
