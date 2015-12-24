@@ -46,6 +46,7 @@ var formatData = function (data) {
         case 'Ulaanbaatar':
           return 'Asia/Ulaanbaatar';
         case 'Jakarta South':
+        case 'Jakarta Central':
           return 'Asia/Jakarta';
       }
     };
@@ -95,6 +96,11 @@ var formatData = function (data) {
         return {
           latitude: -6.236585,
           longitude: 106.793335
+        };
+      case 'Jakarta Central':
+        return {
+          latitude: -6.182382,
+          longitude: 106.834094
         };
     }
   };
