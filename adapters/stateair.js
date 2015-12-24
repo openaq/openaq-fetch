@@ -93,8 +93,8 @@ var formatData = function (data) {
         }; // Jakarta coordinates assume location is at Embassy
       case 'Jakarta South':
         return {
-          latitude: -6.181315,
-          longitude: 106.830393
+          latitude: -6.236585,
+          longitude: 106.793335
         };
     }
   };
