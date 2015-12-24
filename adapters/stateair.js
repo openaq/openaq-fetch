@@ -47,6 +47,8 @@ var formatData = function (data) {
           return 'Asia/Ulaanbaatar';
         case 'Jakarta South':
           return 'Asia/Jakarta';
+        case 'Jakarta Central':
+          return 'Asia/Jakarta';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -95,6 +97,11 @@ var formatData = function (data) {
         return {
           latitude: -6.236585,
           longitude: 106.793335
+        };
+        case 'Jakarta Central':
+        return {
+          latitude: -6.182382,
+          longitude: 106.834094
         };
     }
   };
