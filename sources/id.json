@@ -10,5 +10,17 @@
         "contacts": [
             "info@openaq.org"
         ]
+    },
+    {
+        "url": "http://stateair.net/dos/RSS/JakartaCentral/JakartaCentral-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_JakartaCentral",
+        "city": "Jakarta",
+        "country": "ID",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ]
     }
 ]
