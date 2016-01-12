@@ -1,6 +1,6 @@
 [
     {
-        "url": "https://www.kimonolabs.com/api/30b0dj1s",
+        "url": "http://www.kimonolabs.com/api/30b0dj1s",
         "adapter": "india",
         "name": "Punjabi Bagh",
         "city": "Delhi",
@@ -13,7 +13,7 @@
         ]
     },
     {
-        "url": "https://www.kimonolabs.com/api/5mc6ho1s",
+        "url": "http://www.kimonolabs.com/api/5mc6ho1s",
         "adapter": "india",
         "name": "Mandir Marg",
         "city": "Delhi",
@@ -26,7 +26,7 @@
         ]
     },
     {
-        "url": "https://www.kimonolabs.com/api/a9akl4xi",
+        "url": "http://www.kimonolabs.com/api/a9akl4xi",
         "adapter": "india",
         "name": "RK Puram",
         "city": "Delhi",
@@ -39,7 +39,7 @@
         ]
     },
     {
-        "url": "https://www.kimonolabs.com/api/2m04inns",
+        "url": "http://www.kimonolabs.com/api/2m04inns",
         "adapter": "india",
         "name": "Anand Vihar",
         "city": "Delhi",
