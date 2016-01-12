@@ -1,6 +1,6 @@
 [
     {
-        "url": "https://www.kimonolabs.com/api/5gbpkj4a",
+        "url": "http://www.kimonolabs.com/api/5gbpkj4a",
         "adapter": "beijing",
         "name": "Beijing US Embassy",
         "city": "Beijing",
@@ -13,7 +13,7 @@
         ]
     },
     {
-        "url": "https://www.kimonolabs.com/api/bd87c7js",
+        "url": "http://www.kimonolabs.com/api/bd87c7js",
         "adapter": "beijing",
         "name": "Chengdu",
         "city": "Chengdu",
@@ -26,7 +26,7 @@
         ]
     },
     {
-        "url": "https://www.kimonolabs.com/api/d4wfxfl2",
+        "url": "http://www.kimonolabs.com/api/d4wfxfl2",
         "adapter": "beijing",
         "name": "Guangzhou",
         "city": "Guangzhou",
@@ -39,7 +39,7 @@
         ]
     },
     {
-        "url": "https://www.kimonolabs.com/api/7jec7wh2",
+        "url": "http://www.kimonolabs.com/api/7jec7wh2",
         "adapter": "beijing",
         "name": "Shanghai",
         "city": "Shanghai",
@@ -52,7 +52,7 @@
         ]
     },
     {
-        "url": "https://www.kimonolabs.com/api/4lw816j4",
+        "url": "http://www.kimonolabs.com/api/4lw816j4",
         "adapter": "beijing",
         "name": "Shenyang",
         "city": "Shenyang",
