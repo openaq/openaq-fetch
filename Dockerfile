@@ -44,7 +44,7 @@ COPY package.json /app/package.json
 WORKDIR /app
 RUN source $NVM_DIR/nvm.sh; npm install
 # Copy the app
-COPY ["index.js", "newrelic.js", "knexfile.js", /app/"]
+COPY ["index.js", "newrelic.js", "knexfile.js", "/app/"]
 COPY ["fetch.js", "/app/"]
 COPY lib /app/lib/
 COPY test /app/test/
