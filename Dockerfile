@@ -50,6 +50,7 @@ COPY lib /app/lib/
 COPY test /app/test/
 COPY sources /app/sources/
 COPY adapters /app/adapters/
+COPY migrations /app/migrations/
 
 #############################
 # entrypoint
