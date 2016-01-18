@@ -6,13 +6,17 @@ env:
   global:
   - PRODUCTION_BRANCH=master
 cache:
+  apt: true
   directories:
   - "$HOME/docker"
+  - node_modules
 services:
 - docker
 before_install:
 - chmod +x ./.build_scripts/build.sh
 - chmod +x ./.build_scripts/deploy.sh
+- sudo apt-get -qq update
+- sudo apt-get install -y jq
 after_success:
 - ".build_scripts/build.sh"
 deploy:

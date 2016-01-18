@@ -9,13 +9,15 @@ if [ ! -z "$1" ]
         aws="aws --profile $1"
 fi
 
-echo "Getting the revision of the old task"
+echo "Starting AWS ECS deploy for cluster $ECS_CLUSTER."
 # This should be updated to check for running revision, not necessarily latest revision
-OLD_VERSION=$($aws ecs describe-task-definition --task-definition openaq-fetch | sed -n "/revision/p" | grep -o "[0-9]\+")
+RUNNING_SERVICE=$($aws ecs describe-services --services openaq-api --cluster $ECS_CLUSTER | jq '.services[0].taskDefinition' | grep -o "openaq-api:[0-9]\+")
 # Grab this so we're not trying to deploy latest, but rather the last good image
-CURRENT_HASH=$($aws ecs describe-task-definition --task-definition openaq-fetch | grep -o "flasher/openaq-fetch:[a-zA-Z_0-9]\+")
+# Grab the hash for the running service in case we don't have a new commit hash
+# to use later.
+CURRENT_HASH=$($aws ecs describe-task-definition --task-definition $RUNNING_SERVICE | jq '.taskDefinition.containerDefinitions[0].image' | tr -d '"')
 export CURRENT_HASH=$CURRENT_HASH
-echo "Current revision of ECS task is $OLD_VERSION"
+echo "Current revision of ECS task is $RUNNING_SERVICE"
 echo "Current Docker image is $CURRENT_HASH"
 
 echo "Stopping the current task revision"

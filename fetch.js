@@ -24,7 +24,8 @@ var argv = require('yargs')
 
 var async = require('async');
 var _ = require('lodash');
-var MongoClient = require('mongodb').MongoClient;
+var knex = require('knex');
+let knexConfig = require('./knexfile');
 var mailer = require('./lib/mailer');
 var utils = require('./lib/utils');
 var request = require('request');
@@ -33,11 +34,11 @@ var log = require('./lib/logger');
 var adapters = require('./adapters');
 var sources = require('./sources');
 
-var dbURL = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/openAQ';
 var apiURL = process.env.API_URL || 'http://localhost:3004/v1/webhooks';
 var webhookKey = process.env.WEBHOOK_KEY || '123';
 var fetchInterval = process.env.FETCH_INTERVAL || 10 * 60 * 1000; // Default to 10 minutes
-var measurementsCollection;
+let pg;
+let st;
 
 // Flatten the sources into a single array, taking into account sources argument
 sources = _.chain(sources).values().flatten().value();
@@ -82,6 +83,32 @@ var sendUpdatedWebhook = function (cb) {
 
     cb(null);
   });
+};
+
+/**
+ * Build an object that can be inserted into our database.
+ * @param {object} m measurement object
+ * @return {object} an object capable of being saved into the PostgreSQL database
+ */
+let buildSQLObject = function (m) {
+  let obj = {
+    location: m.location,
+    value: m.value,
+    unit: m.unit,
+    parameter: m.parameter,
+    country: m.country,
+    city: m.city,
+    source_name: m.sourceName,
+    date_utc: m.date.utc
+  };
+  // Copy object JSON to the data field
+  obj.data = _.assign({}, m);
+  // If we have coordinates, save them with postgis
+  if (m.coordinates) {
+    obj.coordinates = st.geomFromText(`Point(${m.coordinates.longitude} ${m.coordinates.latitude})`, 4326);
+  }
+
+  return obj;
 };
 
 /**
@@ -143,7 +170,7 @@ var getAndSaveData = function (source) {
 
       // We can cut out some of the db related tasks if this is a dry run
       if (!argv.dryrun) {
-        var bulk = measurementsCollection.initializeUnorderedBulkOp();
+        var inserts = [];
       }
       _.forEach(data.measurements, function (m) {
         // Set defaults on measurement if needed
@@ -162,7 +189,7 @@ var getAndSaveData = function (source) {
         if (argv.dryrun) {
           log.info(JSON.stringify(m));
         } else {
-          bulk.insert(m);
+          inserts.push(buildSQLObject(m));
         }
       });
       if (argv.dryrun) {
@@ -172,13 +199,41 @@ var getAndSaveData = function (source) {
         };
         done(null, msg);
       } else {
-        bulk.execute(function (err, result) {
+        // We're running each insert task individually so we can catch any
+        // duplicate errors. Good idea? Who knows!
+        let insertRecord = function (record) {
+          return function (done) {
+            pg('measurements')
+              .returning('location')
+              .insert(record)
+              .then((loc) => {
+                done(null, {status: 'new'});
+              })
+              .catch((e) => {
+                // Log out an error if it's not an failed duplicate insert
+                if (e.code === '23505') {
+                  return done(null, {status: 'duplicate'});
+                }
+
+                log.error(e);
+                done(e);
+              });
+          };
+        };
+        let tasks = inserts.map((i) => {
+          return insertRecord(i);
+        });
+        async.parallel(tasks, function (err, results) {
           if (err) {
-            // No need to log this out for now
+            return done(err);
           }
-          var msg = {
-            message: 'New measurements inserted for ' + source.name + ': ' + result.nInserted,
-            source: source.name
+
+          // Get rid of duplicates in results array to get actual insert number
+          results = _.filter(results, (r) => {
+            return r.status !== 'duplicate';
+          });
+          let msg = {
+            message: `New measurements inserted for ${source.name}: ${results.length}`
           };
           done(null, msg);
         });
@@ -228,59 +283,19 @@ if (argv.dryrun) {
   log.info('--- Dry run for Testing, nothing is saved to the database. ---');
   runTasks();
 } else {
-  MongoClient.connect(dbURL, function (err, db) {
-    if (err) {
-      return log.error(err);
-    }
-    log.info('Connected to database.');
+  // Set up DB and add in postgis features
+  pg = knex(knexConfig);
+  st = require('knex-postgis')(pg);
+  log.info('Connected to database.');
 
-    // Get collection and ensure indexes
-    measurementsCollection = db.collection('measurements');
-    async.parallel([
-      function (done) {
-        measurementsCollection.createIndex({ location: 1, parameter: 1, 'date.utc': 1 }, { unique: true }, function (err) {
-          done(err);
-        });
-      },
-      function (done) {
-        measurementsCollection.createIndex({ city: 1 }, { background: true }, function (err) {
-          done(err);
-        });
-      },
-      function (done) {
-        measurementsCollection.createIndex({ 'date.utc': 1 }, { background: true }, function (err) {
-          done(err);
-        });
-      },
-      function (done) {
-        measurementsCollection.createIndex({ 'city': 1, 'location': 1 }, { background: true }, function (err) {
-          done(err);
-        });
-      },
-      function (done) {
-        measurementsCollection.createIndex({ 'country': 1, 'date.utc': -1 }, { background: true }, function (err) {
-          done(err);
-        });
-      },
-      function (done) {
-        measurementsCollection.createIndex({ 'country': 1 }, { background: true }, function (err) {
-          done(err);
-        });
-      },
-      function (done) {
-        measurementsCollection.createIndex({ 'location': 1, 'date.utc': -1 }, { background: true }, function (err) {
-          done(err);
-        });
-      }
-    ], function (err, results) {
-      if (err) {
-        db.close();
-        log.error(err);
-        process.exit(1);
-      }
-      log.info('Indexes created and database ready to go.');
-      runTasks(db);
-      setInterval(function () { runTasks(db); }, fetchInterval);
-    });
+  // Run any needed migrations and away we go
+  pg.migrate.latest(knexConfig)
+  .then(() => {
+    log.info('Database migrations are handled, ready to roll!');
+    runTasks();
+    setInterval(function () { runTasks(); }, fetchInterval);
+  })
+  .catch((e) => {
+    log.error(e);
   });
 }
