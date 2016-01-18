@@ -14,7 +14,7 @@ fi
 
 echo "Starting AWS ECS deploy for cluster $ECS_CLUSTER."
 # This should be updated to check for running revision, not necessarily latest revision
-RUNNING_SERVICE=$($aws ecs describe-services --services openaq-api --cluster $ECS_CLUSTER | jq '.services[0].taskDefinition' | grep -o "openaq-api:[0-9]\+")
+RUNNING_SERVICE=$($aws ecs describe-services --services openaq-fetch --cluster $ECS_CLUSTER | jq '.services[0].taskDefinition' | grep -o "openaq-fetch:[0-9]\+")
 # Grab this so we're not trying to deploy latest, but rather the last good image
 # Grab the hash for the running service in case we don't have a new commit hash
 # to use later.
