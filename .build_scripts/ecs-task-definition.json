@@ -4,7 +4,7 @@
         {
             "name": "openaq-fetch",
             "image": "flasher/openaq-fetch",
-            "memory": 400,
+            "memory": 580,
             "command": [
                 "npm",
                 "start"
