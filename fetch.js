@@ -23,7 +23,7 @@ var argv = require('yargs')
   .argv;
 
 var async = require('async');
-var _ = require('lodash');
+import { assign, filter, pick, chain, find } from 'lodash';
 var knex = require('knex');
 let knexConfig = require('./knexfile');
 var mailer = require('./lib/mailer');
@@ -41,9 +41,9 @@ let pg;
 let st;
 
 // Flatten the sources into a single array, taking into account sources argument
-sources = _.chain(sources).values().flatten().value();
+sources = chain(sources).values().flatten().value();
 if (argv.source) {
-  sources = _.find(sources, { name: argv.source });
+  sources = find(sources, { name: argv.source });
 
   // Check here to make sure we have at least one valid source
   if (!sources) {
@@ -62,7 +62,7 @@ if (argv.source) {
  * @return {Adapter} The associated adapter
  */
 var findAdapter = function (name) {
-  return _.find(adapters, function (a) {
+  return find(adapters, function (a) {
     return a.name === name;
   });
 };
@@ -102,7 +102,7 @@ let buildSQLObject = function (m) {
     date_utc: m.date.utc
   };
   // Copy object JSON to the data field
-  obj.data = _.assign({}, m);
+  obj.data = assign({}, m);
   // If we have coordinates, save them with postgis
   if (m.coordinates) {
     obj.coordinates = st.geomFromText(`Point(${m.coordinates.longitude} ${m.coordinates.latitude})`, 4326);
@@ -140,11 +140,11 @@ var getAndSaveData = function (source) {
       }
 
       // Verify the data format
-      var isValid = utils.verifyDataFormat(data);
+      let { isValid, failures: reasons } = utils.verifyDataFormat(data);
 
       // If the data format is invalid, let the contacts know
       if (!isValid) {
-        var error = {message: 'Adapter returned invalid results.', source: source.name};
+        var error = {message: `${source.name} adapter returned invalid results.`, failures: reasons};
         // Don't send an email if it's a dry run or noemail flag is set
         if (!argv.dryrun && !argv.noemail) {
           mailer.sendFailureEmail(source.contacts, source.name, error);
@@ -152,14 +152,30 @@ var getAndSaveData = function (source) {
         return done(null, error);
       }
 
+      // Clean up the measurements a bit before validation
+      data.measurements = data.measurements.map((m) => {
+        // Set defaults on measurement if needed
+        m.location = m.location || data.name; // use existing location if it exists
+        m.country = m.country || source.country;
+        m.city = m.city || source.city; // use city from measurement, otherwise default to source
+        m.sourceName = source.name;
+
+        // Remove extra fields
+        var wanted = ['date', 'parameter', 'location', 'value', 'unit', 'city',
+                      'attribution', 'averagingPeriod', 'coordinates',
+                      'country', 'sourceName'];
+        return pick(m, wanted);
+      });
+
       // Remove any measurements that don't meet our requirements
-      data.measurements = utils.pruneMeasurements(data.measurements);
+      let { pruned, failures } = utils.pruneMeasurements(data.measurements);
+      data.measurements = pruned;
 
       // If we have no measurements to insert, we can exit now
       if (data.measurements && data.measurements.length === 0) {
         var msg = {
           message: 'New measurements inserted for ' + source.name + ': 0',
-          source: source.name
+          failures: failures
         };
         // A little hacky to signify a dry run
         if (argv.dryrun) {
@@ -172,19 +188,7 @@ var getAndSaveData = function (source) {
       if (!argv.dryrun) {
         var inserts = [];
       }
-      _.forEach(data.measurements, function (m) {
-        // Set defaults on measurement if needed
-        m.location = m.location || data.name; // use existing location if it exists
-        m.country = m.country || source.country;
-        m.city = m.city || source.city; // use city from measurement, otherwise default to source
-        m.sourceName = source.name;
-
-        // Remove extra fields
-        var wanted = ['date', 'parameter', 'location', 'value', 'unit', 'city',
-                      'attribution', 'averagingPeriod', 'coordinates',
-                      'country', 'sourceName'];
-        m = _.pick(m, wanted);
-
+      data.measurements.forEach((m) => {
         // Save or print depending on the state
         if (argv.dryrun) {
           log.info(JSON.stringify(m));
@@ -195,7 +199,7 @@ var getAndSaveData = function (source) {
       if (argv.dryrun) {
         msg = {
           message: '[Dry run] New measurements inserted for ' + source.name + ': ' + data.measurements.length,
-          source: source.name
+          failures: failures
         };
         done(null, msg);
       } else {
@@ -229,11 +233,12 @@ var getAndSaveData = function (source) {
           }
 
           // Get rid of duplicates in results array to get actual insert number
-          results = _.filter(results, (r) => {
+          results = filter(results, (r) => {
             return r.status !== 'duplicate';
           });
           let msg = {
-            message: `New measurements inserted for ${source.name}: ${results.length}`
+            message: `New measurements inserted for ${source.name}: ${results.length}`,
+            failures: failures
           };
           done(null, msg);
         });
@@ -242,7 +247,7 @@ var getAndSaveData = function (source) {
   };
 };
 
-var tasks = _.map(sources, function (source) {
+var tasks = sources.map((source) => {
   return getAndSaveData(source);
 });
 
@@ -259,7 +264,12 @@ var runTasks = function () {
         log.info('All data grabbed and saved.');
       }
       results.forEach(function (r) {
-        log.info(r);
+        log.info('///////');
+        log.info(r.message);
+        for (let k of Object.keys(r.failures || {})) {
+          log.info(`${r.failures[k]} occurrences of ${k}`);
+        }
+        log.info('///////');
       });
     }
 

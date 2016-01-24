@@ -17,6 +17,8 @@ before_install:
 - chmod +x ./.build_scripts/deploy.sh
 - sudo apt-get -qq update
 - sudo apt-get install -y jq
+install: echo no local install needed, testing on Docker
+script: touch local.env && docker-compose --project openaq run fetch npm test
 after_success:
 - ".build_scripts/build.sh"
 deploy:

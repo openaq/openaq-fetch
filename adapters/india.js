@@ -11,6 +11,7 @@ var _ = require('lodash');
 var moment = require('moment-timezone');
 var utils = require('../lib/utils');
 var log = require('../lib/logger');
+import { removeUnwantedParameters } from '../lib/utils';
 
 exports.name = 'india';
 
@@ -107,7 +108,10 @@ var formatData = function (data) {
   };
 
   // Make sure the parameters/units names match with what the platform expects.
-  renameParameters(parsed.measurements);
+  parsed.measurements = renameParameters(parsed.measurements);
+
+  // Remove any unwanted parameters
+  parsed.measurements = removeUnwantedParameters(parsed.measurements);
 
   // Convert units to standards
   parsed.measurements = utils.convertUnits(parsed.measurements);

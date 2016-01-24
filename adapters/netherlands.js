@@ -6,6 +6,7 @@ var cheerio = require('cheerio');
 var async = require('async');
 var moment = require('moment-timezone');
 var log = require('../lib/logger');
+import { removeUnwantedParameters } from '../lib/utils';
 
 exports.name = 'netherlands';
 
@@ -54,6 +55,9 @@ exports.fetchData = function (source, cb) {
         name: 'unused',
         measurements: _.flatten(results)
       };
+
+      // Remove unwanted parameters
+      result.measurements = removeUnwantedParameters(result.measurements);
 
       cb(null, result);
     });
@@ -226,7 +230,7 @@ var formatData = function (name, data) {
   // mentioned, pass in it in the second place.
   var getAttribution = function (string) {
     var attribution = [{name: 'RIVM', url: 'http://www.lml.rivm.nl/'}];
-    if (string !== 'RIVM') {
+    if (string && string.trim() !== '' && string !== 'RIVM') {
       var provider = {name: string};
       attribution.push(provider);
     }
