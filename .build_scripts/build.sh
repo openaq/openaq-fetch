@@ -1,15 +1,17 @@
 #!/bin/bash
 set -e
 
-if [ -f $HOME/docker/openaq_fetch.tar ]
-then
-  echo "Loading cached worker image"
-  docker load < $HOME/docker/openaq_fetch.tar
-fi
+echo No build currently needed since we can not cache because we are on Travis legacy systems.
 
-touch local.env
-docker-compose --project openaq build
+# if [ -f $HOME/docker/openaq_fetch.tar ]
+# then
+#   echo "Loading cached worker image"
+#   docker load < $HOME/docker/openaq_fetch.tar
+# fi
 
-mkdir -p $HOME/docker
-echo "Caching openaq_fetch docker image."
-docker save openaq_fetch > $HOME/docker/openaq_fetch.tar
+# touch local.env
+# docker-compose --project openaq build
+
+# mkdir -p $HOME/docker
+# echo "Caching openaq_fetch docker image."
+# docker save openaq_fetch > $HOME/docker/openaq_fetch.tar
