@@ -226,7 +226,7 @@ var formatData = function (name, data) {
   // mentioned, pass in it in the second place.
   var getAttribution = function (string) {
     var attribution = [{name: 'RIVM', url: 'http://www.lml.rivm.nl/'}];
-    if (string !== 'RIVM') {
+    if (string && string.trim() !== '' && string !== 'RIVM') {
       var provider = {name: string};
       attribution.push(provider);
     }
