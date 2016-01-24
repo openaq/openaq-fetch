@@ -22,6 +22,7 @@ var argv = require('yargs')
   .alias('h', 'help')
   .argv;
 
+require('newrelic');
 var async = require('async');
 import { assign, filter, pick, chain, find } from 'lodash';
 var knex = require('knex');
