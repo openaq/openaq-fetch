@@ -266,7 +266,7 @@ var runTasks = function () {
       results.forEach(function (r) {
         log.info('///////');
         log.info(r.message);
-        for (let k of Object.keys(r.failures)) {
+        for (let k of Object.keys(r.failures || {})) {
           log.info(`${r.failures[k]} occurrences of ${k}`);
         }
         log.info('///////');

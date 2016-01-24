@@ -168,8 +168,11 @@ var formatData = function (data) {
     }
   }
 
+  // Remove unwanted paramters
+  finalMeasurements = utils.removeUnwantedParameters(finalMeasurements);
+
   // Attempt to convert to the Open AQ standard unit
-  utils.convertUnits(finalMeasurements);
+  finalMeasurements = utils.convertUnits(finalMeasurements);
 
   return {name: 'unused', measurements: finalMeasurements};
 };
