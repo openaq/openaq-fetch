@@ -121,7 +121,7 @@ var formatData = function (data) {
  * @return {array} Update measurements array
  */
 var renameParameters = function (measurements) {
-  _.map(measurements, function (m) {
+  return _.map(measurements, function (m) {
     // Parameters
     switch (m.parameter) {
       case 'Particulate Matter < 2.5 µg':
