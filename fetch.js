@@ -118,6 +118,17 @@ let buildSQLObject = function (m) {
  * @return {function} The function to make the magic happen
  */
 var getAndSaveData = function (source) {
+  // Generates a formatted message based on fetch results
+  let generateResultsMessage = function (measurements, source, failures, fetchStarted, fetchEnded, isDryrun = false) {
+    return {
+      message: `${isDryrun ? '[Dry Run] ' : ''}New measurements inserted for ${source.name}: ${measurements.length}`,
+      failures: failures,
+      count: measurements.length,
+      duration: (fetchEnded - fetchStarted) / 1000,
+      sourceName: source.name
+    };
+  };
+
   return function (done) {
     // Get the appropriate adapter
     var adapter = findAdapter(source.adapter);
@@ -126,9 +137,9 @@ var getAndSaveData = function (source) {
       return done(null, err);
     }
 
-    log.profile(source.name + ' fetch completed');
+    let fetchStarted = Date.now();
     adapter.fetchData(source, function (err, data) {
-      log.profile(source.name + ' fetch completed');
+      let fetchEnded = Date.now();
       // If we have an error, send an email to the contacts and stop
       if (err) {
         // Don't send an email if it's a dry run or noemail flag is set
@@ -173,10 +184,7 @@ var getAndSaveData = function (source) {
 
       // If we have no measurements to insert, we can exit now
       if (data.measurements && data.measurements.length === 0) {
-        var msg = {
-          message: 'New measurements inserted for ' + source.name + ': 0',
-          failures: failures
-        };
+        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded);
         // A little hacky to signify a dry run
         if (argv.dryrun) {
           msg.message = '[Dry run] ' + msg.message;
@@ -197,10 +205,7 @@ var getAndSaveData = function (source) {
         }
       });
       if (argv.dryrun) {
-        msg = {
-          message: '[Dry run] New measurements inserted for ' + source.name + ': ' + data.measurements.length,
-          failures: failures
-        };
+        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded, true);
         done(null, msg);
       } else {
         // We're running each insert task individually so we can catch any
@@ -236,10 +241,7 @@ var getAndSaveData = function (source) {
           results = filter(results, (r) => {
             return r.status !== 'duplicate';
           });
-          let msg = {
-            message: `New measurements inserted for ${source.name}: ${results.length}`,
-            failures: failures
-          };
+          let msg = generateResultsMessage(results, source, failures, fetchStarted, fetchEnded);
           done(null, msg);
         });
       }
@@ -256,7 +258,10 @@ var tasks = sources.map((source) => {
  */
 var runTasks = function () {
   log.info('Running all fetch tasks.');
-  async.parallel(tasks, function (err, results) {
+  let timeStarted = new Date();
+  let itemsInserted = 0;
+  async.parallel(tasks, (err, results) => {
+    let timeEnded = new Date();
     if (err) {
       log.error(err);
     } else {
@@ -264,6 +269,7 @@ var runTasks = function () {
         log.info('All data grabbed and saved.');
       }
       results.forEach(function (r) {
+        itemsInserted += r.count;
         log.info('///////');
         log.info(r.message);
         for (let k of Object.keys(r.failures || {})) {
@@ -277,13 +283,30 @@ var runTasks = function () {
     if (argv.dryrun) {
       return log.info('Dryrun completed, have a good day!');
     } else {
-      sendUpdatedWebhook(function (err) {
-        if (err) {
-          log.error(err);
-        }
+      let sendWebhook = function () {
+        sendUpdatedWebhook((err) => {
+          if (err) {
+            log.error(err);
+          }
 
-        return log.info('Webhook posted, have a good day!');
-      });
+          return log.info('Webhook posted, have a good day!');
+        });
+      };
+      // Save results to the fetches table if this isn't a dryrun
+      // console.log(timeStarted, timeEnded, itemsInserted);
+      // console.log(err || results);
+      pg('fetches')
+        .insert({time_started: timeStarted, time_ended: timeEnded, count: itemsInserted, results: JSON.stringify(err || results)})
+        .then((id) => {
+          // Insert was successful
+          log.info('Fetches table successfully updated');
+          sendWebhook();
+        })
+        .catch((e) => {
+          // An error on fetches insert
+          log.error(e);
+          sendWebhook();
+        });
     }
   });
 };
