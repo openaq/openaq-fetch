@@ -21,7 +21,7 @@ Now you can get started with:
 
 `node index.js --help`
 
-For the above to work, you will need to have certain environment variables set as in the table below
+For production deployment, you will need to have certain environment variables set as in the table below
 
 | Name | Description | Default |
 |---|---|---|
