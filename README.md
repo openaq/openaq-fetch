@@ -9,13 +9,15 @@ Starting with `index.js`, there is an ingest mechanism to gather global air qual
 [openaq-api](https://github.com/openaq/openaq-api) powers the API and more information on the data format can be found in [openaq-data-format](https://github.com/openaq/openaq-data-format).
 
 ## Installing & Running
-To run the API locally, you will need both [Node.js](https://nodejs.org) and [MongoDB](https://www.mongodb.org/) installed.
+To run the API locally, you will need both [Node.js](https://nodejs.org) and [PostgreSQL](http://www.postgresql.org/) installed.
 
 Install necessary Node.js packages by running
 
 `npm install`
 
-Make sure you have MongoDB running locally and then you can get help with
+Make sure you have a PostgreSQL database available (with PostGIS extension) and have the DB settings in `knexfile.js`.
+
+Now you can get started with:
 
 `node index.js --help`
 
@@ -24,7 +26,6 @@ For the above to work, you will need to have certain environment variables set a
 | Name | Description | Default |
 |---|---|---|
 | INDIA_KIMONO_TOKEN | Token to be used for accessing Kimono API | not set |
-| MONGOLAB_URI | Database URL | mongodb://localhost:27017/openAQ |
 | SENDGRID_PASSWORD | Email service password | not set |
 | SENDGRID_USERNAME | Email service username | not set |
 | API_URL | URL of openaq-api | http://localhost:3004/v1/webhooks |
