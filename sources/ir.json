@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://31.24.238.89/home/AQITable.aspx",
+        "adapter": "tehran",
+        "name": "Iran - Tehran",
+        "city": "Tehran",
+        "country": "IR",
+        "description": "Measurements from Air Quality Control Company, Air Quality Control Company.",
+        "resolution": "",
+        "sourceURL": "http://31.24.238.89/home/home.aspx",
+        "contacts": [
+            "olaf@developmentseed.org"
+        ]
+    }
+]
