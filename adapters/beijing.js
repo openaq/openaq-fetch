@@ -16,8 +16,7 @@ exports.name = 'beijing';
  * Fetches the data for a given source and returns an appropriate object
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
- * @return {object} Parsed and standardized data our system can use
- */ 
+ */
 exports.fetchData = function (source, cb) {
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
@@ -45,16 +44,16 @@ exports.fetchData = function (source, cb) {
  * Given fetched data, turn it into a format our system can use.
  * @param {object} data Fetched source data
  * @param {object} source A valid source object
+ * @return {object} Parsed and standardized data our system can use
  */
 var formatData = function (data, source) {
-
   /**
    * Given a date string, convert to system appropriate times.
    * @param {string} dateString Date in string format coming from source data
    * @return {object} An object containing both UTC and local times
    */
   var getDate = function (dateString) {
-    var date = moment.tz(dateString, "MM/DD/YYYY HH:mm:ss A", "Asia/Shanghai");
+    var date = moment.tz(dateString, 'MM/DD/YYYY HH:mm:ss A', 'Asia/Shanghai');
     return {utc: date.toDate(), local: date.format()};
   };
 
