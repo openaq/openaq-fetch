@@ -1,6 +1,6 @@
 [
     {
-        "url": "http://www.kimonolabs.com/api/5gbpkj4a",
+        "url": "http://www.stateair.net/web/rss/1/1.xml",
         "adapter": "beijing",
         "name": "Beijing US Embassy",
         "city": "Beijing",
@@ -13,7 +13,7 @@
         ]
     },
     {
-        "url": "http://www.kimonolabs.com/api/bd87c7js",
+        "url": "http://www.stateair.net/web/rss/1/2.xml",
         "adapter": "beijing",
         "name": "Chengdu",
         "city": "Chengdu",
@@ -26,7 +26,7 @@
         ]
     },
     {
-        "url": "http://www.kimonolabs.com/api/d4wfxfl2",
+        "url": "http://www.stateair.net/web/rss/1/3.xml",
         "adapter": "beijing",
         "name": "Guangzhou",
         "city": "Guangzhou",
@@ -39,7 +39,7 @@
         ]
     },
     {
-        "url": "http://www.kimonolabs.com/api/7jec7wh2",
+        "url": "http://www.stateair.net/web/rss/1/4.xml",
         "adapter": "beijing",
         "name": "Shanghai",
         "city": "Shanghai",
@@ -52,7 +52,7 @@
         ]
     },
     {
-        "url": "http://www.kimonolabs.com/api/4lw816j4",
+        "url": "http://www.stateair.net/web/rss/1/5.xml",
         "adapter": "beijing",
         "name": "Shenyang",
         "city": "Shenyang",
