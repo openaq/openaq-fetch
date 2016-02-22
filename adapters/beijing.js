@@ -16,7 +16,6 @@ exports.name = 'beijing';
  * Fetches the data for a given source and returns an appropriate object
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
- * @return {object} Parsed and standardized data our system can use
  */ 
 exports.fetchData = function (source, cb) {
   request(source.url, function (err, res, body) {
@@ -45,6 +44,7 @@ exports.fetchData = function (source, cb) {
  * Given fetched data, turn it into a format our system can use.
  * @param {object} data Fetched source data
  * @param {object} source A valid source object
+ * @return {object} Parsed and standardized data our system can use
  */
 var formatData = function (data, source) {
 
