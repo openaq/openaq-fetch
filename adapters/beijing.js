@@ -70,8 +70,8 @@ var formatData = function (data, source) {
     unit: 'µg/m³',
     averagingPeriod: {'value': 1, 'unit': 'hours'},
     attribution: [{
-      name: 'EPA AirNow DOS',
-      url: 'http://airnow.gov/index.cfm?action=airnow.global_summary'
+      name: 'StateAir.net',
+      url: source.sourceURL
     }]
   };
 
