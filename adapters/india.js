@@ -87,7 +87,7 @@ var formatData = function (data, source) {
 
   // Filter out measurements with no value
   var filtered = _.filter(measurementsRaw, function (m) {
-    return getValue(m.measuredValue).value !== '';
+    return _.isFinite(Number(getValue(m.measuredValue).value));
   });
 
   // Build up pretty measurements array
