@@ -203,7 +203,7 @@ var formatData = function (name, data) {
   var p = name.match(regExp)[1].replace('.', '').toLowerCase();
 
   var parseDate = function (string) {
-    var date = moment.tz(string, 'YYYYMMDDHHmmss', 'UTC');
+    var date = moment.tz(string, 'YYYYMMDDHHmmss', 'Europe/Amsterdam');
 
     return {utc: date.toDate(), local: date.format()};
   };
