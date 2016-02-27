@@ -159,10 +159,10 @@ let metadata = {
    { city: 'Dumbarton',
      coordinates: { latitude: 55.943197, longitude: -4.55973 } },
   'Glasgow Great Western Road':
-   { city: 'Not available',
+   { city: 'Glasgow',
      coordinates: { latitude: 55.872038, longitude: -4.270936 } },
   'Edinburgh St Leonards':
-   { city: 'Edingurgh',
+   { city: 'Edinburgh',
      coordinates: { latitude: 55.945589, longitude: -3.182186 } },
   'Auchencorth Moss':
    { city: 'Auchencorth',
@@ -174,7 +174,7 @@ let metadata = {
    { city: 'Glasgow',
      coordinates: { latitude: 55.85917, longitude: -4.258889 } },
   'Glasgow Townhead':
-   { city: 'Not available',
+   { city: 'Glasgow',
      coordinates: { latitude: 55.865782, longitude: -4.243631 } },
   Grangemouth:
    { city: 'Grangemouth',
@@ -189,31 +189,31 @@ let metadata = {
    { city: 'Chesterfield',
      coordinates: { latitude: 53.231722, longitude: -1.456944 } },
   'Chesterfield Loundsley Green':
-   { city: 'Not available',
+   { city: 'Chesterfield',
      coordinates: { latitude: 53.244131, longitude: -1.454946 } },
   Ladybower:
    { city: 'Ladybower',
      coordinates: { latitude: 53.40337, longitude: -1.752006 } },
   'Leicester University':
-   { city: 'Not available',
+   { city: 'Leicester',
      coordinates: { latitude: 52.619823, longitude: -1.127311 } },
   'Northampton Kingsthorpe':
-   { city: 'Not available',
+   { city: 'Northampton',
      coordinates: { latitude: 52.271886, longitude: -0.879898 } },
   'Market Harborough':
    { city: 'Market Harborough',
      coordinates: { latitude: 52.554444, longitude: -0.772222 } },
   'Lincoln Canwick Rd.':
-   { city: 'Not available',
+   { city: 'Lincoln',
      coordinates: { latitude: 53.221373, longitude: -0.534189 } },
   'Leicester A594 Roadside':
-   { city: 'Not available',
+   { city: 'Leicester',
      coordinates: { latitude: 52.638677, longitude: -1.124228 } },
   'Nottingham Centre':
    { city: 'Nottingham',
      coordinates: { latitude: 52.95473, longitude: -1.146447 } },
   'Luton A505 Roadside':
-   { city: 'Dunstable Road Luton  LU4 8QW',
+   { city: 'Luton',
      coordinates: { latitude: 51.892293, longitude: -0.46211 } },
   'Cambridge Roadside':
    { city: 'Cambridge',
@@ -246,7 +246,7 @@ let metadata = {
    { city: 'Wicken Fen',
      coordinates: { latitude: 52.2985, longitude: 0.290917 } },
   'Ealing Horn Lane':
-   { city: 'Horn Lane Ealing London W3 0BU',
+   { city: 'London',
      coordinates: { latitude: 51.51895, longitude: -0.265617 } },
   'Camden Kerbside':
    { city: 'London',
@@ -264,7 +264,7 @@ let metadata = {
    { city: 'London',
      coordinates: { latitude: 51.45258, longitude: 0.070766 } },
   'London Haringey Priory Park South':
-   { city: 'Not available',
+   { city: 'London',
      coordinates: { latitude: 51.584128, longitude: -0.125254 } },
   'London Harlington':
    { city: 'London',
@@ -291,7 +291,7 @@ let metadata = {
    { city: 'London',
      coordinates: { latitude: 51.49467, longitude: -0.131931 } },
   'Southwark A2 Old Kent Road':
-   { city: 'A2, Old Kent Road, London',
+   { city: 'London',
      coordinates: { latitude: 51.480499, longitude: -0.05955 } },
   'Tower Hamlets Roadside':
    { city: 'London',
@@ -303,7 +303,7 @@ let metadata = {
    { city: 'Inverness',
      coordinates: { latitude: 57.481308, longitude: -4.241451 } },
   Lerwick:
-   { city: 'Met Office Observatory Lerwick',
+   { city: 'Lerwick',
      coordinates: { latitude: 60.13922, longitude: -1.185319 } },
   Strathvaich:
    { city: 'Strath Vaich',
@@ -321,7 +321,7 @@ let metadata = {
    { city: 'Newcastle',
      coordinates: { latitude: 54.986405, longitude: -1.595362 } },
   'Stockton-on-Tees A1305 Roadside':
-   { city: 'Sydney Street  Stockton-on-Tees TS18 1NP',
+   { city: 'Stockton-on-Tees',
      coordinates: { latitude: 54.565819, longitude: -1.3159 } },
   'Stockton-on-Tees Eaglescliffe':
    { city: 'Stockton-on-Tees',
@@ -348,16 +348,16 @@ let metadata = {
    { city: 'Wrexham',
      coordinates: { latitude: 53.04222, longitude: -3.002778 } },
   'Blackburn Accrington Road':
-   { city: 'Accrington Road Community Centre, Accrington Road, BB1 2AE',
+   { city: 'Blackburn',
      coordinates: { latitude: 53.747751, longitude: -2.452724 } },
   'Blackpool Marton':
    { city: 'Blackpool',
      coordinates: { latitude: 53.80489, longitude: -3.007175 } },
   'Bury Whitefield Roadside':
-   { city: 'Not available',
+   { city: 'Bury',
      coordinates: { latitude: 53.559029, longitude: -2.293772 } },
   'Carlisle Roadside':
-   { city: 'Not available',
+   { city: 'Carlisle',
      coordinates: { latitude: 54.894834, longitude: -2.945307 } },
   Glazebury:
    { city: 'Glazebury',
@@ -384,10 +384,10 @@ let metadata = {
    { city: 'Crompton Way   OL2 8AQ',
      coordinates: { latitude: 53.579283, longitude: -2.093786 } },
   Warrington:
-   { city: 'Not available',
+   { city: 'Warrington',
      coordinates: { latitude: 53.38928, longitude: -2.615358 } },
   'Widnes Milton Road':
-   { city: 'Milton Road Widnes  WA8 6NL',
+   { city: 'Widnes',
      coordinates: { latitude: 53.365391, longitude: -2.73168 } },
   'Wigan Centre':
    { city: 'Wigan',
@@ -405,7 +405,7 @@ let metadata = {
    { city: 'Belfast',
      coordinates: { latitude: 54.59965, longitude: -5.928833 } },
   'Belfast Stockman\'s Lane':
-   { city: 'Not available',
+   { city: 'Belfast',
      coordinates: { latitude: 54.572586, longitude: -5.974944 } },
   Derry:
    { city: 'Derry',
@@ -432,13 +432,13 @@ let metadata = {
    { city: 'Chatham',
      coordinates: { latitude: 51.374264, longitude: 0.54797 } },
   Eastbourne:
-   { city: 'Eastbourne BN22 9PP',
+   { city: 'Eastbourne',
      coordinates: { latitude: 50.805778, longitude: 0.271611 } },
   Horley:
-   { city: 'Horley RH6',
+   { city: 'Horley',
      coordinates: { latitude: 51.165865, longitude: -0.167734 } },
   'Chilbolton Observatory':
-   { city: 'Not available',
+   { city: 'Stockbridge',
      coordinates: { latitude: 51.149617, longitude: -1.438228 } },
   'Lullington Heath':
    { city: 'Lullington Heath',
@@ -459,25 +459,25 @@ let metadata = {
    { city: 'Rochester',
      coordinates: { latitude: 51.45617, longitude: 0.634889 } },
   'Southampton A33':
-   { city: 'Not available',
+   { city: 'Southampton',
      coordinates: { latitude: 50.920265, longitude: -1.463484 } },
   'Southampton Centre':
    { city: 'Southampton',
      coordinates: { latitude: 50.90814, longitude: -1.395778 } },
   'Storrington Roadside':
-   { city: 'Storrington RH20 4BN',
+   { city: 'Storrington',
      coordinates: { latitude: 50.916932, longitude: -0.449548 } },
   'Cardiff Centre':
    { city: 'Cardiff',
      coordinates: { latitude: 51.48178, longitude: -3.17625 } },
   'Chepstow A48':
-   { city: 'Hardwick Hill Chepstow Chepstow',
+   { city: 'Chepstow',
      coordinates: { latitude: 51.638094, longitude: -2.678731 } },
   Cwmbran:
    { city: 'Cardiff',
      coordinates: { latitude: 51.6538, longitude: -3.006953 } },
   'Hafod-yr-ynys Roadside':
-   { city: 'Not available',
+   { city: 'Swfrryd',
      coordinates: { latitude: 51.680579, longitude: -3.133508 } },
   Narberth:
    { city: 'Narberth',
@@ -492,7 +492,7 @@ let metadata = {
    { city: 'Swansea',
      coordinates: { latitude: 51.632696, longitude: -3.947374 } },
   'Barnstaple A39':
-   { city: 'Not available',
+   { city: 'Barnstaple',
      coordinates: { latitude: 51.074793, longitude: -4.041924 } },
   'Bath Roadside':
    { city: 'Bath',
@@ -510,22 +510,22 @@ let metadata = {
    { city: 'Exeter',
      coordinates: { latitude: 50.725083, longitude: -3.532465 } },
   Honiton:
-   { city: 'Not available',
+   { city: 'Honiton',
      coordinates: { latitude: 50.792287, longitude: -3.196702 } },
   'Saltash Callington Road':
-   { city: 'Not available',
+   { city: 'Saltash',
      coordinates: { latitude: 50.411463, longitude: -4.227678 } },
   'Plymouth Centre':
    { city: 'Plymouth',
      coordinates: { latitude: 50.37167, longitude: -4.142361 } },
   'Mace Head':
-   { city: 'Not available',
+   { city: 'Mace Head',
      coordinates: { latitude: 53.326444, longitude: -9.903917 } },
   'Yarner Wood':
    { city: 'Yarner Wood',
      coordinates: { latitude: 50.5976, longitude: -3.71651 } },
   'Birmingham Acocks Green':
-   { city: 'Fox Hollies Leisure Centre Shirley Road Birmingham B27 7NS',
+   { city: 'Birmingham',
      coordinates: { latitude: 52.437165, longitude: -1.829999 } },
   'Birmingham Tyburn':
    { city: 'Birmingham',
@@ -534,37 +534,37 @@ let metadata = {
    { city: 'Leamington Spa',
      coordinates: { latitude: 52.28881, longitude: -1.533119 } },
   'Coventry Allesley':
-   { city: 'Coventry CV5 9HS',
+   { city: 'Coventry',
      coordinates: { latitude: 52.411563, longitude: -1.560228 } },
   'Birmingham Tyburn Roadside':
    { city: 'Birmingham',
      coordinates: { latitude: 52.512194, longitude: -1.830861 } },
   'Leamington Spa Rugby Road':
-   { city: 'Not available',
+   { city: 'Leamington Spa',
      coordinates: { latitude: 52.294884, longitude: -1.542911 } },
   Leominster:
    { city: 'Leominster',
      coordinates: { latitude: 52.22174, longitude: -2.736665 } },
   'Oldbury Birmingham Road':
-   { city: 'Birmingham Road Oldbury West Midlands B69 4HA',
+   { city: 'Oldbury',
      coordinates: { latitude: 52.502436, longitude: -2.003497 } },
   'Stoke-on-Trent A50 Roadside':
-   { city: 'Railway Road  Stoke-on-Trent',
+   { city: 'Stoke-on-Trent',
      coordinates: { latitude: 52.980436, longitude: -2.111898 } },
   'Stoke-on-Trent Centre':
    { city: 'Stoke-on-Trent',
      coordinates: { latitude: 53.02821, longitude: -2.175133 } },
   'Walsall Woodlands':
-   { city: 'WV12 5NZ',
+   { city: 'Willenhall',
      coordinates: { latitude: 52.605621, longitude: -2.030523 } },
   'Barnsley Gawber':
    { city: 'Barnsley',
      coordinates: { latitude: 53.56292, longitude: -1.510436 } },
   'Bradford Mayo Avenue':
-   { city: '55 Mayo Avenue  Bradford BD5 8HR',
+   { city: 'Bradford',
      coordinates: { latitude: 53.771245, longitude: -1.759774 } },
   'Doncaster A630 Cleveland Street':
-   { city: 'Cleveland Street Doncaster',
+   { city: 'Doncaster',
      coordinates: { latitude: 53.518868, longitude: -1.138073 } },
   'High Muffles':
    { city: 'High Muffles',
@@ -585,7 +585,7 @@ let metadata = {
    { city: 'Scunthorpe',
      coordinates: { latitude: 53.58634, longitude: -0.636811 } },
   'Sheffield Devonshire Green':
-   { city: 'Not available',
+   { city: 'Sheffield',
      coordinates: { latitude: 53.378622, longitude: -1.478096 } },
   'Sheffield Tinsley':
    { city: 'Sheffield',
