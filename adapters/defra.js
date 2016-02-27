@@ -152,5 +152,22 @@ var formatData = function (source, data) {
 };
 
 let metadata = {
-  'Auchencorth Moss': {city: 'Auchencorth', coordinates: {latitude: 55.792160, longitude: -3.242900}}
+  'Auchencorth Moss': {city: 'Auchencorth', coordinates: {latitude: 55.792160, longitude: -3.242900}},
+  'Bush Estate': {city: 'Bush Estate', coordinates: {latitude: 55.862281, longitude: -3.205782}},
+  'Dumbarton Roadside': {city: 'Dumbarton', coordinates: {latitude: 55.943197, longitude: -4.559730}},
+  'Edinburgh St Leonards': {city: 'Edinburgh', coordinates: {latitude: 55.945589, longitude: -3.182186}},
+  'Bush Estate': {city: 'Bush Estate', coordinates: {latitude: 55.862281, longitude: -3.205782}},
+  'Bush Estate': {city: 'Bush Estate', coordinates: {latitude: 55.862281, longitude: -3.205782}},
+  'Bush Estate': {city: 'Bush Estate', coordinates: {latitude: 55.862281, longitude: -3.205782}},
+  'Bush Estate': {city: 'Bush Estate', coordinates: {latitude: 55.862281, longitude: -3.205782}},
+  'Bush Estate': {city: 'Bush Estate', coordinates: {latitude: 55.862281, longitude: -3.205782}},
+  'Bush Estate': {city: 'Bush Estate', coordinates: {latitude: 55.862281, longitude: -3.205782}},
+  'Bush Estate': {city: 'Bush Estate', coordinates: {latitude: 55.862281, longitude: -3.205782}},
+  'Bush Estate': {city: 'Bush Estate', coordinates: {latitude: 55.862281, longitude: -3.205782}},
+  'Bush Estate': {city: 'Bush Estate', coordinates: {latitude: 55.862281, longitude: -3.205782}},
+  'Bush Estate': {city: 'Bush Estate', coordinates: {latitude: 55.862281, longitude: -3.205782}},
+  'Bush Estate': {city: 'Bush Estate', coordinates: {latitude: 55.862281, longitude: -3.205782}},
+  
+  
+  
 };
