@@ -129,7 +129,7 @@ var formatData = function (data, source) {
 var renameParameters = function (measurements) {
   return _.map(measurements, function (m) {
     // Parameters
-    switch (m.parameter) {
+    switch (m.parameter.trim()) {
       case 'Particulate Matter < 2.5 µg':
         m.parameter = 'pm25';
         break;
