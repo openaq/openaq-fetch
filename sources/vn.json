@@ -18,7 +18,6 @@
         "city": "Ho Chi Minh City",
         "country": "VN",
         "description": "",
-        "resolution": "1 hr",
         "sourceURL": "http://stateair.net/dos/",
         "contacts": [
             "info@openaq.org"
