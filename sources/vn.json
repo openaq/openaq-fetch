@@ -10,5 +10,18 @@
         "contacts": [
             "info@openaq.org"
         ]
+    },
+    {
+        "url": "http://stateair.net/dos/RSS/HoChiMinhCity/HoChiMinhCity-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "Ho Chi Minh City",
+        "city": "Ho Chi Minh City",
+        "country": "VN",
+        "description": "",
+        "resolution": "1 hr",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ]
     }
 ]
