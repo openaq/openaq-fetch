@@ -42,6 +42,7 @@ var formatData = function (data) {
         case 'New Delhi':
           return 'Asia/Kolkata';
         case 'Hanoi':
+        case 'Ho Chi Minh City':
           return 'Asia/Ho_Chi_Minh';
         case 'Ulaanbaatar':
           return 'Asia/Ulaanbaatar';
@@ -86,6 +87,11 @@ var formatData = function (data) {
         return {
           latitude: 21.021770,
           longitude: 105.819002
+        }; // Ho Chi Minh City assumes location is at Consulate
+      case 'Ho Chi Minh City':
+        return {
+          latitude: 10.783041,
+          longitude: 106.700722
         };
       case 'Ulaanbaatar':
         return {
