@@ -151,6 +151,9 @@ var formatData = function (results) {
               // Make sure we have a valid value
               if (value !== '' && value !== ' ' && value !== '--') {
                 var m = _.cloneDeep(base);
+                if (_.indexOf(_.keys(stationsCities), location) != -1) {
+                  m.city = stationsCities[location] || location;
+                };
                 m.value = Number(value);
                 m.parameter = niceParameter(parameter);
                 m.unit = unit;
@@ -168,4 +171,68 @@ var formatData = function (results) {
   // Convert units to platform standard
   measurements = utils.convertUnits(measurements);
   return {name: 'unused', measurements: measurements};
+};
+
+// stations and their respective cities mapping
+// if city === "" then city = station
+var stationsCities = {
+  'Americana': '',
+  'Araçatuba': '',
+  'Araraquara': '',
+  'Bauru': '',
+  'Campinas-Centro': 'Campinas',
+  'Campinas-Taquaral': 'Campinas',
+  'Campinas-V.União': 'Campinas',
+  'Capão Redondo': 'São Paulo',
+  'Carapicuiba': '',
+  'Catanduva': '',
+  'Cerqueira César': '',
+  'Cid.Universitária-USP-Ipen': 'São Paulo',
+  'Congonhas': 'São Paulo',
+  'Cubatão-Centro': 'Cubatão',
+  'Cubatão-V.Parisi': 'Cubatão',
+  'Cubatão-Vale do Mogi': 'Cubatão',
+  'Diadema': '',
+  'Guarulhos-Paço Municipal': 'Guarulhos',
+  'Guarulhos-Pimentas': 'Guarulhos',
+  'Ibirapuera': 'São Paulo',
+  'Interlagos': 'São Paulo',
+  'Itaim Paulista': 'São Paulo',
+  'Itaquera': 'São Paulo',
+  'Jacareí': '',
+  'Jaú': '',
+  'Jundiaí': '',
+  'Limeira': '',
+  'Marg.Tietê-Pte Remédios': 'São Paulo',
+  'Marília': '',
+  'Mauá': '',
+  'Mooca': 'São Paulo',
+  'N.Senhora do Ó': 'São Paulo',
+  'Osasco': '',
+  'Parelheiros': 'São Paulo',
+  'Parque D.Pedro II': 'São Paulo',
+  'Paulínia': '',
+  'Paulínia Sul': '',
+  'Pinheiros': 'São Paulo',
+  'Piracicaba': '',
+  'Presidente Prudente': '',
+  'Ribeirão Preto': '',
+  'S.André-Capuava': 'Santo André',
+  'S.André-Paço Municipal': 'Santo André',
+  'S.Bernardo-Centro': 'São Bernardo do Campo',
+  'S.Bernardo-Paulicéia': 'São Bernardo do Campo',
+  'S.Caetano': 'São Caetano do Sul',
+  'S.José Campos': 'São José dos Campos',
+  'S.José Campos-Jd.Satélite': 'São José dos Campos',
+  'S.José Campos-Vista Verde': 'São José dos Campos',
+  'Santa Gertrudes': '',
+  'Santana': 'São Paulo',
+  'Santo Amaro': 'São Paulo',
+  'Santos': '',
+  'Santos-Ponta da Praia': 'Santos',
+  'São José Do Rio Preto': '',
+  'Sorocaba': '',
+  'Taboão da Serra': '',
+  'Tatuí': '',
+  'Taubaté': ''
 };
