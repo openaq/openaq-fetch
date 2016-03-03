@@ -236,3 +236,5 @@ var stationsCities = {
   'Tatuí': '',
   'Taubaté': ''
 };
+
+exports.stationsCities = stationsCities;
