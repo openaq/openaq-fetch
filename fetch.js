@@ -269,7 +269,11 @@ var runTasks = function () {
         log.info('All data grabbed and saved.');
       }
       results.forEach(function (r) {
-        itemsInserted += r.count;
+        // Add to inserted count if response has a count, if there was a failure
+        // response will not have a count
+        if (r.count !== undefined) {
+          itemsInserted += r.count;
+        }
         log.info('///////');
         log.info(r.message);
         for (let k of Object.keys(r.failures || {})) {

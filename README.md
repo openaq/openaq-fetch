@@ -30,7 +30,7 @@ For production deployment, you will need to have certain environment variables s
 | SENDGRID_USERNAME | Email service username | not set |
 | API_URL | URL of openaq-api | http://localhost:3004/v1/webhooks |
 | WEBHOOK_KEY | Secret key to interact with openaq-api | '123' |
-| FETCH_INTERVAL | How often to run fetch tasks | 10 minutes |
+| FETCH_INTERVAL | How often to run fetch tasks (in milliseconds) | 600000 |
 
 ## Tests
 To confirm that everything is working as expected, you can run the tests with

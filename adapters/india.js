@@ -1,14 +1,13 @@
 /**
- * This code is responsible for implementing all methods related to fetching
- * and returning data for the Indian Kimono data sources.
- *
- * @todo This should most likely be changed from Kimono in the future.
+ * This code is responsible for implementing all methods related to
+ * fetching and returning data for the Indian data sources.
  */
 'use strict';
 
 var request = require('request');
 var _ = require('lodash');
 var moment = require('moment-timezone');
+var cheerio = require('cheerio');
 var utils = require('../lib/utils');
 var log = require('../lib/logger');
 import { removeUnwantedParameters } from '../lib/utils';
@@ -21,8 +20,7 @@ exports.name = 'india';
  * @param {function} cb A callback of the form cb(err, data)
  */
 exports.fetchData = function (source, cb) {
-  var finalURL = source.url + '?apitoken=' + process.env.INDIA_KIMONO_TOKEN;
-  request(finalURL, function (err, res, body) {
+  request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
       log.error(err || res);
       return cb({message: 'Failure to load data url.'});
@@ -31,7 +29,7 @@ exports.fetchData = function (source, cb) {
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-      var data = formatData(body);
+      var data = formatData(body, source);
 
       // Make sure the data is valid
       if (data === undefined) {
@@ -49,14 +47,19 @@ exports.fetchData = function (source, cb) {
  * @param {object} data Fetched source data
  * @return {object} Parsed and standarized data our system can use
  */
-var formatData = function (data) {
-  // Wrap the JSON.parse() in a try/catch in case it fails
-  try {
-    data = JSON.parse(data);
-  } catch (e) {
-    // Return undefined to be caught elsewhere
-    return undefined;
-  }
+var formatData = function (data, source) {
+  var $ = cheerio.load(data);
+  var measurementsRaw = $('.ThHead2line')
+    .closest('table')
+    .find('tr:has(td)')
+    .map(function () {
+      return {
+        parameter: $(this).find('td').first().text(),
+        date: $(this).find('td:nth-child(2)').text(),
+        time: $(this).find('td:nth-child(3)').text(),
+        measuredValue: $(this).find('td:nth-child(4)').text().trim()
+      };
+    });
 
   /**
    * Turns the source value strings into something useable by the system.
@@ -64,10 +67,9 @@ var formatData = function (data) {
    * @return {object} An object containing value and unit for measure value
    */
   var getValue = function (measuredValue) {
-    var idx = measuredValue.indexOf(' ');
     return {
-      value: measuredValue.substring(0, idx),
-      unit: measuredValue.substring(idx + 1, measuredValue.length)
+      value: _.words(measuredValue, /[^ ]+/g)[0],
+      unit: _.words(measuredValue, /[^ ]+/g)[1]
     };
   };
 
@@ -84,8 +86,8 @@ var formatData = function (data) {
   };
 
   // Filter out measurements with no value
-  var filtered = _.filter(data.results.collection1, function (m) {
-    return getValue(m.measuredValue).value !== '';
+  var filtered = _.filter(measurementsRaw, function (m) {
+    return _.isFinite(Number(getValue(m.measuredValue).value));
   });
 
   // Build up pretty measurements array
@@ -103,7 +105,7 @@ var formatData = function (data) {
     };
   });
   var parsed = {
-    'name': data.name,
+    'name': source.name,
     'measurements': measurements
   };
 
@@ -127,7 +129,7 @@ var formatData = function (data) {
 var renameParameters = function (measurements) {
   return _.map(measurements, function (m) {
     // Parameters
-    switch (m.parameter) {
+    switch (m.parameter.trim()) {
       case 'Particulate Matter < 2.5 µg':
         m.parameter = 'pm25';
         break;
