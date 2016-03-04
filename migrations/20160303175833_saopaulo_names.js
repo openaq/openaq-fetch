@@ -1,35 +1,38 @@
 require('babel-register');
 var saopaulo = require('../adapters/saopaulo.js');
 
+var Country = 'BR';
+var City = 'Sao Paulo'
+
 exports.up = function (knex, Promise) {
   var getLocations = function () {
-    return knex.select('location', 'city')
-      .distinct('location')
-      .orderBy('location', 'city')
-      .from('measurements')
+    return knex('measurements')
+      .select(knex.raw('distinct on (location) location, city, data'))
+      .orderBy('location')
       .where({
-        'country': 'BR',
-        'city': 'Sao Paulo'
+        'country': Country,
+        'city': City
       });
   };
 
-  var updateLocation = function (lr) {
-    console.log('Updating ' + lr.location + ', ' + lr.city);
+  var updateLocation = function (row) {
+    row.data.city = saopaulo.stationsCities[row.location] || row.location;
     knex('measurements')
       .where({
-        'country': 'BR',
-        'city': 'Sao Paulo',
-        'location': lr.location
+        'country': Country,
+        'city': City,
+        'location': row.location
       })
-      .update('city', saopaulo.stationsCities[lr.location] || lr.location)
+      .update({
+        'city': saopaulo.stationsCities[row.location] || row.location,
+        'data': row.data
+      })
       .return();
   };
 
   return Promise.all([
     getLocations()
-      .then((locations) => {
-        locations.map(updateLocation);
-      })
+      .map(updateLocation)
       .catch((err) => {
         console.log(err);
       })
@@ -39,11 +42,35 @@ exports.up = function (knex, Promise) {
 exports.down = function (knex, Promise) {
   var locations = Object.keys(saopaulo.stationsCities);
 
-  return Promise.all([
+  var rollbackCity = function (row) {
+    row.data.city = City;
+
     knex('measurements')
-    .whereIn('location', locations)
-    .andWhere('country', 'BR')
-    .update('city', 'Sao Paulo')
+      .where({
+        'country': Country,
+        'location': row.location
+      })
+      .update({
+        'city': City,
+        'data': row.data
+      })
+      .return();
+  }
+
+  var getLocations = function () {
+    return knex('measurements')
+      .select(knex.raw('distinct on (location) location, data'))
+      .orderBy('location')
+      .whereIn('location', locations)
+      .andWhere('country', Country);
+  }
+
+  return Promise.all([
+    getLocations()
+      .map(rollbackCity)
+      .catch((err) => {
+        console.log(err);
+      })
   ]);
 };
 
