@@ -2,7 +2,7 @@ require('babel-register');
 var saopaulo = require('../adapters/saopaulo.js');
 
 var Country = 'BR';
-var City = 'Sao Paulo'
+var City = 'Sao Paulo';
 
 exports.up = function (knex, Promise) {
   var getLocations = function () {
@@ -55,7 +55,7 @@ exports.down = function (knex, Promise) {
         'data': row.data
       })
       .return();
-  }
+  };
 
   var getLocations = function () {
     return knex('measurements')
@@ -63,7 +63,7 @@ exports.down = function (knex, Promise) {
       .orderBy('location')
       .whereIn('location', locations)
       .andWhere('country', Country);
-  }
+  };
 
   return Promise.all([
     getLocations()
