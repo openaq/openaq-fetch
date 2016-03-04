@@ -151,9 +151,9 @@ var formatData = function (results) {
               // Make sure we have a valid value
               if (value !== '' && value !== ' ' && value !== '--') {
                 var m = _.cloneDeep(base);
-                if (_.indexOf(_.keys(stationsCities), location) != -1) {
+                if (_.indexOf(_.keys(stationsCities), location) !== -1) {
                   m.city = stationsCities[location] || location;
-                };
+                }
                 m.value = Number(value);
                 m.parameter = niceParameter(parameter);
                 m.unit = unit;

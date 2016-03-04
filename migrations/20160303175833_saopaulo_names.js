@@ -1,8 +1,8 @@
 require('babel-register');
+var saopaulo = require('../adapters/saopaulo.js');
 
-exports.up = function(knex, Promise) {
-  var saopaulo = require('../adapters/saopaulo.js');
-  var getLocations = function() {
+exports.up = function (knex, Promise) {
+  var getLocations = function () {
     return knex.select('location', 'city')
       .distinct('location')
       .orderBy('location', 'city')
@@ -13,7 +13,7 @@ exports.up = function(knex, Promise) {
       });
   };
 
-  var updateLocation = function(lr) {
+  var updateLocation = function (lr) {
     console.log('Updating ' + lr.location + ', ' + lr.city);
     knex('measurements')
       .where({
@@ -22,7 +22,7 @@ exports.up = function(knex, Promise) {
         'location': lr.location
       })
       .update('city', saopaulo.stationsCities[lr.location] || lr.location)
-      .return()
+      .return();
   };
 
   return Promise.all([
@@ -33,12 +33,20 @@ exports.up = function(knex, Promise) {
       .catch((err) => {
         console.log(err);
       })
-  ])
+  ]);
 };
 
-exports.down = function(knex, Promise) {
-  
+exports.down = function (knex, Promise) {
+  var locations = Object.keys(saopaulo.stationsCities);
+
+  return Promise.all([
+    knex('measurements')
+    .whereIn('location', locations)
+    .andWhere('country', 'BR')
+    .update('city', 'Sao Paulo')
+  ]);
 };
+
 exports.config = {
   transaction: false
 };
