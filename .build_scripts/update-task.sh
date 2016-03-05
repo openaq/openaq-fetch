@@ -10,7 +10,8 @@ if [ ! -z "$1" ]
 fi
 
 # Use defaults if not set elsewhere
-[ -z "$ECS_CLUSTER" ] && { ECS_CLUSTER="default"; }
+[ -z "$ECS_CLUSTER" ] && { ECS_CLUSTER="staging"; }
+[ -z "$ENV_FILE" ] && { ENV_FILE="staging.env"; }
 
 echo "Starting AWS ECS deploy for cluster $ECS_CLUSTER."
 # This should be updated to check for running revision, not necessarily latest revision
@@ -30,7 +31,7 @@ echo "Waiting for current task to stop"
 $aws ecs wait services-stable --services openaq-fetch --cluster $ECS_CLUSTER
 
 echo "Copying env variables from S3"
-$aws s3 cp s3://openaq-env-variables/openaq-fetch/production.env local.env
+$aws s3 cp s3://openaq-env-variables/openaq-fetch/$ENV_FILE local.env
 
 echo "Building new ECS task"
 node .build_scripts/insert-env.js
