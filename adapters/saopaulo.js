@@ -175,7 +175,7 @@ var formatData = function (results) {
 
 // stations and their respective cities mapping
 // if city === "" then city = station
-var stationsCities = {
+export const stationsCities = {
   'Americana': '',
   'Araçatuba': '',
   'Araraquara': '',
@@ -236,5 +236,3 @@ var stationsCities = {
   'Tatuí': '',
   'Taubaté': ''
 };
-
-exports.stationsCities = stationsCities;
