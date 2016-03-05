@@ -21,12 +21,12 @@ after_success:
 - ".build_scripts/build.sh"
 deploy:
   - provider: script
-  skip_cleanup: true
-  script: ".build_scripts/deploy.sh"
-  on:
-    branch: ${STAGING_BRANCH}
+    skip_cleanup: true
+    script: ".build_scripts/deploy.sh"
+    on:
+      branch: ${STAGING_BRANCH}
   - provider: script
-  skip_cleanup: true
-  script: ".build_scripts/deploy.sh"
-  on:
-    branch: ${PRODUCTION_BRANCH}
+    skip_cleanup: true
+    script: ".build_scripts/deploy.sh"
+    on:
+      branch: ${PRODUCTION_BRANCH}
