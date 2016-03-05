@@ -1,0 +1,14 @@
+[
+    {
+        "url": "http://stateair.net/dos/RSS/Lima/Lima-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Lima",
+        "city": "Lima",
+        "country": "PE",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]

@@ -46,6 +46,8 @@ var formatData = function (data) {
           return 'Asia/Ho_Chi_Minh';
         case 'Ulaanbaatar':
           return 'Asia/Ulaanbaatar';
+        case 'Lima':
+          return 'America/Lima';
         case 'Jakarta South':
         case 'Jakarta Central':
           return 'Asia/Jakarta';
@@ -107,6 +109,11 @@ var formatData = function (data) {
         return {
           latitude: -6.182382,
           longitude: 106.834094
+        }; // Lima coordinates assume location is at Embassy
+      case 'Lima':
+        return {
+          latitude: -12.099583,
+          longitude: -76.968997
         };
     }
   };
