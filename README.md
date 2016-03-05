@@ -55,4 +55,4 @@ This section lists the key criteria for air quality data aggregated onto the pla
 
 
 ## Contributing
-There are a lot of ways to contribute to this project, more details can be found in the [contributing guide](CONTRIBUTING.md). 
+There are a lot of ways to contribute to this project, more details can be found in the [contributing guide](CONTRIBUTING.md).
