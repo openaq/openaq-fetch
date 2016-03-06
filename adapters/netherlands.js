@@ -70,7 +70,7 @@ var listApachetree = function (data, url) {
   var $ = cheerio.load(data);
 
   var parseDate = function (ds) {
-    var date = moment.tz(ds, 'DD-MMM-YYYY HH:mm', 'nl', 'Europe/Amsterdam');
+    var date = moment.tz(ds, 'DD-MMM-YYYY HH:mm', 'Europe/Amsterdam');
     return date.toDate();
   };
 
