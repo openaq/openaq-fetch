@@ -48,6 +48,8 @@ var formatData = function (data) {
           return 'Asia/Ulaanbaatar';
         case 'Lima':
           return 'America/Lima';
+        case 'Dhaka':
+          return 'Asia/Dhaka';
         case 'Jakarta South':
         case 'Jakarta Central':
           return 'Asia/Jakarta';
@@ -114,6 +116,11 @@ var formatData = function (data) {
         return {
           latitude: -12.099583,
           longitude: -76.968997
+        }; // Dhaka coordinates assume location is at American Center
+      case 'Dhaka':
+        return {
+          latitude: 23.797687,
+          longitude: 90.423698
         };
     }
   };
