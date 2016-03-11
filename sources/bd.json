@@ -1,0 +1,14 @@
+[
+    {
+        "url": "http://stateair.net/dos/RSS/Dhaka/Dhaka-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Dhaka",
+        "city": "Dhaka",
+        "country": "BD",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]
