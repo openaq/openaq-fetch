@@ -10,6 +10,12 @@ import log from '../lib/logger';
 export const name = 'airnow';
 
 exports.fetchData = function (source, cb) {
+  // A workaround to getting rate limited for 6 logins in 1 hr for AirNow
+  // system. Only try to grab data in last 20 minutes of an hour.
+  if (moment().minute() < 40) {
+    return cb({message: 'Ignoring AirNow due to rate limiting.'});
+  }
+
   // First fetch the stations list and then get the latest measurements
   const file = 'Locations/monitoring_site_locations.dat';
   const lineToObj = function (line) {
