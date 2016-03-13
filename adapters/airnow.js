@@ -90,7 +90,7 @@ exports.fetchData = function (source, cb) {
       }
 
       // Filter out parameters we do not want
-      measurements = filter(measurements, m => {
+      measurements = filter(measurements, (m) => {
         const accepted = ['pm25', 'pm10', 'no2', 'so2', 'o3', 'co', 'bc'];
         return accepted.indexOf(m.parameter) !== -1;
       });
@@ -141,7 +141,7 @@ const formatData = (stations, measurements) => {
   };
 
   // Make the measurement object
-  measurements.map(m => {
+  measurements.map((m) => {
     // Time
     m.date = getDate(m.day, m.hour, m.timezoneOffset);
     omit(m, ['day', 'hour', 'timezoneOffset']);
@@ -155,7 +155,7 @@ const formatData = (stations, measurements) => {
   });
 
   // Final quality check, get rid of bad city and countries
-  measurements = filter(measurements, m => {
+  measurements = filter(measurements, (m) => {
     return (m.city && m.city !== 'N/A' && m.country && m.country.trim() !== '');
   });
 
