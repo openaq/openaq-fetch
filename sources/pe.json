@@ -10,5 +10,17 @@
         "contacts": [
             "info@openaq.org"
         ]
+    },
+    {
+        "url": "http://www.senamhi.gob.pe/",
+        "adapter": "peruclima",
+        "name": "Peru Clima",
+        "city": "Lima",
+        "country": "PE",
+        "description": "",
+        "sourceURL": "http://peruclima.pe/?p=calidad-de-aire",
+        "contacts": [
+            "info@openaq.org"
+        ]
     }
 ]
