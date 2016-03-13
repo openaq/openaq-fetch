@@ -109,6 +109,9 @@ const formatData = function (results) {
             parameter: $(e).text().split('(')[0].trim().toLowerCase()
           };
 
+          // If it's PM2.5, make it pm25
+          p.parameter = (p.parameter === 'pm2.5') ? 'pm25' : p.parameter;
+
           // If it's not Horas, add a unit
           if (p.name !== 'horas') {
             p.unit = ($(e).text().substring($(e).text().indexOf('(') + 1, $(e).text().indexOf(')'))).trim();
