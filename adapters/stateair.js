@@ -53,6 +53,8 @@ var formatData = function (data) {
         case 'Jakarta South':
         case 'Jakarta Central':
           return 'Asia/Jakarta';
+        case 'Bogota':
+          return 'America/Bogota';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -121,6 +123,11 @@ var formatData = function (data) {
         return {
           latitude: 23.797687,
           longitude: 90.423698
+        };
+      case 'Bogota':
+        return {
+          latitude: 4.6379935,
+          longitude: -74.0962868
         };
     }
   };
