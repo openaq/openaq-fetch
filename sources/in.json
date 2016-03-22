@@ -1,57 +1,5 @@
 [
     {
-        "url": "http://www.dpccairdata.com/dpccairdata/display/pbView15MinData.php",
-        "adapter": "india",
-        "name": "Punjabi Bagh",
-        "city": "Delhi",
-        "country": "IN",
-        "description": "",
-        "resolution": "15 min",
-        "sourceURL": "http://www.dpccairdata.com/dpccairdata/display/index.php",
-        "contacts": [
-            "info@openaq.org"
-        ]
-    },
-    {
-        "url": "http://www.dpccairdata.com/dpccairdata/display/mmView15MinData.php",
-        "adapter": "india",
-        "name": "Mandir Marg",
-        "city": "Delhi",
-        "country": "IN",
-        "description": "",
-        "resolution": "15 min",
-        "sourceURL": "http://www.dpccairdata.com/dpccairdata/display/index.php",
-        "contacts": [
-            "info@openaq.org"
-        ]
-    },
-    {
-        "url": "http://www.dpccairdata.com/dpccairdata/display/rkPuramView15MinData.php",
-        "adapter": "india",
-        "name": "RK Puram",
-        "city": "Delhi",
-        "country": "IN",
-        "description": "",
-        "resolution": "15 min",
-        "sourceURL": "http://www.dpccairdata.com/dpccairdata/display/index.php",
-        "contacts": [
-            "info@openaq.org"
-        ]
-    },
-    {
-        "url": "http://www.dpccairdata.com/dpccairdata/display/avView15MinData.php",
-        "adapter": "india",
-        "name": "Anand Vihar",
-        "city": "Delhi",
-        "country": "IN",
-        "description": "",
-        "resolution": "15 min",
-        "sourceURL": "http://www.dpccairdata.com/dpccairdata/display/index.php",
-        "contacts": [
-            "info@openaq.org"
-        ]
-    },
-    {
         "url": "http://stateair.net/dos/RSS/Chennai/Chennai-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_Chennai",
@@ -107,6 +55,18 @@
         "country": "IN",
         "description": "",
         "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    },
+    {
+        "url": "http://www.cpcb.gov.in/CAAQM/mapPage/frmindiamap.aspx",
+        "adapter": "cpcb",
+        "name": "CPCB",
+        "city": "",
+        "country": "IN",
+        "description": "",
+        "sourceURL": "http://www.cpcb.gov.in/CAAQM/mapPage/frmindiamap.aspx",
         "contacts": [
             "info@openaq.org"
         ]
