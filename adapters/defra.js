@@ -211,6 +211,9 @@ let metadata = {
   'Leicester A594 Roadside':
    { city: 'Leicester',
      coordinates: { latitude: 52.638677, longitude: -1.124228 } },
+  'Nottingham Western Boulevard':
+   { city: 'Nottingham',
+     coordinates: { latitude: 52.969377, longitude: -1.188851 } },
   'Nottingham Centre':
    { city: 'Nottingham',
      coordinates: { latitude: 52.95473, longitude: -1.146447 } },
@@ -376,6 +379,9 @@ let metadata = {
   'Manchester Piccadilly':
    { city: 'Manchester',
      coordinates: { latitude: 53.48152, longitude: -2.237881 } },
+  'Manchester Sharston':
+   { city: 'Manchester',
+     coordinates: { latitude: 53.371306, longitude: -2.239218 } },
   Preston:
    { city: 'Preston',
      coordinates: { latitude: 53.76559, longitude: -2.680353 } },
@@ -412,6 +418,9 @@ let metadata = {
   Derry:
    { city: 'Derry',
      coordinates: { latitude: 55.001225, longitude: -7.329115 } },
+  'Derry Rosemount':
+   { city: 'Derry',
+     coordinates: { latitude: 55.002818, longitude: -7.331179 } },
   Dumfries:
    { city: 'Dumfries',
      coordinates: { latitude: 55.070033, longitude: -3.614233 } },
@@ -457,6 +466,9 @@ let metadata = {
   'Reading New Town':
    { city: 'Reading',
      coordinates: { latitude: 51.45309, longitude: -0.944067 } },
+  'Reading London Rd.':
+   { city: 'Reading',
+     coordinates: { latitude: 51.454896, longitude: -0.940382 } },
   'Rochester Stoke':
    { city: 'Rochester',
      coordinates: { latitude: 51.45617, longitude: 0.634889 } },
