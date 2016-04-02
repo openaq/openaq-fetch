@@ -130,8 +130,8 @@ var getAndSaveData = function (source) {
     // Get the appropriate adapter
     var adapter = findAdapter(source.adapter);
     if (!adapter) {
-      var err = {message: 'Could not find adapter.', source: source.name};
-      return done(null, err);
+      const msg = generateResultsMessage([], source, {'Could not find adapter.': 1}, 0, 0, argv.dryrun);
+      return done(null, msg);
     }
 
     let fetchStarted = Date.now();
@@ -139,8 +139,8 @@ var getAndSaveData = function (source) {
       let fetchEnded = Date.now();
       // If we have an error
       if (err) {
-        err.source = source.name;
-        return done(null, err);
+        const msg = generateResultsMessage([], source, {'Unknown adapter error': 1}, fetchStarted, fetchEnded, argv.dryrun);
+        return done(null, msg);
       }
 
       // Verify the data format
@@ -148,8 +148,8 @@ var getAndSaveData = function (source) {
 
       // If the data format is invalid
       if (!isValid) {
-        var error = {message: `${source.name} adapter returned invalid results.`, failures: reasons};
-        return done(null, error);
+        const msg = generateResultsMessage([], source, reasons, fetchStarted, fetchEnded, argv.dryrun);
+        return done(null, msg);
       }
 
       // Clean up the measurements a bit before validation
@@ -173,7 +173,7 @@ var getAndSaveData = function (source) {
 
       // If we have no measurements to insert, we can exit now
       if (data.measurements && data.measurements.length === 0) {
-        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded);
+        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded, argv.dryrun);
         // A little hacky to signify a dry run
         if (argv.dryrun) {
           msg.message = '[Dry run] ' + msg.message;
@@ -194,7 +194,7 @@ var getAndSaveData = function (source) {
         }
       });
       if (argv.dryrun) {
-        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded, true);
+        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded, argv.dryrun);
         done(null, msg);
       } else {
         // We're running each insert task individually so we can catch any
@@ -230,7 +230,7 @@ var getAndSaveData = function (source) {
           results = filter(results, (r) => {
             return r.status !== 'duplicate';
           });
-          let msg = generateResultsMessage(results, source, failures, fetchStarted, fetchEnded);
+          let msg = generateResultsMessage(results, source, failures, fetchStarted, fetchEnded, argv.dryrun);
           done(null, msg);
         });
       }
