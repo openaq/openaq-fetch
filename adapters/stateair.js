@@ -1,10 +1,12 @@
 'use strict';
 
-var request = require('request');
-var _ = require('lodash');
-var moment = require('moment-timezone');
-var cheerio = require('cheerio');
-var log = require('../lib/logger');
+import { REQUEST_TIMEOUT } from '../lib/constants';
+import { default as baseRequest } from 'request';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+import _ from 'lodash';
+import { default as moment } from 'moment-timezone';
+import cheerio from 'cheerio';
+import log from '../lib/logger';
 
 exports.name = 'stateair';
 

@@ -7,10 +7,12 @@
  */
 'use strict';
 
-var request = require('request');
-var _ = require('lodash');
-var moment = require('moment-timezone');
-var async = require('async');
+import { REQUEST_TIMEOUT } from '../lib/constants';
+import { default as baseRequest } from 'request';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+import _ from 'lodash';
+import { default as moment } from 'moment-timezone';
+import async from 'async';
 
 exports.name = 'chile';
 

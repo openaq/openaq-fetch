@@ -1,10 +1,12 @@
 'use strict';
 
-var request = require('request').defaults({jar: true}); // Turning on cookie saving
-var _ = require('lodash');
-var moment = require('moment-timezone');
-var async = require('async');
-var cheerio = require('cheerio');
+import { REQUEST_TIMEOUT } from '../lib/constants';
+import { default as baseRequest } from 'request';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT, jar: true}); // Turning on cookie saving
+import _ from 'lodash';
+import { default as moment } from 'moment-timezone';
+import cheerio from 'cheerio';
+import { series } from 'async';
 
 exports.name = 'poland';
 
@@ -36,7 +38,7 @@ exports.fetchData = function (source, cb) {
       tasks.push(task);
     });
 
-    async.series(tasks, function (err, results) {
+    series(tasks, function (err, results) {
       if (err) {
         return cb({message: 'Failure to load data urls.'});
       }
