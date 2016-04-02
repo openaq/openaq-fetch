@@ -14,8 +14,8 @@ if [[ $TRAVIS_BRANCH == ${PRODUCTION_BRANCH} ]]; then
   docker push flasher/openaq-fetch:latest
 
   # And set some vars for the update_task script
-  export ECS_CLUSTER="default"
   export ENV_FILE="production.env"
+  export TASK_NAME="openaq-fetch"
 fi
 
 echo "Installing aws cli"
