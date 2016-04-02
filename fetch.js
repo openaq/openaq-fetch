@@ -16,8 +16,6 @@ var argv = require('yargs')
   .describe('source', 'Run the fetch process with only the defined source using source name.')
   .alias('s', 'source')
   .nargs('source', 1)
-  .boolean('noemail')
-  .describe('noemail', 'Run the fetch process but do not send emails if there are errors.')
   .help('h')
   .alias('h', 'help')
   .argv;
@@ -26,7 +24,6 @@ var async = require('async');
 import { assign, filter, pick, chain, find } from 'lodash';
 var knex = require('knex');
 let knexConfig = require('./knexfile');
-var mailer = require('./lib/mailer');
 var utils = require('./lib/utils');
 var request = require('request');
 var log = require('./lib/logger');
@@ -140,12 +137,8 @@ var getAndSaveData = function (source) {
     let fetchStarted = Date.now();
     adapter.fetchData(source, function (err, data) {
       let fetchEnded = Date.now();
-      // If we have an error, send an email to the contacts and stop
+      // If we have an error
       if (err) {
-        // Don't send an email if it's a dry run or noemail flag is set
-        if (!argv.dryrun && !argv.noemail) {
-          mailer.sendFailureEmail(source.contacts, source.name, err);
-        }
         err.source = source.name;
         return done(null, err);
       }
@@ -153,13 +146,9 @@ var getAndSaveData = function (source) {
       // Verify the data format
       let { isValid, failures: reasons } = utils.verifyDataFormat(data);
 
-      // If the data format is invalid, let the contacts know
+      // If the data format is invalid
       if (!isValid) {
         var error = {message: `${source.name} adapter returned invalid results.`, failures: reasons};
-        // Don't send an email if it's a dry run or noemail flag is set
-        if (!argv.dryrun && !argv.noemail) {
-          mailer.sendFailureEmail(source.contacts, source.name, error);
-        }
         return done(null, error);
       }
 
@@ -297,8 +286,6 @@ var runTasks = function () {
         });
       };
       // Save results to the fetches table if this isn't a dryrun
-      // console.log(timeStarted, timeEnded, itemsInserted);
-      // console.log(err || results);
       pg('fetches')
         .insert({time_started: timeStarted, time_ended: timeEnded, count: itemsInserted, results: JSON.stringify(err || results)})
         .then((id) => {
