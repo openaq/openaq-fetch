@@ -33,7 +33,6 @@ var sources = require('./sources');
 
 var apiURL = process.env.API_URL || 'http://localhost:3004/v1/webhooks';
 var webhookKey = process.env.WEBHOOK_KEY || '123';
-var fetchInterval = process.env.FETCH_INTERVAL || 10 * 60 * 1000; // Default to 10 minutes
 let pg;
 let st;
 
@@ -274,7 +273,8 @@ var runTasks = function () {
 
     // Send out the webhook to openaq-api since we're all done
     if (argv.dryrun) {
-      return log.info('Dryrun completed, have a good day!');
+      log.info('Dryrun completed, have a good day!');
+      process.exit(0);
     } else {
       let sendWebhook = function () {
         sendUpdatedWebhook((err) => {
@@ -282,7 +282,8 @@ var runTasks = function () {
             log.error(err);
           }
 
-          return log.info('Webhook posted, have a good day!');
+          log.info('Webhook posted, have a good day!');
+          process.exit(0);
         });
       };
       // Save results to the fetches table if this isn't a dryrun
@@ -317,7 +318,6 @@ if (argv.dryrun) {
   .then(() => {
     log.info('Database migrations are handled, ready to roll!');
     runTasks();
-    setInterval(function () { runTasks(); }, fetchInterval);
   })
   .catch((e) => {
     log.error(e);
