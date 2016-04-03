@@ -173,10 +173,6 @@ var getAndSaveData = function (source) {
       // If we have no measurements to insert, we can exit now
       if (data.measurements && data.measurements.length === 0) {
         let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded, argv.dryrun);
-        // A little hacky to signify a dry run
-        if (argv.dryrun) {
-          msg.message = '[Dry run] ' + msg.message;
-        }
         return done(null, msg);
       }
 
