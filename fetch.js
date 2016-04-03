@@ -16,8 +16,6 @@ var argv = require('yargs')
   .describe('source', 'Run the fetch process with only the defined source using source name.')
   .alias('s', 'source')
   .nargs('source', 1)
-  .boolean('noemail')
-  .describe('noemail', 'Run the fetch process but do not send emails if there are errors.')
   .help('h')
   .alias('h', 'help')
   .argv;
@@ -26,7 +24,6 @@ var async = require('async');
 import { assign, filter, pick, chain, find } from 'lodash';
 var knex = require('knex');
 let knexConfig = require('./knexfile');
-var mailer = require('./lib/mailer');
 var utils = require('./lib/utils');
 var request = require('request');
 var log = require('./lib/logger');
@@ -36,7 +33,6 @@ var sources = require('./sources');
 
 var apiURL = process.env.API_URL || 'http://localhost:3004/v1/webhooks';
 var webhookKey = process.env.WEBHOOK_KEY || '123';
-var fetchInterval = process.env.FETCH_INTERVAL || 10 * 60 * 1000; // Default to 10 minutes
 let pg;
 let st;
 
@@ -133,34 +129,26 @@ var getAndSaveData = function (source) {
     // Get the appropriate adapter
     var adapter = findAdapter(source.adapter);
     if (!adapter) {
-      var err = {message: 'Could not find adapter.', source: source.name};
-      return done(null, err);
+      const msg = generateResultsMessage([], source, {'Could not find adapter.': 1}, 0, 0, argv.dryrun);
+      return done(null, msg);
     }
 
     let fetchStarted = Date.now();
     adapter.fetchData(source, function (err, data) {
       let fetchEnded = Date.now();
-      // If we have an error, send an email to the contacts and stop
+      // If we have an error
       if (err) {
-        // Don't send an email if it's a dry run or noemail flag is set
-        if (!argv.dryrun && !argv.noemail) {
-          mailer.sendFailureEmail(source.contacts, source.name, err);
-        }
-        err.source = source.name;
-        return done(null, err);
+        const msg = generateResultsMessage([], source, {'Unknown adapter error': 1}, fetchStarted, fetchEnded, argv.dryrun);
+        return done(null, msg);
       }
 
       // Verify the data format
       let { isValid, failures: reasons } = utils.verifyDataFormat(data);
 
-      // If the data format is invalid, let the contacts know
+      // If the data format is invalid
       if (!isValid) {
-        var error = {message: `${source.name} adapter returned invalid results.`, failures: reasons};
-        // Don't send an email if it's a dry run or noemail flag is set
-        if (!argv.dryrun && !argv.noemail) {
-          mailer.sendFailureEmail(source.contacts, source.name, error);
-        }
-        return done(null, error);
+        const msg = generateResultsMessage([], source, reasons, fetchStarted, fetchEnded, argv.dryrun);
+        return done(null, msg);
       }
 
       // Clean up the measurements a bit before validation
@@ -184,11 +172,7 @@ var getAndSaveData = function (source) {
 
       // If we have no measurements to insert, we can exit now
       if (data.measurements && data.measurements.length === 0) {
-        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded);
-        // A little hacky to signify a dry run
-        if (argv.dryrun) {
-          msg.message = '[Dry run] ' + msg.message;
-        }
+        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded, argv.dryrun);
         return done(null, msg);
       }
 
@@ -205,7 +189,7 @@ var getAndSaveData = function (source) {
         }
       });
       if (argv.dryrun) {
-        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded, true);
+        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded, argv.dryrun);
         done(null, msg);
       } else {
         // We're running each insert task individually so we can catch any
@@ -241,7 +225,7 @@ var getAndSaveData = function (source) {
           results = filter(results, (r) => {
             return r.status !== 'duplicate';
           });
-          let msg = generateResultsMessage(results, source, failures, fetchStarted, fetchEnded);
+          let msg = generateResultsMessage(results, source, failures, fetchStarted, fetchEnded, argv.dryrun);
           done(null, msg);
         });
       }
@@ -285,7 +269,8 @@ var runTasks = function () {
 
     // Send out the webhook to openaq-api since we're all done
     if (argv.dryrun) {
-      return log.info('Dryrun completed, have a good day!');
+      log.info('Dryrun completed, have a good day!');
+      process.exit(0);
     } else {
       let sendWebhook = function () {
         sendUpdatedWebhook((err) => {
@@ -293,12 +278,11 @@ var runTasks = function () {
             log.error(err);
           }
 
-          return log.info('Webhook posted, have a good day!');
+          log.info('Webhook posted, have a good day!');
+          process.exit(0);
         });
       };
       // Save results to the fetches table if this isn't a dryrun
-      // console.log(timeStarted, timeEnded, itemsInserted);
-      // console.log(err || results);
       pg('fetches')
         .insert({time_started: timeStarted, time_ended: timeEnded, count: itemsInserted, results: JSON.stringify(err || results)})
         .then((id) => {
@@ -330,7 +314,6 @@ if (argv.dryrun) {
   .then(() => {
     log.info('Database migrations are handled, ready to roll!');
     runTasks();
-    setInterval(function () { runTasks(); }, fetchInterval);
   })
   .catch((e) => {
     log.error(e);

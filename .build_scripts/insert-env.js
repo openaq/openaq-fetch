@@ -32,6 +32,13 @@ if (process.env.TRAVIS_COMMIT) {
 }
 obj['containerDefinitions'][0]['image'] += ':' + hash;
 
+// And set the family name based on env var
+splitEnvs.forEach(function (e) {
+  if (e.name === 'ECS_TASK_NAME') {
+    obj['family'] = e.value;
+  }
+});
+
 // Save to output file
 fs.writeFileSync(output, JSON.stringify(obj));
 console.info('Inserted env variables into ECS task definition.');

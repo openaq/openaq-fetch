@@ -1,11 +1,13 @@
 'use strict';
 
-var request = require('request');
-var _ = require('lodash');
-var moment = require('moment-timezone');
-var cheerio = require('cheerio');
-var utils = require('../lib/utils');
-var log = require('../lib/logger');
+import { REQUEST_TIMEOUT } from '../lib/constants';
+import { default as baseRequest } from 'request';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+import _ from 'lodash';
+import { default as moment } from 'moment-timezone';
+import cheerio from 'cheerio';
+import log from '../lib/logger';
+import { removeUnwantedParameters, convertUnits } from '../lib/utils';
 
 exports.name = 'nsw';
 
@@ -169,10 +171,10 @@ var formatData = function (data) {
   }
 
   // Remove unwanted paramters
-  finalMeasurements = utils.removeUnwantedParameters(finalMeasurements);
+  finalMeasurements = removeUnwantedParameters(finalMeasurements);
 
   // Attempt to convert to the Open AQ standard unit
-  finalMeasurements = utils.convertUnits(finalMeasurements);
+  finalMeasurements = convertUnits(finalMeasurements);
 
   return {name: 'unused', measurements: finalMeasurements};
 };

@@ -1,12 +1,14 @@
 'use strict';
 
-var request = require('request');
-var _ = require('lodash');
-var moment = require('moment-timezone');
-var async = require('async');
-var cheerio = require('cheerio');
-var utils = require('../lib/utils');
-var log = require('../lib/logger');
+import { REQUEST_TIMEOUT } from '../lib/constants';
+import { default as baseRequest } from 'request';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+import _ from 'lodash';
+import { default as moment } from 'moment-timezone';
+import cheerio from 'cheerio';
+import log from '../lib/logger';
+import { parallelLimit } from 'async';
+import { convertUnits } from '../lib/utils';
 
 exports.name = 'saopaulo';
 
@@ -40,7 +42,7 @@ exports.fetchData = function (source, cb) {
       tasks.push(task);
     });
 
-    async.parallelLimit(tasks, 4, function (err, results) {
+    parallelLimit(tasks, 4, function (err, results) {
       if (err) {
         return cb({message: 'Failure to load data urls.'});
       }
@@ -169,7 +171,7 @@ var formatData = function (results) {
   });
 
   // Convert units to platform standard
-  measurements = utils.convertUnits(measurements);
+  measurements = convertUnits(measurements);
   return {name: 'unused', measurements: measurements};
 };
 

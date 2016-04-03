@@ -7,10 +7,12 @@
  */
 'use strict';
 
-var request = require('request');
-var _ = require('lodash');
-var moment = require('moment-timezone');
-var async = require('async');
+import { REQUEST_TIMEOUT } from '../lib/constants';
+import { default as baseRequest } from 'request';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+import _ from 'lodash';
+import { default as moment } from 'moment-timezone';
+import async from 'async';
 
 exports.name = 'chile';
 
@@ -111,7 +113,7 @@ var formatData = function (results) {
    * @return {string} It's pretty!
    */
   var parseUnit = function (u) {
-    return (u === '&micro;g/m<sup>3</sup>' || u === '&micro;g/Nm<sup>3</sup>') ? 'µg/m³' : u;
+    return (u === '&micro;g/m<sup>3</sup>' || u === '&micro;g/Nm<sup>3</sup>' || u === '&micro;g/m<sup>3</sup>N') ? 'µg/m³' : u;
   };
 
   var measurements = [];
@@ -142,6 +144,12 @@ var formatData = function (results) {
       measurements.push(m);
     });
   });
+
+  let o = {};
+  measurements.forEach((m) => {
+    o[m.unit] = true;
+  });
+  console.log(o);
 
   return {
     name: 'unused',
