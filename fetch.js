@@ -138,7 +138,10 @@ var getAndSaveData = function (source) {
       let fetchEnded = Date.now();
       // If we have an error
       if (err) {
-        const msg = generateResultsMessage([], source, {'Unknown adapter error': 1}, fetchStarted, fetchEnded, argv.dryrun);
+        const errDict = {};
+        const key = err.message || 'Unknown adapter error';
+        errDict[key] = 1;
+        const msg = generateResultsMessage([], source, errDict, fetchStarted, fetchEnded, argv.dryrun);
         return done(null, msg);
       }
 

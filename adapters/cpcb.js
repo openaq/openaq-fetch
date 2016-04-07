@@ -16,7 +16,7 @@ export function fetchData (source, cb) {
   // Load initial page to get individual states
   request(source.url, (err, res, body) => {
     if (err || res.statusCode !== 200) {
-      log.error(err || res);
+      // log.error(err || res);
       return cb({message: 'Failure to load data url.'});
     }
 
