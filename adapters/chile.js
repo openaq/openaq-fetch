@@ -145,12 +145,6 @@ var formatData = function (results) {
     });
   });
 
-  let o = {};
-  measurements.forEach((m) => {
-    o[m.unit] = true;
-  });
-  console.log(o);
-
   return {
     name: 'unused',
     measurements: measurements
