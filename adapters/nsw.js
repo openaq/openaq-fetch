@@ -9,9 +9,9 @@ import cheerio from 'cheerio';
 import log from '../lib/logger';
 import { removeUnwantedParameters, convertUnits } from '../lib/utils';
 
-exports.name = 'nsw';
+export const name = 'nsw';
 
-exports.fetchData = function (source, cb) {
+export function fetchData (source, cb) {
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
       log.error(err || res.statusCode);
@@ -31,7 +31,7 @@ exports.fetchData = function (source, cb) {
       return cb({message: 'Unknown adapter error.'});
     }
   });
-};
+}
 
 // This is pretty nasty, but the rest of the code is as well.
 var parseDate = function (dateString) {
@@ -131,6 +131,11 @@ var formatData = function (data) {
           }]
         };
 
+        // Add coordinates if we have them
+        if (coordinates[base.location]) {
+          base.coordinates = coordinates[base.location];
+        }
+
         $(this).children().each(function (idx, cell) {
           // The column counter needs to take occasional colspans into account
           var colIncrement = Number($(this).attr('colspan')) || 1;
@@ -142,7 +147,7 @@ var formatData = function (data) {
           if ($(this).text() && i !== -1) {
             var p = indexParams[i];
 
-            var m = _.clone(base);
+            var m = _.cloneDeep(base);
             m.parameter = p.parameter;
             m.unit = units[p.parameter];
             m.value = Number($(this).text());
@@ -177,4 +182,119 @@ var formatData = function (data) {
   finalMeasurements = convertUnits(finalMeasurements);
 
   return {name: 'unused', measurements: finalMeasurements};
+};
+
+export const coordinates = {
+  Bargo: {
+    latitude: -34.3075,
+    longitude: 150.58
+  },
+  Bringelly: {
+    latitude: -33.9194444,
+    longitude: 150.7611111
+  },
+  Camden: {
+    latitude: -34.0416667,
+    longitude: 150.6902778
+  },
+  'Campbelltown West': {
+    latitude: -34.0666667,
+    longitude: 150.7952778
+  },
+  Liverpool: {
+    latitude: -33.9327778,
+    longitude: 150.9058333
+  },
+  Oakdale: {
+    latitude: -34.0530556,
+    longitude: 150.4972222
+  },
+  Chullora: {
+    latitude: -33.8938889,
+    longitude: 151.0452778
+  },
+  Earlwood: {
+    latitude: -33.9177778,
+    longitude: 151.1347222
+  },
+  Lindfield: {
+    latitude: -33.7827778,
+    longitude: 151.1500000
+  },
+  Randwick: {
+    latitude: -33.9333333,
+    longitude: 151.2419444
+  },
+  Rozelle: {
+    latitude: -33.8658333,
+    longitude: 151.1625
+  },
+  Prospect: {
+    latitude: -33.7947222,
+    longitude: 150.9125
+  },
+  Richmond: {
+    latitude: -33.6183333,
+    longitude: 150.7458333
+  },
+  Vineyard: {
+    latitude: -33.6577778,
+    longitude: 150.8466667
+  },
+  'St Marys': {
+    latitude: -33.7972222,
+    longitude: 150.7658333
+  },
+  'Albion Park Sth': {
+    latitude: -34.5805556,
+    longitude: 150.7816667
+  },
+  'Kembla Grange': {
+    latitude: -34.4763889,
+    longitude: 150.8175
+  },
+  Wollongong: {
+    latitude: -34.4186111,
+    longitude: 150.8863889
+  },
+  Muswellbrook: {
+    latitude: -32.2716667,
+    longitude: 150.8858333
+  },
+  Beresfield: {
+    latitude: -32.7983333,
+    longitude: 151.66
+  },
+  Newcastle: {
+    latitude: -32.9325,
+    longitude: 151.7583333
+  },
+  Wallsend: {
+    latitude: -32.8961111,
+    longitude: 151.6691667
+  },
+  Albury: {
+    latitude: -36.0516667,
+    longitude: 146.9741667
+  },
+  'Wagga Wagga Nth': {
+    latitude: -35.1044444,
+    longitude: 147.3602778
+  },
+  Bathurst: {
+    latitude: -33.4033333,
+    longitude: 149.5733333
+  },
+  Tamworth: {
+    latitude: -31.1105556,
+    longitude: 150.9141667
+  },
+  Wyong: {
+    latitude: -32.195,
+    longitude: 150.6736111
+  },
+  Singleton: {
+    latitude: -32.5297222,
+    longitude: 151.1497222
+  }
 };
