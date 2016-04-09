@@ -1,0 +1,14 @@
+[
+    {
+        "url": "http://stateair.net/dos/RSS/Pristina/Pristina-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Pristina",
+        "city": "Pristina",
+        "country": "XK",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]

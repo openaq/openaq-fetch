@@ -23,7 +23,7 @@ exports.name = 'india';
 exports.fetchData = function (source, cb) {
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
-      log.error(err || res);
+      log.error(err || res.statusCode);
       return cb({message: 'Failure to load data url.'});
     }
 

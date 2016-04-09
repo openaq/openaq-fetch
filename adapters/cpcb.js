@@ -16,7 +16,7 @@ export function fetchData (source, cb) {
   // Load initial page to get individual states
   request(source.url, (err, res, body) => {
     if (err || res.statusCode !== 200) {
-      // log.error(err || res);
+      log.error(err || res.statusCode);
       return cb({message: 'Failure to load data url.'});
     }
 
@@ -52,7 +52,7 @@ const handleState = function (e) {
     // Grab page for each state
     request(stateURL, (err, res, body) => {
       if (err || res.statusCode !== 200) {
-        log.error(err || res);
+        log.error(err || res.statusCode);
         return done(null, []);
       }
 
@@ -83,7 +83,7 @@ const handleCity = function (e) {
       // Grab page for each city to get stations
       request(cityURL, (err, res, body) => {
         if (err || res.statusCode !== 200) {
-          log.error(err || res);
+          log.error(err || res.statusCode);
           return done(null, []);
         }
 
