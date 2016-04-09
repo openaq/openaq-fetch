@@ -25,7 +25,7 @@ exports.fetchData = function (source, cb) {
   var finalURL = source.url;
   request(finalURL, function (err, res, body) {
     if (err || res.statusCode !== 200) {
-      log.error(err || res);
+      log.error(err || res.statusCode);
       return cb({message: 'Failure to load data url.'});
     }
 

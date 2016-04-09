@@ -13,7 +13,7 @@ exports.name = 'stateair';
 exports.fetchData = function (source, cb) {
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
-      log.error(err || res);
+      log.error(err || res.statusCode);
       return cb({message: 'Failure to load data url.'});
     }
 
@@ -57,6 +57,8 @@ var formatData = function (data) {
           return 'Asia/Jakarta';
         case 'Bogota':
           return 'America/Bogota';
+        case 'Pristina':
+          return 'Europe/Skopje'; // Using Skopje as a same time-zone proxy
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -130,6 +132,11 @@ var formatData = function (data) {
         return {
           latitude: 4.6379935,
           longitude: -74.0962868
+        };
+      case 'Pristina':
+        return {
+          latitude: 42.662161,
+          longitude: 21.150605
         };
     }
   };
