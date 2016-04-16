@@ -38,7 +38,7 @@ exports.fetchData = function (source, cb) {
     };
   };
   // Get the stations
-  getObjects(source.sourceURL, file, lineToObj, (err, stations) => {
+  getObjects(source.url, file, lineToObj, (err, stations) => {
     if (err) {
       log.error(err);
       return cb({message: 'Failure to load ftp data.'});
@@ -83,7 +83,7 @@ exports.fetchData = function (source, cb) {
         averagingPeriod: {unit: 'hours', value: 1}
       };
     };
-    getObjects(source.sourceURL, file, lineToObj, (err, measurements) => {
+    getObjects(source.url, file, lineToObj, (err, measurements) => {
       if (err) {
         log.error(err);
         return cb({message: 'Failure to load ftp data.'});

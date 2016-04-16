@@ -1,12 +1,12 @@
 [
     {
-        "url": "http://www.airnow.gov/",
+        "url": "ftp.airnowapi.org",
         "adapter": "airnow",
         "name": "AirNow",
         "city": "",
         "country": "",
         "description": "",
-        "sourceURL": "ftp.airnowapi.org",
+        "sourceURL": "http://www.airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ]
