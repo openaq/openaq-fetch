@@ -236,9 +236,68 @@ var getAndSaveData = function (source) {
   };
 };
 
+/**
+ * Generate tasks to run in parallel
+ */
 var tasks = sources.map((source) => {
   return getAndSaveData(source);
 });
+
+/**
+ * Saves information about fetches to the database
+ */
+const saveFetches = function (timeStarted, timeEnded, itemsInserted, err, results) {
+  return function (done) {
+    pg('fetches')
+      .insert({time_started: timeStarted, time_ended: timeEnded, count: itemsInserted, results: JSON.stringify(err || results)})
+      .then((id) => {
+        // Insert was successful
+        log.info('Fetches table successfully updated');
+        done(null);
+      })
+      .catch((e) => {
+        // An error on fetches insert
+        log.error(e);
+        done(null);
+      });
+  };
+};
+
+/**
+ * Save sources information, overwritten any previous results
+ *
+ */
+const saveSources = function () {
+  return function (done) {
+    pg('sources')
+      .del()
+      .then(() => {
+        // Delete was successful
+        log.verbose('Sources table successfully deleted.');
+
+        // Grab data from sources
+        const inserts = sources.map((s) => {
+          return {data: s};
+        });
+        pg('sources')
+          .insert(inserts)
+          .then(() => {
+            log.info('Sources table successfully updated.');
+            done(null);
+          })
+          .catch((e) => {
+            // An error on sources insert
+            log.error(e);
+            done(null);
+          });
+      })
+      .catch((e) => {
+        // An error on sources delete
+        log.error(e);
+        done(null);
+      });
+  };
+};
 
 /**
  * Run all the data fetch tasks in parallel, simply logs out results
@@ -275,7 +334,16 @@ var runTasks = function () {
       log.info('Dryrun completed, have a good day!');
       process.exit(0);
     } else {
-      let sendWebhook = function () {
+      // Run functions post fetches
+      const postFetchFunctions = [
+        saveFetches(timeStarted, timeEnded, itemsInserted, err, results),
+        saveSources()
+      ];
+      async.parallel(postFetchFunctions, (err, results) => {
+        if (err) {
+          log.error(err);
+        }
+
         sendUpdatedWebhook((err) => {
           if (err) {
             log.error(err);
@@ -284,20 +352,7 @@ var runTasks = function () {
           log.info('Webhook posted, have a good day!');
           process.exit(0);
         });
-      };
-      // Save results to the fetches table if this isn't a dryrun
-      pg('fetches')
-        .insert({time_started: timeStarted, time_ended: timeEnded, count: itemsInserted, results: JSON.stringify(err || results)})
-        .then((id) => {
-          // Insert was successful
-          log.info('Fetches table successfully updated');
-          sendWebhook();
-        })
-        .catch((e) => {
-          // An error on fetches insert
-          log.error(e);
-          sendWebhook();
-        });
+      });
     }
   });
 };
