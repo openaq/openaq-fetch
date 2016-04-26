@@ -1,0 +1,13 @@
+[
+    {
+        "url": "http://www.fhmzbih.gov.ba/latinica/AKTUELNI/zrak2.php",
+        "adapter": "fhmzbih",
+        "name": "Bosnia",
+        "country": "BA",
+        "description": "",
+        "sourceURL": "http://www.fhmzbih.gov.ba/latinica/AKTUELNI/A-zrak.php",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]
