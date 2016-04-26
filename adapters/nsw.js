@@ -45,10 +45,10 @@ var parseDate = function (dateString) {
   // Dates are reported in a range: December 13, 11pm - 12am
   // If the 'to' time is 12am, we need to add a day, so it returns
   // December 14, 12am, instead of December 13, 12am.
-  var date_offset = (time === '12am') ? 1 : 0;
+  var dateOffset = (time === '12am') ? 1 : 0;
 
   var date = moment.tz(d[1] + time, 'D MMMM YYYYha', 'Australia/Melbourne');
-  date.add(date_offset, 'day');
+  date.add(dateOffset, 'day');
 
   return {utc: date.toDate(), local: date.format()};
 };
