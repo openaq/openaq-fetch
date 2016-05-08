@@ -31,10 +31,18 @@ var log = require('./lib/logger');
 var adapters = require('./adapters');
 var sources = require('./sources');
 
-var apiURL = process.env.API_URL || 'http://localhost:3004/v1/webhooks';
-var webhookKey = process.env.WEBHOOK_KEY || '123';
+const apiURL = process.env.API_URL || 'http://localhost:3004/v1/webhooks';  // The url to ping on completion
+const webhookKey = process.env.WEBHOOK_KEY || '123';  // Secret key to auth with API
+const processTimeout = process.env.PROCESS_TIMEOUT || 10 * 60 * 1000; // Kill the process after a certain time in case it hangs
 let pg;
 let st;
+
+// This is a top-level safety mechanism, we'll kill this process after a certain
+// time in case it's hanging. Intended to avoid https://github.com/openaq/openaq-fetch/issues/154
+setTimeout(() => {
+  log.error('Uh oh, process timed out.');
+  process.exit(1);
+}, processTimeout);
 
 // Flatten the sources into a single array, taking into account sources argument
 sources = chain(sources).values().flatten().value();
