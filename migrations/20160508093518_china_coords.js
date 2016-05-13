@@ -59,7 +59,7 @@ exports.down = function (knex, Promise) {
 
   const getMeasurements = function () {
     return knex('measurements')
-      .select('coordinates', 'data', 'location')
+      .select('coordinates', 'data', 'location', '_id')
       .where('country', 'CN')
       .andWhere('location', 'Beijing US Embassy')
       .orWhere('location', 'Chengdu')
