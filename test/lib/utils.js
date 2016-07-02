@@ -100,6 +100,26 @@ describe('Testing helper functions', function () {
             date: new Date(new Date().setDate(new Date().getDate() - 5))
           },
           {
+            parameter: 'pm25',  // mobile not boolean
+            unit: 'µg/m3',
+            value: 20,
+            mobile: 'foo',
+            date: {
+              utc: new Date(),
+              local: '2016-01-24T19:00:00+00:00'
+            }
+          },
+          {
+            parameter: 'pm25',  // sourceType not valid
+            unit: 'µg/m3',
+            value: 20,
+            sourceType: 'foo',
+            date: {
+              utc: new Date(),
+              local: '2016-01-24T19:00:00+00:00'
+            }
+          },
+          {
             parameter: 'pm25', // Good
             unit: 'ppm',
             value: 10,
@@ -111,6 +131,8 @@ describe('Testing helper functions', function () {
             country: 'US',
             city: 'Test',
             sourceName: 'Test',
+            mobile: false,
+            sourceType: 'government',
             attribution: [{
               name: 'test',
               url: 'http://foo.com'
@@ -124,7 +146,7 @@ describe('Testing helper functions', function () {
       };
       let { pruned, failures } = utils.pruneMeasurements(data.measurements);
       expect(pruned.length).to.equal(1);
-      expect(Object.keys(failures).length).to.equal(13);
+      expect(Object.keys(failures).length).to.equal(17);
       done();
     });
   });

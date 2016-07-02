@@ -12,6 +12,7 @@
   "author": "Joe Flasher",
   "license": "MIT",
   "dependencies": {
+    "adm-zip": "^0.4.7",
     "async": "^1.2.1",
     "babel-preset-es2015": "^6.3.13",
     "byline": "^4.2.1",

@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
-    "required": ["location", "country", "city", "parameter", "unit", "value", "date", "sourceName"],
+    "required": ["location", "country", "city", "parameter", "unit", "value", "date", "sourceName", "sourceType", "mobile"],
     "properties": {
         "location": {
             "type": "string",
@@ -84,6 +84,13 @@
         "sourceName": {
             "type": "string",
             "minLength": 1
+        },
+        "sourceType": {
+            "type": "string",
+            "enum": ["government", "research", "other"]
+        },
+        "mobile": {
+            "type": "boolean"
         },
         "city": {
             "type": "string",
