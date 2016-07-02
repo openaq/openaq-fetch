@@ -274,6 +274,8 @@ const formatData = function (data) {
     // Build up the base object
     let baseObj = {
       averagingPeriod: {'value': 1, 'unit': 'hours'},
+      sourceType: 'research',
+      mobile: false,
       attribution: [{
         name: 'SPARTAN Network',
         url: 'http://www.spartan-network.org/'
