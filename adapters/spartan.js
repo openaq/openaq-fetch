@@ -305,14 +305,15 @@ const formatData = function (data) {
         measurements.push(m);
       }
 
-      if (item.bc !== undefined && !isNaN(item.bc)) {
-        let m = Object.assign({}, baseObj);
-        m.parameter = 'bc';
-        m.unit = 'µg/m³';
-        m.value = Number(item.bc);
-        m.date = getDate(item.date, locCode);
-        measurements.push(m);
-      }
+      // Not tracking BC for now because of https://github.com/openaq/openaq-fetch/pull/173#issuecomment-228565996
+      // if (item.bc !== undefined && !isNaN(item.bc)) {
+      //   let m = Object.assign({}, baseObj);
+      //   m.parameter = 'bc';
+      //   m.unit = 'µg/m³';
+      //   m.value = Number(item.bc);
+      //   m.date = getDate(item.date, locCode);
+      //   measurements.push(m);
+      // }
     });
   });
 
