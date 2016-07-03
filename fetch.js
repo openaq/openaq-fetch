@@ -103,7 +103,9 @@ let buildSQLObject = function (m) {
     country: m.country,
     city: m.city,
     source_name: m.sourceName,
-    date_utc: m.date.utc
+    date_utc: m.date.utc,
+    source_type: m.sourceType,
+    mobile: m.mobile
   };
   // Copy object JSON to the data field
   obj.data = assign({}, m);
@@ -170,10 +172,15 @@ var getAndSaveData = function (source) {
         m.city = m.city || source.city; // use city from measurement, otherwise default to source
         m.sourceName = source.name;
 
+        // Set defaults for sourceType (default to government)
+        // and mobile (default to false).
+        m.sourceType = m.sourceType || 'government';
+        m.mobile = (m.mobile === undefined) ? false : m.mobile;
+
         // Remove extra fields
         var wanted = ['date', 'parameter', 'location', 'value', 'unit', 'city',
                       'attribution', 'averagingPeriod', 'coordinates',
-                      'country', 'sourceName'];
+                      'country', 'sourceName', 'sourceType', 'mobile'];
         return pick(m, wanted);
       });
 
