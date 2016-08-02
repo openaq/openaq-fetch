@@ -1,0 +1,14 @@
+[
+    {
+        "url": "eea-default",
+        "adapter": "eea",
+        "name": "EEA Belgium",
+        "city": "",
+        "country": "BE",
+        "description": "Belgian data from UTD service",
+        "sourceURL": "",
+        "contacts": [
+            "olaf.veerman@gmail.com"
+        ]
+    }
+]
