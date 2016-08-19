@@ -59,6 +59,8 @@ var formatData = function (data) {
           return 'America/Bogota';
         case 'Pristina':
           return 'Europe/Skopje'; // Using Skopje as a same time-zone proxy
+        case 'Addis Ababa Central':
+          return 'Africa/Addis_Ababa';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -137,6 +139,11 @@ var formatData = function (data) {
         return {
           latitude: 42.662161,
           longitude: 21.150605
+        };
+      case 'Addis Ababa Central':
+        return {
+          latitude: 9.058498,
+          longitude: 38.761642
         };
     }
   };

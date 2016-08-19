@@ -1,0 +1,14 @@
+[
+    {
+        "url": "http://stateair.net/dos/RSS/AddisAbabaCentral/AddisAbabaCentral-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Addis_Ababa_Central",
+        "city": "Addis Ababa",
+        "country": "ET",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ]
+    }
+]
