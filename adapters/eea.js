@@ -1,7 +1,6 @@
 'use strict';
 
 import request from 'request';
-import { default as _ } from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import proj4 from 'proj4';
@@ -10,6 +9,7 @@ import proj4 from 'proj4';
 import epsg from 'proj4js-defs';
 epsg(proj4);
 
+import { convertUnits, acceptableParameters } from '../lib/utils';
 import log from '../lib/logger';
 
 export const name = 'eea';
@@ -17,8 +17,8 @@ export const name = 'eea';
 exports.fetchData = function (source, cb) {
   // Unsure of how date is exactly handled by the EEA system, the adapter
   // applies a generous buffer to the toDate and fromDate
-  let fromDate = moment.utc().subtract(3, 'hour').format('YYYY-MM-DD+HH[%3A]mm');
-  let toDate = moment.utc().add(2, 'hour').format('YYYY-MM-DD+HH[%3A]mm');
+  let fromDate = moment.utc().subtract(2, 'hour').format('YYYY-MM-DD+HH[%3A]mm');
+  let toDate = moment.utc().add(1, 'hour').format('YYYY-MM-DD+HH[%3A]mm');
 
   let finalUrl = `http://fme.discomap.eea.europa.eu/fmedatastreaming/AirQuality/AirQualityUTDExport.fmw?FromDate=${fromDate}&ToDate=${toDate}&Countrycode=${source.country}&Format=XML&usertoken=${process.env.EEA_TOKEN}`;
 
@@ -27,6 +27,7 @@ exports.fetchData = function (source, cb) {
       log.error(err || res);
       return cb({message: 'Failure to load data url.'});
     }
+
     // Format the data and send it back
     const data = formatData(body);
     cb(null, data);
@@ -39,7 +40,7 @@ const formatData = (body) => {
 
   // Reproject if necessary
   // EPSG:4979 is the correct projection, but not found in EPSG definition file
-  var parseCoordinates = function (x, y, from) {
+  const parseCoordinates = function (x, y, from) {
     if (from === 'EPSG:4979') {
       return [x, y];
     } else {
@@ -47,32 +48,49 @@ const formatData = (body) => {
     }
   };
 
+  // Return date object given local date and timezone url
+  const getDate = function (date, timezone) {
+    // For offset, we're making use of the fact that moment.js picks up first string
+    // like +02 in the provided url
+    const mo = moment.utc(date, 'YYYY-MM-DD HH:mm:ss').utcOffset(timezone, true);
+
+    return {utc: mo.toDate(), local: mo.format('YYYY-MM-DDTHH:mm:ssZ')};
+  };
+
   let measurements = [];
 
   // Loop over each <record> in the XML and store the measurement
   $('record', 'records').each(function (i, elem) {
-    let coordinates = parseCoordinates($('samplingpoint_point', this).attr('x'), $('samplingpoint_point', this).attr('y'), $('samplingpoint_point', this).attr('coordsys'));
+    // If it's not a parameter we want, can skip the rest
+    const parameter = $('pollutant', this).text().replace('.', '').toLowerCase();
+    if (acceptableParameters.indexOf(parameter) === -1) {
+      return;
+    }
 
+    let coordinates = parseCoordinates($('samplingpoint_point', this).attr('x'), $('samplingpoint_point', this).attr('y'), $('samplingpoint_point', this).attr('coordsys'));
     let m = {
-      date: $('value_datetime_end', this).text(),
-      parameter: $('pollutant', this).text().replace('.', '').toLowerCase(),
-      // location: $('STAT_NAAM', this).text(),
+      date: getDate($('value_datetime_end', this).text(), $('network_timezone', this).text()),
+      parameter: parameter,
+      location: $('station_name', this).text(),
       value: Number($('value_numeric', this).text()),
       unit: $('value_numeric', this).attr('unit'),
-      // stationId: stationID,
-      // city: getCity($('STAT_NAAM', this).text()),
-      // attribution: getAttribution($('OPST_OPDR_ORGA_CODE', this).text()),
-      // averagingPeriod: getPeriod(p),
+      city: $('network_name', this).text().replace(/"/g, ''),
+      averagingPeriod: {unit: 'hours', value: 1},
       coordinates: {
-        latitude: coordinates[1],
-        longitude: coordinates[0]
-      }
+        latitude: Number(coordinates[1]),
+        longitude: Number(coordinates[0])
+      },
+      attribution: [{
+        name: 'European Environmental Agency',
+        url: 'http://www.eea.europa.eu/themes/air/air-quality'
+      }]
     };
     measurements.push(m);
   });
 
-  console.log(measurements);
+  // Make sure units are correct
+  measurements = convertUnits(measurements);
 
   // Ship it off to be saved!
-  return {name: 'unused', measurements: body};
+  return {name: 'unused', measurements: measurements};
 };
