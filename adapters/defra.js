@@ -48,7 +48,7 @@ var formatData = function (source, data) {
 
   function sanitizeDate (date) {
     let m = moment.tz(date, 'DD/MM/YYYYHH:mm', 'Europe/London');
-    return {utc: m.toDate(), local: m.format()};
+    return {utc: m.toDate(), local: m.format('YYYY-MM-DDTHH:mm:ssZ')};
   }
 
   function getValue (measuredValue) {
@@ -153,7 +153,32 @@ var formatData = function (source, data) {
   };
 };
 
+// Values from location pages at https://uk-air.defra.gov.uk/latest/currentlevels
 let metadata = {
+  'Sheffield Barnsley Road':
+   { city: 'Yorkshire & Humberside',
+     coordinates: { latitude: 53.404950, longitude: -1.455815 } },
+  'Cannock A5190 Roadside':
+   { city: 'West Midlands',
+     coordinates: { latitude: 52.687298, longitude: -1.980821 } },
+  'Christchurch Barrack Road':
+   { city: 'South West',
+     coordinates: { latitude: 50.735454, longitude: -1.780888 } },
+  'St Helens Linkway':
+   { city: 'North West & Merseyside',
+     coordinates: { latitude: 53.451826, longitude: -2.742134 } },
+  'Greenock A8 Roadside':
+   { city: 'Central Scotland',
+     coordinates: { latitude: 55.944079, longitude: -4.734421 } },
+  'Birkenhead Borough Road':
+   { city: 'North West & Merseyside',
+     coordinates: { latitude: 53.388511, longitude: -3.025014 } },
+  'Worthing A27 Roadside':
+   { city: 'South East',
+     coordinates: { latitude: 50.832947, longitude: -0.379916 } },
+  'Birmingham A4540 Roadside':
+   { city: 'West Midlands',
+     coordinates: { latitude: 52.476090, longitude: -1.875024 } },
   'Bush Estate':
    { city: 'Bush Estate',
      coordinates: { latitude: 55.862281, longitude: -3.205782 } },
