@@ -60,6 +60,7 @@ var formatData = function (data) {
         case 'Pristina':
           return 'Europe/Skopje'; // Using Skopje as a same time-zone proxy
         case 'Addis Ababa Central':
+        case 'Addis Ababa School':
           return 'Africa/Addis_Ababa';
       }
     };
@@ -144,6 +145,11 @@ var formatData = function (data) {
         return {
           latitude: 9.058498,
           longitude: 38.761642
+        };
+      case 'Addis Ababa School':
+        return {
+          latitude: 8.996519,
+          longitude: 38.725433
         };
     }
   };
