@@ -10,5 +10,17 @@
         "contacts": [
             "info@openaq.org"
         ]
+    },
+    {
+        "url": "http://stateair.net/dos/RSS/AddisAbabaSchool/AddisAbabaSchool-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Addis_Ababa_School",
+        "city": "Addis Ababa",
+        "country": "ET",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ]
     }
 ]
