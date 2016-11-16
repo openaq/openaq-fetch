@@ -10,6 +10,7 @@
         "contacts": [
             "olaf.veerman@gmail.com",
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     }
 ]
