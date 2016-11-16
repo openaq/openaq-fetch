@@ -10,7 +10,8 @@
         "sourceURL": "http://agaar.mn/index",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     },
     {
         "url": "http://stateair.net/dos/RSS/Ulaanbaatar/Ulaanbaatar-PM2.5.xml",
@@ -22,6 +23,7 @@
         "sourceURL": "http://stateair.net/dos/",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     }
 ]

@@ -9,6 +9,20 @@
         "sourceURL": "http://www.airnow.gov/",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
+    },
+    {
+        "url": "http://spartan-network.org/static/downloads/PM25_Hourly_Daily_SPARTAN.zip",
+        "adapter": "spartan",
+        "name": "Spartan",
+        "city": "",
+        "country": "",
+        "description": "",
+        "sourceURL": "http://www.spartan-network.org/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": false
     }
 ]

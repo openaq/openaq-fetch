@@ -9,7 +9,8 @@
         "sourceURL": "http://stateair.net/dos/",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     },
     {
         "url": "http://www.senamhi.gob.pe/",
@@ -21,6 +22,7 @@
         "sourceURL": "http://peruclima.pe/?p=calidad-de-aire",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     }
 ]

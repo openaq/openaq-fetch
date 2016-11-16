@@ -9,7 +9,8 @@
         "sourceURL": "http://stateair.net/dos/",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     },
     {
         "url": "http://stateair.net/dos/RSS/HoChiMinhCity/HoChiMinhCity-PM2.5.xml",
@@ -21,6 +22,7 @@
         "sourceURL": "http://stateair.net/dos/",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     }
 ]
