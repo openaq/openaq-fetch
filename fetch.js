@@ -252,10 +252,13 @@ var getAndSaveData = function (source) {
 };
 
 /**
- * Generate tasks to run in parallel
+ * Generate tasks to run in parallel, only care about the active sources
  */
-var tasks = sources.map((source) => {
-  return getAndSaveData(source);
+let tasks = [];
+sources.forEach((source) => {
+  if (source.active) {
+    tasks.push(getAndSaveData(source));
+  }
 });
 
 /**

@@ -9,7 +9,9 @@
         "resolution": "1 hr",
         "sourceURL": "http://www.environment.nsw.gov.au/AQMS/hourlydata.htm",
         "contacts": [
+            "info@openaq.org",
             "olaf@developmentseed.org"
-        ]
+        ],
+        "active": true
     }
 ]
