@@ -1,10 +1,10 @@
 [
     {
-        "url": "http://stateair.net/dos/RSS/Hanoi/Hanoi-PM2.5.xml",
+        "url": "http://stateair.net/dos/RSS/AddisAbabaCentral/AddisAbabaCentral-PM2.5.xml",
         "adapter": "stateair",
-        "name": "StateAir_Hanoi",
-        "city": "Hanoi",
-        "country": "VN",
+        "name": "StateAir_Addis_Ababa_Central",
+        "city": "Addis Ababa",
+        "country": "ET",
         "description": "",
         "sourceURL": "http://stateair.net/dos/",
         "contacts": [
@@ -13,11 +13,11 @@
         "active": true
     },
     {
-        "url": "http://stateair.net/dos/RSS/HoChiMinhCity/HoChiMinhCity-PM2.5.xml",
+        "url": "http://stateair.net/dos/RSS/AddisAbabaSchool/AddisAbabaSchool-PM2.5.xml",
         "adapter": "stateair",
-        "name": "Ho Chi Minh City",
-        "city": "Ho Chi Minh City",
-        "country": "VN",
+        "name": "StateAir_Addis_Ababa_School",
+        "city": "Addis Ababa",
+        "country": "ET",
         "description": "",
         "sourceURL": "http://stateair.net/dos/",
         "contacts": [

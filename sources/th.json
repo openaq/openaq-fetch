@@ -10,6 +10,7 @@
         "sourceURL": "http://www.aqmthai.com/index.php",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     }
 ]

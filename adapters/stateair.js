@@ -59,6 +59,9 @@ var formatData = function (data) {
           return 'America/Bogota';
         case 'Pristina':
           return 'Europe/Skopje'; // Using Skopje as a same time-zone proxy
+        case 'Addis Ababa Central':
+        case 'Addis Ababa School':
+          return 'Africa/Addis_Ababa';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -70,73 +73,83 @@ var formatData = function (data) {
     switch (location) {
       case 'Chennai':
         return {
-          latitude: 13.052371,
-          longitude: 80.251932
+          latitude: 13.08784,
+          longitude: 80.27847
         };
       case 'Hyderabad':
         return {
-          latitude: 17.443464,
-          longitude: 78.474890
+          latitude: 17.38405,
+          longitude: 78.45636
         };
       case 'Kolkata':
         return {
-          latitude: 22.547142,
-          longitude: 88.351048
+          latitude: 22.56263,
+          longitude: 88.36304
         };
       case 'Mumbai':
         return {
-          latitude: 19.066023,
-          longitude: 72.868702
+          latitude: 19.07283,
+          longitude: 72.88261
         };
       case 'New Delhi':
         return {
-          latitude: 28.598096,
-          longitude: 77.189066
+          latitude: 28.63576,
+          longitude: 77.22445
         };
       case 'Hanoi':
         return {
-          latitude: 21.021770,
-          longitude: 105.819002
-        }; // Ho Chi Minh City assumes location is at Consulate
+          latitude: 21.021938,
+          longitude: 105.81881
+        };
       case 'Ho Chi Minh City':
         return {
-          latitude: 10.783041,
-          longitude: 106.700722
+          latitude: 10.782773,
+          longitude: 106.700035
         };
       case 'Ulaanbaatar':
         return {
-          latitude: 47.928444,
-          longitude: 106.930189
-        }; // Jakarta coordinates assume location is at Embassy
+          latitude: 47.928387,
+          longitude: 106.92947
+        };
       case 'Jakarta South':
         return {
-          latitude: -6.236585,
-          longitude: 106.793335
+          latitude: -6.236704,
+          longitude: 106.79324
         };
       case 'Jakarta Central':
         return {
-          latitude: -6.182382,
-          longitude: 106.834094
+          latitude: -6.182536,
+          longitude: 106.834236
         }; // Lima coordinates assume location is at Embassy
       case 'Lima':
         return {
-          latitude: -12.099583,
-          longitude: -76.968997
+          latitude: -12.099398,
+          longitude: -76.96888
         }; // Dhaka coordinates assume location is at American Center
       case 'Dhaka':
         return {
-          latitude: 23.797687,
-          longitude: 90.423698
+          latitude: 23.796373,
+          longitude: 90.424614
         };
       case 'Bogota':
         return {
-          latitude: 4.6379935,
-          longitude: -74.0962868
+          latitude: 4.637735,
+          longitude: -74.09486
         };
       case 'Pristina':
         return {
-          latitude: 42.662161,
-          longitude: 21.150605
+          latitude: 42.661995,
+          longitude: 21.15055
+        };
+      case 'Addis Ababa Central':
+        return {
+          latitude: 9.058498,
+          longitude: 38.761642
+        };
+      case 'Addis Ababa School':
+        return {
+          latitude: 8.996519,
+          longitude: 38.725433
         };
     }
   };

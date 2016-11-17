@@ -10,6 +10,7 @@
         "sourceURL": "http://www.lml.rivm.nl/sos/",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     }
 ]

@@ -7,13 +7,14 @@ import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import { series } from 'async';
+import { acceptableParameters } from '../lib/utils';
 
 exports.name = 'poland';
 
 exports.fetchData = function (source, cb) {
   // This is the list of individual station ids from
   // http://sojp.wios.warszawa.pl/?page=hourly-report&data=04-10-2015&site_id=69&csq_id=1414&dane=w1
-  var stations = ['69', '19', '14', '17', '71', '16', '15', '195', '11', '194',
+  var stations = ['69', '19', '203', '14', '202', '17', '71', '16', '15', '195', '11', '194',
                   '172', '12', '13', '18'];
 
   // There is some cookie checking going on within the site, so load the main
@@ -75,6 +76,10 @@ var formatData = function (results) {
 
   var getCoordinates = function (id) {
     switch (id) {
+      case 'Guty Duże':
+        return {'latitude': 52.943056, 'longitude': 21.289167};
+      case 'Otwock-Brzozowa':
+        return {'latitude': 52.115556, 'longitude': 21.239167};
       case 'Belsk-IGFPAN':
         return {'latitude': 51.83518056, 'longitude': 20.788889};
       case 'Granica-KPN':
@@ -118,16 +123,22 @@ var formatData = function (results) {
     var parameters = [];
     $('thead tr th').each(function () {
       var param = $(this).html();
-      if (['PM25', 'PM10', 'SO2', 'NO2', 'CO', 'O3'].indexOf(param) !== -1) {
-        parameters.push(param);
-      }
+      parameters.push(param.toLowerCase()); // Get all parameters from th
     });
+    parameters.shift(); // Remove first item since it's datetime
+    parameters = parameters.splice(0, parameters.length / 2); // Cut in half since other half are units
 
     // Get the location and city from selected option
     var id = $('option[selected="selected"]').html();
     var split = id.split('-');
     var city = split[0];
     var location = split[1];
+
+    // Special case for Guty Duże since it breaks the rules with city-location naming
+    if (city === 'Guty Duże') {
+      city = 'Warszawa';
+      location = 'Guty Duże';
+    }
 
     var base = {
       location: location,
@@ -148,13 +159,18 @@ var formatData = function (results) {
 
       // Split out measurements and create them if value is present
       $(e).find('td').each(function (i, e) {
+        // Exit if this isn't a pollutant we want
+        if (acceptableParameters.indexOf(parameters[i]) === -1) {
+          return;
+        }
+
         var value = $(e).html();
         if (value !== '' && value !== ' ' && value !== '\n') {
           // Copy base measurement
           var m = _.cloneDeep(base);
           m.date = date;
           m.value = Number(value.trim());
-          m.parameter = parameters[i].toLowerCase();
+          m.parameter = parameters[i];
           m.unit = 'µg/m³';
 
           // Add to array
