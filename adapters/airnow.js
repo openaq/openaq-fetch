@@ -13,7 +13,7 @@ exports.fetchData = function (source, cb) {
   // A workaround to getting rate limited for 6 logins in 1 hr for AirNow
   // system. Only try to grab data in last 20 minutes of an hour.
   if (moment().minute() < 40) {
-    return cb({message: 'Ignoring AirNow due to rate limiting.'});
+    return cb(null, {name: 'unused', measurements: []});
   }
 
   // First fetch the stations list and then get the latest measurements

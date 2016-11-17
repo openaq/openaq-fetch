@@ -9,6 +9,7 @@
         "sourceURL": "http://stateair.net/dos/",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     }
 ]

@@ -10,7 +10,8 @@
         "sourceURL": "http://www.stateair.net/web/post/1/1.html",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     },
     {
         "url": "http://www.stateair.net/web/rss/1/2.xml",
@@ -23,7 +24,8 @@
         "sourceURL": "http://www.stateair.net/web/post/1/2.html",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     },
     {
         "url": "http://www.stateair.net/web/rss/1/3.xml",
@@ -36,7 +38,8 @@
         "sourceURL": "http://www.stateair.net/web/post/1/3.html",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     },
     {
         "url": "http://www.stateair.net/web/rss/1/4.xml",
@@ -49,7 +52,8 @@
         "sourceURL": "http://www.stateair.net/web/post/1/4.html",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     },
     {
         "url": "http://www.stateair.net/web/rss/1/5.xml",
@@ -62,6 +66,7 @@
         "sourceURL": "http://www.stateair.net/web/post/1/5.html",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     }
 ]

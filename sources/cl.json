@@ -10,6 +10,7 @@
         "sourceURL": "http://sinca.mma.gob.cl/index.php/json",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     }
 ]
