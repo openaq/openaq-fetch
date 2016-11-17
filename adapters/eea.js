@@ -20,8 +20,12 @@ exports.fetchData = function (source, cb) {
   let fromDate = moment.utc().subtract(2, 'hour').format('YYYY-MM-DD+HH[%3A]mm');
   let toDate = moment.utc().add(1, 'hour').format('YYYY-MM-DD+HH[%3A]mm');
 
-  let finalUrl = `http://fme.discomap.eea.europa.eu/fmedatastreaming/AirQuality/AirQualityUTDExport.fmw?FromDate=${fromDate}&ToDate=${toDate}&Countrycode=${source.country}&Format=XML&usertoken=${process.env.EEA_TOKEN}`;
-
+  // Only ask for the pollutants we want
+  let pollutants = acceptableParameters.map((p) => {
+    return p.toUpperCase();
+  });
+  pollutants = pollutants.join();
+  let finalUrl = `http://fme.discomap.eea.europa.eu/fmedatastreaming/AirQuality/AirQualityUTDExport.fmw?FromDate=${fromDate}&ToDate=${toDate}&Countrycode=${source.country}&Pollutant=${pollutants}&Format=XML&UserToken=${process.env.EEA_TOKEN}`;
   request(finalUrl, function (err, res, body) {
     if (err || res.statusCode !== 200) {
       log.error(err || res);
