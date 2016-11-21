@@ -22,6 +22,8 @@ exports.fetchData = function (source, cb) {
 
   // Only ask for the pollutants we want
   let pollutants = acceptableParameters.map((p) => {
+    // https://github.com/openaq/openaq-fetch/issues/202
+    if (p === 'pm25') { p = 'PM2.5'; }
     return p.toUpperCase();
   });
   pollutants = pollutants.join();
