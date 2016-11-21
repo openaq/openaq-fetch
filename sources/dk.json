@@ -5,7 +5,7 @@
         "name": "EEA Denmark",
         "city": "",
         "country": "DK",
-        "description": "Denmark data from UTD service",
+        "description": "Danish data from UTD service",
         "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
         "contacts": [
             "olaf.veerman@gmail.com",
