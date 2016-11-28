@@ -1,6 +1,8 @@
 'use strict';
 
-import request from 'request';
+import { REQUEST_TIMEOUT } from '../lib/constants';
+import { default as baseRequest } from 'request';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import proj4 from 'proj4';
