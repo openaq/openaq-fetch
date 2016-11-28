@@ -327,7 +327,7 @@ var runTasks = function () {
   async.parallel(tasks, (err, results) => {
     let timeEnded = new Date();
     if (err) {
-      log.error(err);
+      log.error('Error during fetching of data sources.');
     } else {
       if (!argv.dryrun) {
         log.info('All data grabbed and saved.');
