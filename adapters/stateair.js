@@ -62,6 +62,8 @@ var formatData = function (data) {
         case 'Addis Ababa Central':
         case 'Addis Ababa School':
           return 'Africa/Addis_Ababa';
+        case 'Manama':
+          return 'Asia/Bahrain';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -150,6 +152,11 @@ var formatData = function (data) {
         return {
           latitude: 8.996519,
           longitude: 38.725433
+        };
+      case 'Manama':
+        return {
+          latitude: 26.204697,
+          longitude: 50.57083
         };
     }
   };
