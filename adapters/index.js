@@ -2,7 +2,8 @@ module.exports = require('require-dir')();
 
 /**
  *
- * Expected data format from the adpater is like below
+ * Expected data format from the adpater is like below, one measurements array
+ * with all measurements to be included
  * {
  *   "name": "Source Name",
  *   "measurements": [
@@ -16,7 +17,10 @@ module.exports = require('require-dir')();
  *          longitude: 40
  *        },
  *        value: 63,
- *        unit: 'µg/m3' },
+ *        unit: 'µg/m3',
+ *        attribution: [{name: 'Attribution 1', url: 'http://example.com'}, {name: 'Attribtuion 2', url: 'http://example2.com'}],
+ *        averagingPeriod: {unit: 'hours', value: 0.25}
+ *     },
  *     { parameter: 'pm25',
  *        date: {
  *           utc: Thu Jul 23 2015 06:40:00 GMT-0400 (EDT),
@@ -27,7 +31,11 @@ module.exports = require('require-dir')();
  *          longitude: 40
  *        },
  *        value: 26,
- *        unit: 'µg/m3' }
+ *        unit: 'µg/m3',
+ *        attribution: [{name: 'Attribution 1', url: 'http://example.com'}, {name: 'Attribtuion 2', url: 'http://example2.com'}],
+ *        averagingPeriod: {unit: 'hours', value: 0.25}
+ *     },
+ *     ...
  *   ]
  * }
  *
