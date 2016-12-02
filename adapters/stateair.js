@@ -156,7 +156,7 @@ var formatData = function (data) {
       case 'Manama':
         return {
           latitude: 26.204697,
-          longitude: 50.57083 
+          longitude: 50.57083
         };
     }
   };
