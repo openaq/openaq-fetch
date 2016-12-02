@@ -1,0 +1,16 @@
+[
+    {
+        "url": "https://api.nilu.no/aq/utd.json",
+        "adapter": "norway",
+        "name": "Norway",
+        "city": "",
+        "country": "NO",
+        "description": "Norwegian data from luftkvalitet.info",
+        "sourceURL": "http://www.luftkvalitet.info/home.aspx",
+        "contacts": [
+            "info@openaq.org",
+            "jonas.enge@gmail.com"
+        ],
+        "active": true
+    }
+]
