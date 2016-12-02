@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://stateair.net/dos/RSS/Manama/Manama-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Manama",
+        "city": "Manama",
+        "country": "BH",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
