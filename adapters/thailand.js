@@ -102,7 +102,13 @@ var formatData = function (body) {
 
   var createLocationObj = function (row) {
     var text = $($(row).children().get(1)).text();
+    // It looks like if we have English, there are commas, if no commas
+    // and it's in Thai, just spaces. For now, ignore result in Thai until
+    // we can find someone who can tell us how to parse it.
     text = text.split(',');
+    if (text.length === 1) {
+      return {city: null, location: null};
+    }
     var city = text.pop().trim();
     var location = text.join(',').trim();
 
@@ -128,6 +134,11 @@ var formatData = function (body) {
 
     // Location
     _.assign(m, createLocationObj(row));
+
+    // Related to Thai entry on English page, check for valid location
+    if (m.location === null) {
+      return;
+    }
 
     // Date
     m.date = createDateObj(row);
