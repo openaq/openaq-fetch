@@ -1,0 +1,16 @@
+[
+    {
+        "url": null,
+        "adapter": "eea",
+        "name": "EEA Gibraltar",
+        "city": "",
+        "country": "GI",
+        "description": "Gibraltar data from UTD service",
+        "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
+        "contacts": [
+            "olaf.veerman@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
