@@ -31,6 +31,8 @@ For production deployment, you will need to have certain environment variables s
 | WEBHOOK_KEY | Secret key to interact with openaq-api | '123' |
 | AIRNOW_FTP_USER | User for AirNow FTP | not set |
 | AIRNOW_FTP_PASSWORD | Password for AirNow FTP | not set |
+| EEA_TOKEN | API token for EEA API | not set |
+| EEA_GLOBAL_TIMEOUT | How long to check for EEA async results | 8 minutes |
 
 ## Tests
 To confirm that everything is working as expected, you can run the tests with
