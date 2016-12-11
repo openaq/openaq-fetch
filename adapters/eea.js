@@ -17,9 +17,15 @@ import log from '../lib/logger';
 export const name = 'eea';
 
 exports.fetchData = function (source, cb) {
+  // Because we're getting the data async, make a top-level timeout
+  // to keep things from going on forever.
+  const timeoutId = setTimeout(() => {
+    return cb({message: 'Failure to receive data from EEA system.'});
+  }, (process.env.EEA_GLOBAL_TIMEOUT || 8) * 60 * 1000);
+
   // Unsure of how date is exactly handled by the EEA system, the adapter
   // applies a generous buffer to the toDate and fromDate
-  let fromDate = moment.utc().subtract(2, 'hour').format('YYYY-MM-DD+HH[%3A]mm');
+  let fromDate = moment.utc().subtract(12, 'hour').format('YYYY-MM-DD+HH[%3A]mm');
   let toDate = moment.utc().add(1, 'hour').format('YYYY-MM-DD+HH[%3A]mm');
 
   // Only ask for the pollutants we want
@@ -29,16 +35,47 @@ exports.fetchData = function (source, cb) {
     return p.toUpperCase();
   });
   pollutants = pollutants.join();
-  let finalUrl = `http://fme.discomap.eea.europa.eu/fmedatastreaming/AirQuality/AirQualityUTDExport.fmw?FromDate=${fromDate}&ToDate=${toDate}&Countrycode=${source.country}&Pollutant=${pollutants}&Format=XML&UserToken=${process.env.EEA_TOKEN}`;
+  let finalUrl = `http://fme.discomap.eea.europa.eu/fmedatastreaming/AirQuality/AirQualityUTDExport.fmw?FromDate=${fromDate}&ToDate=${toDate}&Countrycode=${source.country}&Pollutant=${pollutants}&Format=XML&UserToken=${process.env.EEA_TOKEN}&RunAsync=True`;
+
   request(finalUrl, function (err, res, body) {
     if (err || res.statusCode !== 200) {
       log.error(err || res);
-      return cb({message: 'Failure to load data url.'});
+      return cb({message: 'Failure to receive job ID from EEA.'});
     }
 
-    // Format the data and send it back
-    const data = formatData(body);
-    cb(null, data);
+    // Since we're asking for the data asynchronously, keep checking for
+    // results every few seconds.
+    const $ = cheerio.load(body, {xmlMode: true});
+    const checkerId = setInterval(() => {
+      request($('ResultURL').text(), (err, res, body) => {
+        if (err) {
+          return cb({message: 'Failure to load EEA job result.'});
+        }
+
+        // Check to see if data is ready yet
+        const $ = cheerio.load(body, {xmlMode: true});
+        if ($('Code').text() !== 'BlobNotFound') {
+          // Cancel the timers
+          clearInterval(checkerId);
+          clearTimeout(timeoutId);
+
+          // Wrap everything in a try/catch in case something goes wrong
+          try {
+            // Format the data
+            var data = formatData(body);
+
+            // Make sure the data is valid
+            if (data === undefined) {
+              return cb({message: 'Failure to parse data.'});
+            }
+
+            return cb(null, data);
+          } catch (e) {
+            return cb({message: 'Unknown adapter error.'});
+          }
+        }
+      });
+    }, 10 * 1000);
   });
 };
 
