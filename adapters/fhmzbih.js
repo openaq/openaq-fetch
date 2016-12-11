@@ -64,8 +64,8 @@ var formatData = function (data) {
         };
       case 'Ivan Sedlo':
         return {
-          latitude: 43.816,
-          longitude: 18.2
+          latitude: 43.715,
+          longitude: 18.036
         };
       case 'Harmani':
         return {
