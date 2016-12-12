@@ -48,56 +48,59 @@ var formatData = function (data) {
   const getCoordinates = function (location, parameter) {
     switch (location) {
       case 'Bjelave':
-        let coords = {
-          latitude: 43.917,
-          longitude: 18.8
+        return {
+          latitude: 43.866,
+          longitude: 18.423
         };
-        if (parameter === 'pm10') {
-          coords = {
-            latitude: 43.933,
-            longitude: 18.783
-          };
-        }
-        return coords;
       case 'Vijećnica':
         return {
-          latitude: 44.73,
-          longitude: 19.166
+          latitude: 43.859,
+          longitude: 18.435
         };
       case 'mobilna (Ilidža)':
         return {
-          latitude: 44.483,
-          longitude: 19.116
+          latitude: 43.830,
+          longitude: 18.311
         };
       case 'Ivan Sedlo':
         return {
-          latitude: 43.816,
-          longitude: 18.2
+          latitude: 43.715,
+          longitude: 18.036
         };
       case 'Harmani':
         return {
-          latitude: 44.916,
-          longitude: 17.349
+          latitude: 44.343,
+          longitude: 17.268
         };
       case 'Centar':
         return {
-          latitude: 45.13,
-          longitude: 18.7
+          latitude: 44.199,
+          longitude: 17.913
         };
       case 'Radakovo':
         return {
-          latitude: 44.9,
-          longitude: 18.83
+          latitude: 44.195,
+          longitude: 17.932
         };
       case 'Tetovo':
         return {
-          latitude: 44.75,
-          longitude: 18.349
+          latitude: 44.290,
+          longitude: 17.895
         };
       case 'Brist':
         return {
-          latitude: 44.3,
-          longitude: 17.93
+          latitude: 44.202,
+          longitude: 17.800
+        };
+      case 'Otoka':
+        return {
+          latitude: 43.848,
+          longitude: 18.364
+        };
+      case 'Rasadnik':
+        return {
+          latitude: 43.661,
+          longitude: 18.977
         };
       default:
         return;
