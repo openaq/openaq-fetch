@@ -5,7 +5,6 @@ import byline from 'byline';
 import { omit, merge, find, filter } from 'lodash';
 import { default as moment } from 'moment-timezone';
 import { convertUnits } from '../lib/utils';
-import log from '../lib/logger';
 
 export const name = 'airnow';
 
@@ -40,7 +39,6 @@ exports.fetchData = function (source, cb) {
   // Get the stations
   getObjects(source.url, file, lineToObj, (err, stations) => {
     if (err) {
-      log.error(err);
       return cb({message: 'Failure to load ftp data.'});
     }
 
@@ -85,7 +83,6 @@ exports.fetchData = function (source, cb) {
     };
     getObjects(source.url, file, lineToObj, (err, measurements) => {
       if (err) {
-        log.error(err);
         return cb({message: 'Failure to load ftp data.'});
       }
 

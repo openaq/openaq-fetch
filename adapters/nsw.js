@@ -6,7 +6,6 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
-import log from '../lib/logger';
 import { removeUnwantedParameters, convertUnits } from '../lib/utils';
 
 export const name = 'nsw';
@@ -14,7 +13,6 @@ export const name = 'nsw';
 export function fetchData (source, cb) {
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
-      log.error(err || res.statusCode);
       return cb({message: 'Failure to load data url.'});
     }
 

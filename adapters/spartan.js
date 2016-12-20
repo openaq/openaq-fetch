@@ -4,7 +4,6 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import { default as moment } from 'moment-timezone';
-import log from '../lib/logger';
 import AdmZip from 'adm-zip';
 import { parallel } from 'async';
 
@@ -13,7 +12,6 @@ export const name = 'spartan';
 export const fetchData = function (source, cb) {
   request({url: source.url, encoding: null}, (err, res, body) => {
     if (err || res.statusCode !== 200) {
-      log.error(err || res.statusCode);
       return cb({message: 'Failure to load data url.'});
     }
 
