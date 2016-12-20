@@ -8,7 +8,6 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import { default as moment } from 'moment-timezone';
-import log from '../lib/logger';
 
 exports.name = 'norway';
 
@@ -20,7 +19,6 @@ exports.name = 'norway';
 exports.fetchData = function (source, cb) {
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
-      log.error(err || res.statusCode);
       return cb({message: 'Failure to load data url.'});
     }
 
