@@ -6,14 +6,12 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
-import log from '../lib/logger';
 
 exports.name = 'stateair';
 
 exports.fetchData = function (source, cb) {
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
-      log.error(err || res.statusCode);
       return cb({message: 'Failure to load data url.'});
     }
 

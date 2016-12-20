@@ -12,7 +12,6 @@ import epsg from 'proj4js-defs';
 epsg(proj4);
 
 import { convertUnits, acceptableParameters } from '../lib/utils';
-import log from '../lib/logger';
 
 export const name = 'eea';
 
@@ -32,7 +31,6 @@ exports.fetchData = function (source, cb) {
   let finalUrl = `http://fme.discomap.eea.europa.eu/fmedatastreaming/AirQuality/AirQualityUTDExport.fmw?FromDate=${fromDate}&ToDate=${toDate}&Countrycode=${source.country}&Pollutant=${pollutants}&Format=XML&UserToken=${process.env.EEA_TOKEN}`;
   request(finalUrl, function (err, res, body) {
     if (err || res.statusCode !== 200) {
-      log.error(err || res);
       return cb({message: 'Failure to load data url.'});
     }
 

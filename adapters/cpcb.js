@@ -5,7 +5,6 @@ import { default as baseRequest } from 'request';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import cheerio from 'cheerio';
 import { default as moment } from 'moment-timezone';
-import log from '../lib/logger';
 import { filter, flattenDeep, isFinite } from 'lodash';
 import { parallel } from 'async';
 import { acceptableParameters, convertUnits } from '../lib/utils';
@@ -16,7 +15,6 @@ export function fetchData (source, cb) {
   // Load initial page to get individual states
   request(source.url, (err, res, body) => {
     if (err || res.statusCode !== 200) {
-      log.error(err || res.statusCode);
       return cb({message: 'Failure to load data url.'});
     }
 
@@ -52,7 +50,6 @@ const handleState = function (e) {
     // Grab page for each state
     request(stateURL, (err, res, body) => {
       if (err || res.statusCode !== 200) {
-        log.error(err || res.statusCode);
         return done(null, []);
       }
 
@@ -83,7 +80,6 @@ const handleCity = function (e) {
       // Grab page for each city to get stations
       request(cityURL, (err, res, body) => {
         if (err || res.statusCode !== 200) {
-          log.error(err || res.statusCode);
           return done(null, []);
         }
 
@@ -139,7 +135,6 @@ const handleStation = function (dataURL, detailsURL) {
 
     parallel(tasks, (err, results) => {
       if (err) {
-        log.error(err);
         return done(null, []);
       }
 
