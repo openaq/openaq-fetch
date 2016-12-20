@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-001805",
+        "adapter": "taiwan",
+        "name": "Taiwan",
+        "city": "",
+        "country": "TW",
+        "description": "Taiwanese data from EPA",
+        "sourceURL": "http://taqm.epa.gov.tw/taqm/en/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
