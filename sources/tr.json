@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://index.havaizleme.gov.tr/Dynamic/0",
+        "adapter": "turkey",
+        "name": "Turkey",
+        "city": "",
+        "country": "TR",
+        "description": "Turkish data from National Air Quality Monitoring Network",
+        "sourceURL": "http://index.havaizleme.gov.tr/Dynamic/0",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
