@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://slb.nu/slbanalys/luften-idag/",
+        "adapter": "sweden",
+        "name": "Sweden",
+        "city": "Stockkholm",
+        "country": "SE",
+        "description": "Swedish data from SLB analys",
+        "sourceURL": "http://slb.nu/slbanalys/luften-idag/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
