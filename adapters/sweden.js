@@ -6,15 +6,12 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
-import { series } from 'async';
-import { acceptableParameters } from '../lib/utils';
 
 exports.name = 'sweden';
 
 exports.fetchData = function (source, cb) {
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
-      log.error(err || res.statusCode);
       return cb({message: 'Failure to load data url.'});
     }
 
@@ -102,57 +99,59 @@ var formatData = function (result) {
     if (rendered.startsWith('\r\n\t')) {
       // extract data table
       rendered = rendered.substring(rendered.indexOf('arrayToDataTable('));
-      rendered = rendered.substring(18,rendered.indexOf(']);'));
-      rendered = rendered.replace('[','').trim(); 
+      rendered = rendered.substring(18, rendered.indexOf(']);'));
+      rendered = rendered.replace('[', '').trim();
       rendered = rendered.split("'").join('').trim(); // remove all [
 
-      if (rendered.length > 20)
+      if (rendered.length > 20) {
         nodes.push(rendered);
+      }
     }
   });
 
-  var parameters = ['pm10', 'no2','pm25', 'o3']; //currently this order
+  var parameters = ['pm10', 'no2', 'pm25', 'o3']; // currently this order
 
-  //iterate over different quantitites (PM10, NO2, PM25, O3)
-  nodes.forEach((node,nodeIndex) => {
-
-    //parse data table
+  // Iterate over different quantitites (PM10, NO2, PM25, O3)
+  nodes.forEach((node, nodeIndex) => {
+    // Parse data table
     var rows = node.split('],[');
     var legend = rows.shift().split(',');
 
-    //iterate over the last 24 hours of measurements
-    rows.forEach((row,index) => { 
-      row = row.split(']').join('').trim().split(',')  
+    // Iterate over the last 24 hours of measurements
+    rows.forEach((row, index) => {
+      row = row.split(']').join('').trim().split(',');
 
-    //first column contains the hour of the recordings
-    var date = moment(row[0],'HH:mm').date(moment().date());
+      // First column contains the hour of the recordings
+      var date = moment(row[0], 'HH:mm').date(moment().date());
 
-    //adapt date to yesterday for the relevant measurements
-    if (date > moment(rows[rows.length-1],'HH:mm').date(moment().date()))
-      date.subtract(1, 'day');
+      // Adapt date to yesterday for the relevant measurements
+      if (date > moment(rows[rows.length - 1], 'HH:mm').date(moment().date())) {
+        date.subtract(1, 'day');
+      }
 
-    var dateMoment = moment.tz(date, 'YYYY-MM-DD HH:mm', 'Europe/Stockholm');
-    date = {utc: dateMoment.toDate(), local: dateMoment.format()};
+      var dateMoment = moment.tz(date, 'YYYY-MM-DD HH:mm', 'Europe/Stockholm');
+      date = {utc: dateMoment.toDate(), local: dateMoment.format()};
 
-    // Now loop over all the measurements, for now just try and insert them
-    // all and let them fail at insert time. This could probably be more
-    // efficient.
-    legend.forEach((e,i) => {
-      //filter out time or background columns
-      if (e == 'Tid' || e.includes('bakgrund'))
-        return;
+      // Now loop over all the measurements, for now just try and insert them
+      // all and let them fail at insert time. This could probably be more
+      // efficient.
+      legend.forEach((e, i) => {
+        // Filter out time or background columns
+        if (e === 'Tid' || e.includes('bakgrund')) {
+          return;
+        }
 
-      var city = 'Stockholm';
-      if (e.includes('Uppsala')) city = 'Uppsala';
-      if (e.includes('Gävle')) city = 'Gävle';
+        var city = 'Stockholm';
+        if (e.includes('Uppsala')) city = 'Uppsala';
+        if (e.includes('Gävle')) city = 'Gävle';
 
-      var base = {
-        location: e,
-        city: city,
-        attribution: [{name: 'SLB', 'url': 'http://slb.nu/slbanalys/luften-idag/'}],
-        averagingPeriod: {'value': 1, 'unit': 'hours'},
-        coordinates: getCoordinates(e)
-      };
+        var base = {
+          location: e,
+          city: city,
+          attribution: [{name: 'SLB', 'url': 'http://slb.nu/slbanalys/luften-idag/'}],
+          averagingPeriod: {'value': 1, 'unit': 'hours'},
+          coordinates: getCoordinates(e)
+        };
 
         var value = row[i];
 
@@ -169,7 +168,6 @@ var formatData = function (result) {
         }
       });
     });
-  
   });
 
   return {name: 'unused', measurements: measurements};
