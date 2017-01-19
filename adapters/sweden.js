@@ -6,6 +6,7 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
+import { acceptableParameters } from '../lib/utils';
 
 exports.name = 'sweden';
 
@@ -34,6 +35,7 @@ exports.fetchData = function (source, cb) {
 var formatData = function (result) {
   var measurements = [];
 
+  // Source: Hardcoded in source-code in http://slb.nu/slbanalys/matningar/
   var getCoordinates = function (id) {
     switch (id) {
       case 'Högdalen':
@@ -94,22 +96,31 @@ var formatData = function (result) {
 
   // select the relevant JS nodes
   var nodes = [];
+  var parameters = [];
+
   $('.entry-content script').each(function () {
     var rendered = $(this).html();
     if (rendered.startsWith('\r\n\t')) {
       // extract data table
-      rendered = rendered.substring(rendered.indexOf('arrayToDataTable('));
-      rendered = rendered.substring(18, rendered.indexOf(']);'));
-      rendered = rendered.replace('[', '').trim();
-      rendered = rendered.split("'").join('').trim(); // remove all [
+      var data = rendered.substring(rendered.indexOf('arrayToDataTable('));
+      data = data.substring(18, data.indexOf(']);'));
+      data = data.replace('[', '').trim();
+      data = data.split("'").join('').trim(); // remove all [
 
-      if (rendered.length > 20) {
-        nodes.push(rendered);
+      var param = rendered.substring(rendered.indexOf('visualization.LineChart'));
+      param = param.substring(param.indexOf('.getElementById(\'') + 17);
+      param = param.substring(0, param.indexOf('_'));
+
+      if (acceptableParameters.indexOf(param) === -1) {
+        return;
+      }
+
+      if (data.length > 20) {
+        nodes.push(data);
+        parameters.push(param);
       }
     }
   });
-
-  var parameters = ['pm10', 'no2', 'pm25', 'o3']; // currently this order
 
   // Iterate over different quantitites (PM10, NO2, PM25, O3)
   nodes.forEach((node, nodeIndex) => {
@@ -130,7 +141,8 @@ var formatData = function (result) {
       }
 
       var dateMoment = moment.tz(date, 'YYYY-MM-DD HH:mm', 'Europe/Stockholm');
-      date = {utc: dateMoment.toDate(), local: dateMoment.format()};
+      var utc = moment(dateMoment).tz('Etc/UTC');
+      date = {utc: utc.toDate(), local: dateMoment.format()};
 
       // Now loop over all the measurements, for now just try and insert them
       // all and let them fail at insert time. This could probably be more

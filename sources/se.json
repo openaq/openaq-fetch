@@ -8,7 +8,8 @@
         "description": "Swedish data from SLB analys",
         "sourceURL": "http://slb.nu/slbanalys/luften-idag/",
         "contacts": [
-            "info@openaq.org"
+            "info@openaq.org",
+            "hufnagel@kth.se"
         ],
         "active": true
     }
