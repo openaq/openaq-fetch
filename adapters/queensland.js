@@ -6,47 +6,28 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
-import async from 'async';
 import { removeUnwantedParameters } from '../lib/utils';
 
 exports.name = 'queensland';
 
 exports.fetchData = function (source, cb) {
-  var finalURL = source.url;
-
-  var tasks = [];
-
-  _.forEach([finalURL], function (f) {
-    var task = function (cb) {
-      // download the xml
-      request(f, function (err, res, body) {
-        if (err || res.statusCode !== 200) {
-          return cb(err || res);
-        }
-
-        // pass the data to formatData
-        var mData = formatData(body, source);
-        cb(null, mData);
-      });
-    };
-
-    tasks.push(task);
-  });
-
-  async.parallel(tasks, function (err, results) {
-    if (err) {
-      return cb({message: err});
+  request(source.url, function (err, res, body) {
+    if (err || res.statusCode !== 200) {
+      return cb(err || res);
     }
 
-    var result = {
-      name: 'unused',
-      measurements: _.flatten(results)
-    };
+    try {
+      var data = formatData(body, source);
+      var result = {
+        name: 'unused',
+        measurements: _.flatten(data)
+      };
 
-    // Remove unwanted parameters
-    result.measurements = removeUnwantedParameters(result.measurements);
-
-    cb(null, result);
+      result.measurements = removeUnwantedParameters(result.measurements);
+      cb(null, result);
+    } catch (e) {
+      return cb({message: 'Unknown adapter error.'});
+    }
   });
 };
 
