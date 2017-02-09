@@ -62,17 +62,17 @@ var formatData = function (result) {
         return {'latitude': 59.34516113, 'longitude': 18.05428175};
       case 'Folkungagatan':
         return {'latitude': 59.31462368, 'longitude': 18.07585555};
-      case 'Botkyrka, Hågelbyleden':
+      case 'Hågelbyleden Botkyrka':
         return {'latitude': 59.23705806, 'longitude': 17.83833241};
       case 'Gröndalsskolan':
         return {'latitude': 59.31349142, 'longitude': 18.00469473};
       case 'Fleminggatan (projekt)':
         return {'latitude': 59.33375997, 'longitude': 18.03684915};
-      case 'E4 Häggvik':
+      case 'E4 Sollentuna Häggvik':
         return {'latitude': 59.44353901, 'longitude': 17.92236122};
       case 'Norrlandsgatan':
         return {'latitude': 59.33635627, 'longitude': 18.07062632};
-      case 'Södertalje, Turingegatan':
+      case 'Södertälje Turingegatan':
         return {'latitude': 59.19812352, 'longitude': 17.62108719};
       case 'Ekmansväg':
         return {'latitude': 59.48900019, 'longitude': 17.92020954};
@@ -82,6 +82,7 @@ var formatData = function (result) {
         return {'latitude': 60.60798503, 'longitude': 15.63367903};
       case 'Södertalje, Birkakorset':
         return {'latitude': 59.20135294, 'longitude': 17.63475503};
+      case 'E4/E20 Lilla Essingen':
       case 'Lilla Essingen (E4/E20)':
         return {'latitude': 59.32551867, 'longitude': 18.00396061};
       case 'Uppsala Kungsgatan':
