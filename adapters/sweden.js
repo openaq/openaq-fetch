@@ -133,16 +133,14 @@ var formatData = function (result) {
       row = row.split(']').join('').trim().split(',');
 
       // First column contains the hour of the recordings
-      var date = moment(row[0], 'HH:mm').date(moment().date());
+      var date = moment.tz(row[0], 'HH:mm', 'Europe/Stockholm').date(moment().date());
 
       // Adapt date to yesterday for the relevant measurements
       if (date > moment(rows[rows.length - 1], 'HH:mm').date(moment().date())) {
         date.subtract(1, 'day');
       }
 
-      var dateMoment = moment.tz(date, 'YYYY-MM-DD HH:mm', 'Europe/Stockholm');
-      var utc = moment(dateMoment).tz('Etc/UTC');
-      date = {utc: utc.toDate(), local: dateMoment.format()};
+      date = {utc: date.toDate(), local: date.format()};
 
       // Now loop over all the measurements, for now just try and insert them
       // all and let them fail at insert time. This could probably be more
@@ -175,8 +173,10 @@ var formatData = function (result) {
           m.parameter = parameters[nodeIndex];
           m.unit = 'µg/m³';
 
-          // Add to array
-          measurements.push(m);
+          // Add to array if value is valid
+          if (!isNaN(m.value)) {
+            measurements.push(m);
+          }
         }
       });
     });
