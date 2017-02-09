@@ -150,7 +150,7 @@ const formatData = function (data) {
         return {
           location: 'SPARTAN - CITEDEF',
           city: 'Buenos Aires',
-          country: 'BR'
+          country: 'AR'
         };
       case 'NGIL':
         return {
