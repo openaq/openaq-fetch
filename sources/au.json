@@ -21,7 +21,7 @@
         "city": "",
         "country": "AU",
         "description": "Measurements from Department of Environment and Heritage Protection of Queensland Government.",
-        "resolution": "6 hr",
+        "resolution": "1 hr",
         "sourceURL": "https://data.qld.gov.au/dataset/air-quality-monitoring-live-data-feed/resource/50410fbe-8766-45cd-a259-c4c1f3c89dd1",
         "contacts": [
             "info@openaq.org"
