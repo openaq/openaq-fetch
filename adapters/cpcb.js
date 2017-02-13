@@ -161,13 +161,11 @@ const renameParameter = function (parameter) {
     case 'Carbon Monoxide':
       return 'co';
     case 'PM2.5':
-      return 'pm25';
     case 'PM 2.5':
       return 'pm25';
     case 'Ozone':
       return 'o3';
     case 'PM10':
-      return 'pm10';
     case 'PM 10':
       return 'pm10';
     default:
