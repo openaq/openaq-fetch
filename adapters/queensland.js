@@ -59,10 +59,6 @@ var formatData = function (data, source) {
 
   var measurements = [];
 
-  // todo:
-  // set relative units
-  // pinpoint cities from coordinates
-
   $('measurement').each(function (i, elem) {
     var location = $(this).parent().attr('name');
 
@@ -72,8 +68,7 @@ var formatData = function (data, source) {
       location: location,
       value: Number($(this).text()),
       unit: 'µg/m³',
-      city: 'Unknown',
-      region: $(this).parent().parent().attr('name'),
+      city: $(this).parent().parent().attr('name'),
       attribution: [{
         name: source.name,
         url: source.sourceURL
