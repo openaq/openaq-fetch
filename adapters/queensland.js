@@ -50,6 +50,22 @@ const renameParameter = function (parameter) {
   }
 };
 
+const getParameterUnit = function (parameter) {
+  switch (parameter) {
+    case 'pm25':
+    case 'pm10':
+    case 'bc':
+      return 'µg/m³';
+    case 'no2':
+    case 'so2':
+    case 'o3':
+    case 'co':
+      return 'ppm';
+    default:
+      return '?';
+  }
+};
+
 var formatData = function (data, source) {
   var $ = cheerio.load(data, {xmlMode: true});
 
@@ -61,13 +77,14 @@ var formatData = function (data, source) {
 
   $('measurement').each(function (i, elem) {
     var location = $(this).parent().attr('name');
+    var param = renameParameter($(this).attr('name'));
 
     var m = {
       date: dates,
-      parameter: renameParameter($(this).attr('name')),
+      parameter: param,
       location: location,
       value: Number($(this).text()),
-      unit: 'µg/m³',
+      unit: getParameterUnit(param),
       city: $(this).parent().parent().attr('name'),
       attribution: [{
         name: source.name,
