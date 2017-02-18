@@ -1,4 +1,4 @@
-# OpenAQ Data Ingest Pipeline 
+# OpenAQ Data Ingest Pipeline
 [![Build Status](https://travis-ci.org/openaq/openaq-fetch.svg?branch=master)](https://travis-ci.org/openaq/openaq-fetch)
 
 ## Overview
@@ -31,6 +31,8 @@ For production deployment, you will need to have certain environment variables s
 | WEBHOOK_KEY | Secret key to interact with openaq-api | '123' |
 | AIRNOW_FTP_USER | User for AirNow FTP | not set |
 | AIRNOW_FTP_PASSWORD | Password for AirNow FTP | not set |
+| EEA_TOKEN | API token for EEA API | not set |
+| EEA_GLOBAL_TIMEOUT | How long to check for EEA async results | 7 minutes |
 
 ## Tests
 To confirm that everything is working as expected, you can run the tests with
@@ -49,7 +51,7 @@ is an ever-evolving process that is shaped by its community: your
 feedback and questions are actively invited on the criteria listed in
 this section.
 
-(1) Data must be of one of these pollutant types: PM10, PM2.5, sulfur dioxide (SO2), carbon monoxide (CO), nitrogen dioxide (NO2), ozone (O3), and black carbon (BC). 
+(1) Data must be of one of these pollutant types: PM10, PM2.5, sulfur dioxide (SO2), carbon monoxide (CO), nitrogen dioxide (NO2), ozone (O3), and black carbon (BC).
 
 (2) Data must be from an official-level outdoor air quality source, as defined as data produced by a government entity or international organization. We do not, at this stage, include data from low-cost, temporary, and/or indoor sensors. 
 
@@ -57,7 +59,7 @@ this section.
 
 (4) Data must be at the ‘station-level,’ associable with geographic coordinates, not aggregated into a higher (e.g. city) level.
 
-(5) Data must be from measurements averaged between 10 minutes and 24 hours. 
+(5) Data must be from measurements averaged between 10 minutes and 24 hours.
 
 
 ## Contributing
