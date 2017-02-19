@@ -218,7 +218,7 @@ var getAndSaveData = function (source) {
               .returning('location')
               .insert(record)
               .then((loc) => {
-                done(null, {status: 'new'});
+                return done(null, {status: 'new'});
               })
               .catch((e) => {
                 // Log out an error if it's not an failed duplicate insert
@@ -227,7 +227,7 @@ var getAndSaveData = function (source) {
                 }
 
                 log.error(e);
-                done(e);
+                return done(e);
               });
           };
         };
