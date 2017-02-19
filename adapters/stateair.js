@@ -64,6 +64,8 @@ var formatData = function (data) {
           return 'Asia/Bahrain';
         case 'Kuwait City':
           return 'Asia/Kuwait';
+        case 'Kampala':
+          return 'Africa/Kampala';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -162,6 +164,11 @@ var formatData = function (data) {
         return {
           latitude: 29.292316,
           longitude: 48.04768
+        };
+      case 'Kuwait City':
+        return {
+          latitude: 0.300225,
+          longitude: 32.591553
         };
     }
   };
