@@ -165,7 +165,7 @@ var formatData = function (data) {
           latitude: 29.292316,
           longitude: 48.04768
         };
-      case 'Kuwait City':
+      case 'Kampala':
         return {
           latitude: 0.300225,
           longitude: 32.591553
