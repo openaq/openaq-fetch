@@ -438,6 +438,9 @@ let metadata = {
   'Belfast Stockman\'s Lane':
    { city: 'Belfast',
      coordinates: { latitude: 54.572586, longitude: -5.974944 } },
+  'Derby St Alkmund\'s Way':
+   { city: 'Derby',
+     coordinates: { latitude: 52.922983, longitude: -1.469507 } },
   Derry:
    { city: 'Derry',
      coordinates: { latitude: 55.001225, longitude: -7.329115 } },
@@ -555,6 +558,9 @@ let metadata = {
   'Plymouth Centre':
    { city: 'Plymouth',
      coordinates: { latitude: 50.37167, longitude: -4.142361 } },
+  'Plymouth Tavistock Road.':
+   { city: 'Plymouth',
+     coordinates: { latitude: 50.411058, longitude: -4.130288 } },
   'Mace Head':
    { city: 'Mace Head',
      coordinates: { latitude: 53.326444, longitude: -9.903917 } },
