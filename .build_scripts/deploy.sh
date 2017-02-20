@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
 
 echo "Pushing image: developmentseed/openaq-fetch:$TRAVIS_COMMIT"
 docker tag openaq_fetch flasher/openaq-fetch:$TRAVIS_COMMIT

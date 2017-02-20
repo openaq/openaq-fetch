@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://stateair.net/dos/RSS/Kampala/Kampala-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Kampala",
+        "city": "Kampala",
+        "country": "UG",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
