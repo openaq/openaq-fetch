@@ -213,7 +213,7 @@ var getAndSaveData = function (source) {
         // We're running each insert task individually so we can catch any
         // duplicate errors. Good idea? Who knows!
         let insertRecord = function (record) {
-          return function (done) {
+          return function (cb) {
             let error;
             pg('measurements')
               .returning('location')
@@ -226,13 +226,13 @@ var getAndSaveData = function (source) {
               })
               .done(() => {
                 if (error && error.code === '23505') {
-                  done(null, {status: 'duplicate'});
+                  cb(null, {status: 'duplicate'});
                 } else if (error) {
                   // Log out an error if it's not an failed duplicate insert
                   log.error(error);
-                  done(error);
+                  cb(error);
                 } else {
-                  done(null, {status: 'new'});
+                  cb(null, {status: 'new'});
                 }
               });
           };
