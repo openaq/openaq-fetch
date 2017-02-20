@@ -214,20 +214,26 @@ var getAndSaveData = function (source) {
         // duplicate errors. Good idea? Who knows!
         let insertRecord = function (record) {
           return function (done) {
+            let error;
             pg('measurements')
               .returning('location')
               .insert(record)
               .then((loc) => {
-                return done(null, {status: 'new'});
+                // Don't need anything thing here for now
               })
               .catch((e) => {
-                // Log out an error if it's not an failed duplicate insert
-                if (e.code === '23505') {
-                  return done(null, {status: 'duplicate'});
+                error = e;
+              })
+              .done(() => {
+                if (error && error.code === '23505') {
+                  done(null, {status: 'duplicate'});
+                } else if (error) {
+                  // Log out an error if it's not an failed duplicate insert
+                  log.error(error);
+                  done(error);
+                } else {
+                  done(null, {status: 'new'});
                 }
-
-                log.error(e);
-                return done(e);
               });
           };
         };
