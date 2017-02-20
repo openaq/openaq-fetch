@@ -58,18 +58,21 @@ exports.fetchData = function (source, cb) {
           clearTimeout(timeoutId);
 
           // Wrap everything in a try/catch in case something goes wrong
+          let data;
+          let error;
           try {
             // Format the data
-            var data = formatData(body);
-
-            // Make sure the data is valid
-            if (data === undefined) {
-              return cb({message: 'Failure to parse data.'});
-            }
-
-            return cb(null, data);
+            data = formatData(body);
           } catch (e) {
-            return cb({message: 'Unknown adapter error.'});
+            error = e;
+          } finally {
+            if (error) {
+              cb({message: 'Unknown adapter error.'});
+            } else if (data === undefined) {
+              cb({message: 'Failure to parse data.'});
+            } else {
+              cb(null, data);
+            }
           }
         }
       });
