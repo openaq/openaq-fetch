@@ -250,7 +250,7 @@ var getAndSaveData = function (source) {
             return r.status !== 'duplicate';
           });
           let msg = generateResultsMessage(results, source, failures, fetchStarted, fetchEnded, argv.dryrun);
-          done(null, msg);
+          return done(null, msg);
         });
       }
     });
