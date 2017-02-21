@@ -125,11 +125,11 @@ let buildSQLObject = function (m) {
  */
 var getAndSaveData = function (source) {
   // Generates a formatted message based on fetch results
-  let generateResultsMessage = function (measurements, source, failures, fetchStarted, fetchEnded, isDryrun = false) {
+  let generateResultsMessage = function (newResults, source, failures, fetchStarted, fetchEnded, isDryrun = false) {
     return {
-      message: `${isDryrun ? '[Dry Run] ' : ''}New measurements inserted for ${source.name}: ${measurements.length}`,
+      message: `${isDryrun ? '[Dry Run] ' : ''}New measurements inserted for ${source.name}: ${newResults}`,
       failures: failures,
-      count: measurements.length,
+      count: newResults,
       duration: (fetchEnded - fetchStarted) / 1000,
       sourceName: source.name
     };
@@ -139,7 +139,7 @@ var getAndSaveData = function (source) {
     // Get the appropriate adapter
     var adapter = findAdapter(source.adapter);
     if (!adapter) {
-      const msg = generateResultsMessage([], source, {'Could not find adapter.': 1}, 0, 0, argv.dryrun);
+      const msg = generateResultsMessage(0, source, {'Could not find adapter.': 1}, 0, 0, argv.dryrun);
       return done(null, msg);
     }
 
@@ -151,7 +151,7 @@ var getAndSaveData = function (source) {
         const errDict = {};
         const key = err.message || 'Unknown adapter error';
         errDict[key] = 1;
-        const msg = generateResultsMessage([], source, errDict, fetchStarted, fetchEnded, argv.dryrun);
+        const msg = generateResultsMessage(0, source, errDict, fetchStarted, fetchEnded, argv.dryrun);
         return done(null, msg);
       }
 
@@ -160,7 +160,7 @@ var getAndSaveData = function (source) {
 
       // If the data format is invalid
       if (!isValid) {
-        const msg = generateResultsMessage([], source, reasons, fetchStarted, fetchEnded, argv.dryrun);
+        const msg = generateResultsMessage(0, source, reasons, fetchStarted, fetchEnded, argv.dryrun);
         return done(null, msg);
       }
 
@@ -190,7 +190,7 @@ var getAndSaveData = function (source) {
 
       // If we have no measurements to insert, we can exit now
       if (data.measurements && data.measurements.length === 0) {
-        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded, argv.dryrun);
+        let msg = generateResultsMessage(data.measurements.length, source, failures, fetchStarted, fetchEnded, argv.dryrun);
         return done(null, msg);
       }
 
@@ -207,7 +207,7 @@ var getAndSaveData = function (source) {
         }
       });
       if (argv.dryrun) {
-        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded, argv.dryrun);
+        let msg = generateResultsMessage(data.measurements.length, source, failures, fetchStarted, fetchEnded, argv.dryrun);
         done(null, msg);
       } else {
         // We're running each insert task individually so we can catch any
@@ -234,7 +234,7 @@ var getAndSaveData = function (source) {
         let tasks = inserts.map((i) => {
           return insertRecord(i);
         });
-        async.parallel(tasks, function (err, results) {
+        async.parallelLimit(tasks, process.env.PSQL_POOL_MAX || 10, function (err, results) {
           if (err) {
             return done(err);
           }
@@ -243,7 +243,8 @@ var getAndSaveData = function (source) {
           results = filter(results, (r) => {
             return r.status !== 'duplicate';
           });
-          let msg = generateResultsMessage(results, source, failures, fetchStarted, fetchEnded, argv.dryrun);
+          let msg = generateResultsMessage(results.length, source, failures, fetchStarted, fetchEnded, argv.dryrun);
+
           done(null, msg);
         });
       }

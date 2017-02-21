@@ -44,7 +44,8 @@ exports.fetchData = function (source, cb) {
     // Since we're asking for the data asynchronously, keep checking for
     // results every few seconds.
     const $ = cheerio.load(body, {xmlMode: true});
-    const checkerId = setInterval(() => {
+    let checkerId;
+    checkerId = setInterval(() => {
       request($('ResultURL').text(), (err, res, body) => {
         if (err) {
           return cb({message: 'Failure to load EEA job result.'});
@@ -58,25 +59,22 @@ exports.fetchData = function (source, cb) {
           clearTimeout(timeoutId);
 
           // Wrap everything in a try/catch in case something goes wrong
-          let data;
-          let error;
           try {
             // Format the data
-            data = formatData(body);
+            var data = formatData(body);
           } catch (e) {
-            error = e;
-          } finally {
-            if (error) {
-              cb({message: 'Unknown adapter error.'});
-            } else if (data === undefined) {
-              cb({message: 'Failure to parse data.'});
-            } else {
-              cb(null, data);
-            }
+            return cb({message: 'Unknown adapter error.'});
           }
+
+          // Make sure data is valid
+          if (data === undefined) {
+            return cb({message: 'Failure to parse data.'});
+          }
+
+          cb(null, data);
         }
       });
-    }, 10 * 1000);
+    }, 30 * 1000);
   });
 };
 
