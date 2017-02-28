@@ -20,7 +20,7 @@ exports.fetchData = function (source, cb) {
   // to keep things from going on forever. Default to 7 minutes
   const timeoutId = setTimeout(() => {
     return cb({message: 'Failure to receive data from EEA system.'});
-  }, (process.env.EEA_GLOBAL_TIMEOUT || 7) * 60 * 1000);
+  }, (process.env.EEA_GLOBAL_TIMEOUT || 360) * 1000);
 
   // Unsure of how date is exactly handled by the EEA system, the adapter
   // applies a generous buffer to the toDate and fromDate
@@ -74,7 +74,7 @@ exports.fetchData = function (source, cb) {
           cb(null, data);
         }
       });
-    }, 30 * 1000);
+    }, (process.env.EEA_ASYNC_RECHECK || 60) * 1000);
   });
 };
 
