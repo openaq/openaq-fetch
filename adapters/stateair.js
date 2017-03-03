@@ -6,21 +6,43 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
+import { parallel } from 'async';
+import { convertUnits } from '../lib/utils';
 
 exports.name = 'stateair';
 
 exports.fetchData = function (source, cb) {
-  request(source.url, function (err, res, body) {
-    if (err || res.statusCode !== 200) {
-      return cb({message: 'Failure to load data url.'});
+  // Generic fetch function
+  const getData = (url, done) => {
+    return request(url, (err, res, body) => {
+      if (err) {
+        return done(err);
+      } else if (res.statusCode === 404) {
+        return done(null, '');
+      }
+
+      return done(null, body);
+    });
+  };
+  // Check for PM2.5 and Ozone measurements
+  var tasks = {
+    'pm25': (done) => {
+      getData(source.url, done);
+    },
+    'o3': (done) => {
+      getData(source.url.replace('PM2.5', 'OZONE'), done);
+    }
+  };
+
+  parallel(tasks, (err, results) => {
+    if (err) {
+      return cb({message: 'Failure to load data urls.'});
     }
 
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-      var data = formatData(body);
-
-      // Make sure the data is valid
+      var data = formatData(results);
       if (data === undefined) {
         return cb({message: 'Failure to parse data.'});
       }
@@ -66,6 +88,9 @@ var formatData = function (data) {
           return 'Asia/Kuwait';
         case 'Kampala':
           return 'Africa/Kampala';
+        case 'Kathmandu':
+        case 'Phora Durbar':
+          return 'Asia/Kathmandu';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -170,39 +195,55 @@ var formatData = function (data) {
           latitude: 0.300225,
           longitude: 32.591553
         };
+      case 'Phora Durbar':
+        return {
+          latitude: 27.712463,
+          longitude: 85.315704
+        };
+      case 'Kathmandu':
+        return {
+          latitude: 27.738703,
+          longitude: 85.336205
+        };
     }
   };
 
-  // Load all the XML
-  var $ = cheerio.load(data, {xmlMode: true});
-
   // Create measurements array
-  var measurements = [];
+  let measurements = [];
 
-  // Build up the base object
-  var location = $('channel').children('title').text().trim();
-  var baseObj = {
-    location: 'US Diplomatic Post: ' + location,
-    parameter: 'pm25',
-    unit: 'µg/m³',
-    averagingPeriod: {'value': 1, 'unit': 'hours'},
-    attribution: [{
-      name: 'EPA AirNow DOS',
-      url: 'http://airnow.gov/index.cfm?action=airnow.global_summary'
-    }],
-    coordinates: getCoordinates(location)
-  };
+  // We could have both pm25 and ozone measurements, so loop over
+  // results object
+  for (let parameter in data) {
+    // Load all the XML
+    const $ = cheerio.load(data[parameter], {xmlMode: true});
 
-  // Loop over each item and save the object
-  $('item').each(function (i, elem) {
-    // Clone base object
-    var obj = _.cloneDeep(baseObj);
+    // Build up the base object
+    const location = $('channel').children('title').text().trim();
+    const baseObj = {
+      location: 'US Diplomatic Post: ' + location,
+      parameter: parameter,
+      unit: (parameter === 'pm25') ? 'µg/m³' : 'ppb',
+      averagingPeriod: {'value': 1, 'unit': 'hours'},
+      attribution: [{
+        name: 'EPA AirNow DOS',
+        url: 'http://airnow.gov/index.cfm?action=airnow.global_summary'
+      }],
+      coordinates: getCoordinates(location)
+    };
 
-    obj.value = Number($(elem).children('Conc').text());
-    obj.date = getDate($(elem).children('ReadingDateTime').text(), location);
+    // Loop over each item and save the object
+    $('item').each(function (i, elem) {
+      // Clone base object
+      const obj = _.cloneDeep(baseObj);
 
-    measurements.push(obj);
-  });
+      obj.value = Number($(elem).children('Conc').text());
+      obj.date = getDate($(elem).children('ReadingDateTime').text(), location);
+
+      measurements.push(obj);
+    });
+  }
+
+  measurements = convertUnits(measurements);
 
   return {
     name: 'unused',
