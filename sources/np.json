@@ -1,0 +1,28 @@
+[
+    {
+        "url": "http://stateair.net/dos/RSS/PhoraDurbar/PhoraDurbar-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_PhoraDurbar",
+        "city": "Kathmandu",
+        "country": "NP",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://stateair.net/dos/RSS/Kathmandu/Kathmandu-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Kathmandu",
+        "city": "Kathmandu",
+        "country": "NP",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]

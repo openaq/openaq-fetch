@@ -66,6 +66,9 @@ var formatData = function (data) {
           return 'Asia/Kuwait';
         case 'Kampala':
           return 'Africa/Kampala';
+        case 'Kathmandu':
+        case 'Phora Durbar':
+          return 'Asia/Kathmandu';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -169,6 +172,16 @@ var formatData = function (data) {
         return {
           latitude: 0.300225,
           longitude: 32.591553
+        };
+      case 'Phora Durbar':
+        return {
+          latitude: 27.712463,
+          longitude: 85.315704
+        };
+      case 'Kathmandu':
+        return {
+          latitude: 27.738703,
+          longitude: 85.336205
         };
     }
   };
