@@ -1,6 +1,6 @@
 [
     {
-        "url": "http://stateair.net/dos/RSS/PhoraDurbar/PhoraDurbar-PM2.5.xml",
+        "url": "http://stateair.net/dos/RSS/PhoraDurbarKathmandu/PhoraDurbarKathmandu-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_PhoraDurbar",
         "city": "Kathmandu",
@@ -13,7 +13,7 @@
         "active": true
     },
     {
-        "url": "http://stateair.net/dos/RSS/Kathmandu/Kathmandu-PM2.5.xml",
+        "url": "http://stateair.net/dos/RSS/EmbassyKathmandu/EmbassyKathmandu-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_Kathmandu",
         "city": "Kathmandu",
