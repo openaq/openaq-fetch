@@ -88,8 +88,8 @@ var formatData = function (data) {
           return 'Asia/Kuwait';
         case 'Kampala':
           return 'Africa/Kampala';
-        case 'Kathmandu':
-        case 'Phora Durbar':
+        case 'Embassy Kathmandu':
+        case 'Phora Durbar Kathmandu':
           return 'Asia/Kathmandu';
       }
     };
@@ -195,12 +195,12 @@ var formatData = function (data) {
           latitude: 0.300225,
           longitude: 32.591553
         };
-      case 'Phora Durbar':
+      case 'Phora Durbar Kathmandu':
         return {
           latitude: 27.712463,
           longitude: 85.315704
         };
-      case 'Kathmandu':
+      case 'Embassy Kathmandu':
         return {
           latitude: 27.738703,
           longitude: 85.336205
