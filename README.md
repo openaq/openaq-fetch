@@ -4,7 +4,7 @@
 ## Overview
 This is the main data ingest pipeline for the [OpenAQ](https://openaq.org) project.
 
-Starting with `index.js`, there is an ingest mechanism to gather global air quality measurements from a variety of sources. This is currently run every 10 minutes and saves all unique measurements to a database.
+Starting with `index.js`, there is an ingest mechanism to gather global air quality measurements from a variety of sources. This is currently running every 10 minutes and saves all unique measurements to a database.
 
 [openaq-api](https://github.com/openaq/openaq-api) powers the API and more information on the data format can be found in [openaq-data-format](https://github.com/openaq/openaq-data-format).
 
