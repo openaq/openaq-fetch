@@ -58,7 +58,7 @@ const formatData = function (data) {
    * @return {object} a repacked object
    */
   const aqRepack = (item) => {
-    const dateMoment = moment.tz(item.fromTime, 'YYYY-MM-DD HH:mm', 'Europe/Oslo');
+    const dateMoment = moment.tz(item.toTime, 'YYYY-MM-DD HH:mm', 'Europe/Oslo');
     const template = {
       location: item.station,
       city: item.area,

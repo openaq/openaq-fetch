@@ -9,7 +9,7 @@ import cheerio from 'cheerio';
 exports.name = 'defra';
 
 exports.fetchData = function (source, cb) {
-  request(source.url, function (err, res, body) {
+  request({url: source.url, headers: {'User-Agent': 'OpenAQ'}}, function (err, res, body) {
     if (err || res.statusCode !== 200) {
       return cb({message: 'Failure to load data url.'});
     }
