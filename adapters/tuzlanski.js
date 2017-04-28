@@ -52,6 +52,11 @@ const handleStation = function (stationUrl) {
 
 const formatData = function (results, cb) {
   const $ = cheerio.load(results);
+  if ($('h2').text().indexOf('Mobilna') !== -1 &&
+      $('.data-legend').last().text().indexOf('Adresa') === -1) {
+    // skip mobile stations
+    return cb([]);
+  }
 
   let base = {
     location: $('h2').text().split(' ').slice(2).join(' '),
