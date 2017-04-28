@@ -4,6 +4,7 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import cheerio from 'cheerio';
+import Coordinates from 'coordinate-parser';
 import { default as moment } from 'moment-timezone';
 import { flattenDeep } from 'lodash';
 import { parallel } from 'async';
@@ -68,16 +69,17 @@ const formatData = function (results, cb) {
     }]
   };
 
-  // fixme: parse coordinates
   let legends = $('.data-legend').last().find('div div');
   base.city = legends.eq(1).text().split(' ').reverse()[0];
-  const coordinates = {
-    latitude: legends.eq(3).text(),
-    longitude: legends.eq(4).text()
-  };
 
-  if (coordinates.latitude && coordinates.longitude) {
-    // base.coordinates = coordinates;
+  let position = new Coordinates(legends.eq(3).text().split(':')[1] + ' ' +
+                                 legends.eq(4).text().split(':')[1]);
+
+  if (position.getLatitude() && position.getLongitude()) {
+    base.coordinates = {
+      latitude: position.getLatitude(),
+      longitude: position.getLongitude()
+    };
   }
 
   let measurements = [];
