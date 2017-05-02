@@ -10,5 +10,17 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "http://monitoringzrakatk.info/",
+        "adapter": "tuzlanski",
+        "name": "Bosnia_Tuzlanski",
+        "country": "BA",
+        "description": "",
+        "sourceURL": "http://monitoringzrakatk.info/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
