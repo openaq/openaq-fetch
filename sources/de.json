@@ -1,15 +1,15 @@
 [
     {
-        "url": null,
-        "adapter": "eea",
-        "name": "EEA Germany",
+        "url": "http://api.luftdaten.info/static/v1/data.json",
+        "adapter": "germany",
+        "name": "Germany",
         "city": "",
         "country": "DE",
-        "description": "German data from UTD service",
-        "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
+        "description": "German data from Luftdaten.info community",
+        "sourceURL": "http://www.luftdaten.info",
         "contacts": [
-            "olaf.veerman@gmail.com",
-            "info@openaq.org"
+            "info@openaq.org",
+            "hufnagel@kth.se"
         ],
         "active": true
     }
