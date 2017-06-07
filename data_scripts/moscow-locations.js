@@ -21,20 +21,26 @@ request(kmlURL, (err, res, body) => {
 
   let $ = cheerio.load(body, { xmlMode: true });
   let results = {};
-  
+
   $('Placemark').each(function (index, element) {
     let name = $(this).find('name').text();
-    name = name.trim();
+    name = name.trim().replace(/ /g, '_');
+
     let points = $(this).find('Point coordinates').text();
     points = points.trim();
-    results[name] = {
+
+    let description = $(this).find('description').text();
+    let stationRegexp = /air-today\/station\/(\w*)\//;
+    let stationId = stationRegexp.exec(description)[1];
+
+    results[stationId] = {
       coordinates: {
         longitude: Number(points.split(',')[0]),
         latitude: Number(points.split(',')[1])
       }
     };
   });
-  
-  //console.log(results);
-  console.log(JSON.stringify(results, null, '\t'));
-})
+
+  console.log(results);
+  // console.log(JSON.stringify(results, null, '\t'));
+});
