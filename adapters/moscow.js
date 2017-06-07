@@ -58,7 +58,7 @@ const handleStation = function (link) {
       var iconv = new Iconv('windows-1251', 'utf-8');
       data = iconv.convert(data).toString();
 
-      let stationRegexp = /station\/(\w*)\/table.html/;
+      let stationRegexp = /air-today\/station\/(\w*)\//;
       let stationId = stationRegexp.exec(link)[1];
 
       formatData(data, stationId, (measurements) => {
@@ -78,6 +78,12 @@ const formatData = function (data, stationId, cb) {
     location = match[1].trim();
   } else {
     // this shouldn't happen
+    return cb([]);
+  }
+  // basically matches "М1 (Жубелино)"
+  let mobileRegexp = /[\u041c]{1}[\d]?[\s]?\([\u0400-\u04ff]*\)/;
+  // skip mobile stations for the time being
+  if (mobileRegexp.test(location)) {
     return cb([]);
   }
 
