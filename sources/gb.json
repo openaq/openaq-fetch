@@ -1,11 +1,11 @@
 [
     {
-        "url": "http://uk-air.defra.gov.uk/latest/currentlevels",
+        "url": "https://uk-air.defra.gov.uk/latest/currentlevels",
         "adapter": "defra",
         "name": "DEFRA",
         "country": "GB",
         "description": "",
-        "sourceURL": "http://uk-air.defra.gov.uk/latest/currentlevels",
+        "sourceURL": "https://uk-air.defra.gov.uk/latest/currentlevels",
         "contacts": [
             "info@openaq.org"
         ],
