@@ -23,9 +23,6 @@ request(kmlURL, (err, res, body) => {
   let results = {};
 
   $('Placemark').each(function (index, element) {
-    let name = $(this).find('name').text();
-    name = name.trim().replace(/ /g, '_');
-
     let points = $(this).find('Point coordinates').text();
     points = points.trim();
 
