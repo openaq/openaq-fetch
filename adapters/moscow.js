@@ -1,14 +1,13 @@
 'use strict';
 
 import { default as baseRequest } from 'request';
+import { REQUEST_TIMEOUT } from '../lib/constants';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import cheerio from 'cheerio';
 import { default as moment } from 'moment-timezone';
 var Iconv = require('iconv').Iconv;
 import { flattenDeep, isFinite } from 'lodash';
 import { parallel } from 'async';
-
-import { REQUEST_TIMEOUT } from '../lib/constants';
 import { acceptableParameters, convertUnits } from '../lib/utils';
 
 export const name = 'moscow';
@@ -139,7 +138,7 @@ const formatData = function (data, stationId, cb) {
           {
             year: lastFullDate.year(),
             month: lastFullDate.month(),
-            day: lastFullDate.day(),
+            day: lastFullDate.date(),
             hour: dayTime.hour(),
             minute: dayTime.minute()
           },
