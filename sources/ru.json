@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://mosecom.ru/air/air-today/",
+        "adapter": "moscow",
+        "name": "Mosecom",
+        "city": "Moscow",
+        "country": "RU",
+        "description": "",
+        "sourceURL": "http://mosecom.ru/air/air-today/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
