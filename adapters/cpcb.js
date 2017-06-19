@@ -157,6 +157,7 @@ const renameParameter = function (parameter) {
     case 'Nitrogen Dioxide':
       return 'no2';
     case 'Sulphur Dioxide':
+    case 'Sulfur Dioxide':
       return 'so2';
     case 'Carbon Monoxide':
       return 'co';
