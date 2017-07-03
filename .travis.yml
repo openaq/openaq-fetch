@@ -16,7 +16,7 @@ before_install:
 - chmod +x ./.build_scripts/build.sh
 - chmod +x ./.build_scripts/deploy.sh
 install: echo no local install needed, testing on Docker
-script: touch local.env && docker-compose --project openaq run fetch npm test
+script: touch local.env && docker-compose --project-name openaq run fetch npm test
 after_success:
 - ".build_scripts/build.sh"
 deploy:
