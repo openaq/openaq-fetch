@@ -13,7 +13,7 @@ let moment = require('moment-timezone');
 const realTimezone = 'Asia/Ulaanbaatar';
 let getRecords = function (knex) {
   return knex('measurements')
-    .whereBetween('date_utc', [ '2017-03-24', '2017-07-15'])
+    .whereBetween('date_utc', ['2017-03-24', '2017-07-15'])
     .andWhere('country', 'MN');
 };
 
