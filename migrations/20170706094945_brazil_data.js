@@ -22,8 +22,8 @@ exports.up = function (knex, Promise) {
   var updateLocation = function (row) {
     var localDate = moment.tz(row.date_utc, 'America/Sao_Paulo');
     row.data = Object.assign(
-      row.data,
-      { date: {
+      row.data, {
+        date: {
           utc: row.date_utc,
           local: localDate.format()
         },
