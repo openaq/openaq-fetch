@@ -5,7 +5,6 @@ import { default as baseRequest } from 'request';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
-import cheerio from 'cheerio';
 import { removeUnwantedParameters, convertUnits } from '../lib/utils';
 
 // note: this is the 'synchronous' version (lost hours to this!)
