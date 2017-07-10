@@ -15,19 +15,19 @@ exports.name = 'tasmania';
 exports.fetchData = function (source, cb) {
   // Fetch the data
   request(source.url, function (err, res, body) {
-      if (err || res.statusCode !== 200) {
-        return cb({message: 'Failure to load data url.'});
-      }
-  // Wrap everything in a try/catch in case something goes wrong
-    try {
-    // Format the data
-    var data = formatData(body);
-    if (data === undefined) {
-      return cb({message: 'Failure to parse data.'});
+    if (err || res.statusCode !== 200) {
+      return cb({message: 'Failure to load data url.'});
     }
-    cb(null, data);
-  } 
-  catch (e) {
+    // Wrap everything in a try/catch in case something goes wrong
+    try {
+      // Format the data
+      var data = formatData(body);
+      if (data === undefined) {
+        return cb({message: 'Failure to parse data.'});
+      }
+      cb(null, data);
+    }
+    catch (e) {
       return cb({message: 'Unknown adapter error.'});
     }
   });
