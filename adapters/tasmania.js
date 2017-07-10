@@ -26,8 +26,7 @@ exports.fetchData = function (source, cb) {
         return cb({message: 'Failure to parse data.'});
       }
       cb(null, data);
-    }
-    catch (e) {
+    } catch (e) {
       return cb({message: 'Unknown adapter error.'});
     }
   });
@@ -36,9 +35,8 @@ exports.fetchData = function (source, cb) {
 var formatData = function (data) {
   var parseDate = function (string) {
     var date = moment.tz(string, 'HHmmss', 'Australia/Hobart');
-      return {utc: date.toDate(), local: date.format()};
+    return {utc: date.toDate(), local: date.format()};
   };
-
   // manually retrieved list of station names
   // new stations should be checked for naming on this map:
   // http://epa.tas.gov.au/_layouts/15/Lightbox.aspx?url=http%3A%2F%2Fepa.tas.gov.au%2FAir%2FLive%2Flatest_air_data_on_map.jpg
