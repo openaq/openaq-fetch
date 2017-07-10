@@ -15,28 +15,28 @@ exports.name = 'tasmania';
 exports.fetchData = function (source, cb) {
   // Fetch the data
   request(source.url, function (err, res, body) {
-  if (err || res.statusCode !== 200) {
-    return cb({message: 'Failure to load data url.'});
-  }
+      if (err || res.statusCode !== 200) {
+        return cb({message: 'Failure to load data url.'});
+      }
   // Wrap everything in a try/catch in case something goes wrong
-  try {
+    try {
     // Format the data
     var data = formatData(body);
     if (data === undefined) {
       return cb({message: 'Failure to parse data.'});
     }
     cb(null, data);
-    } catch (e) {
+  } 
+  catch (e) {
       return cb({message: 'Unknown adapter error.'});
     }
   });
 };
 
 var formatData = function (data) {
-
   var parseDate = function (string) {
     var date = moment.tz(string, 'HHmmss', 'Australia/Hobart');
-    return {utc: date.toDate(), local: date.format()};
+      return {utc: date.toDate(), local: date.format()};
   };
 
   // manually retrieved list of station names
@@ -94,8 +94,7 @@ var formatData = function (data) {
 
     // Tasmania stations seem to use hhmmss = 999999 when the station
     // is not available. check for and ignore these records
-    if (currentDate !== '999999')
-    {
+    if (currentDate !== '999999') {
       var location = stations[value[0]];
       var dates = parseDate(currentDate);
       var pm25 = value[2];
