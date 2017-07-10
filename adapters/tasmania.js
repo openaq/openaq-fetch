@@ -113,8 +113,9 @@ var formatData = function (data) {
         value: Number(pm25),
         unit: 'µg/m³',
         attribution: [{name: 'Environmental Protection Authority - Tasmania', url: 'http://epa.tas.gov.au'}],
-        averagingPeriod: {unit: 'minutes', value: 10}
+        averagingPeriod: {value: 0.25, unit: 'hours'}
       };
+      console.log(m);
       measurements.push(m);
 
       // PM10 entry
@@ -130,7 +131,7 @@ var formatData = function (data) {
         value: Number(pm10),
         unit: 'µg/m³',
         attribution: [{name: 'Environmental Protection Authority - Tasmania', url: 'http://epa.tas.gov.au'}],
-        averagingPeriod: {unit: 'minutes', value: 10}
+        averagingPeriod: {value: 0.25, unit: 'hours'}
       };
       measurements.push(p);
     }
