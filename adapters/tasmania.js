@@ -5,11 +5,10 @@ import { default as baseRequest } from 'request';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
-import { removeUnwantedParameters, convertUnits } from '../lib/utils';
+import { convertUnits } from '../lib/utils';
 
 // note: this is the 'synchronous' version (lost hours to this!)
 import { default as parse } from 'csv-parse/lib/sync';
-
 
 exports.name = 'tasmania';
 
@@ -45,40 +44,40 @@ var formatData = function (data) {
   // http://epa.tas.gov.au/_layouts/15/Lightbox.aspx?url=http%3A%2F%2Fepa.tas.gov.au%2FAir%2FLive%2Flatest_air_data_on_map.jpg
 
   var stations = {
-  'ST' : 'Smithton',
-  'WY' : 'Wynyard',
-  'ER' : 'Emu River',
-  'WU' : 'West Ulverstone',
-  'DT' : 'Devonport',
-  'SF' : 'Sheffield',
-  'DL' : 'Deloraine',
-  'WE' : 'Westbury',
-  'HA' : 'Hadspen',
-  'LF' : 'Longford',
-  'PE' : 'Perth',
-  'GB' : 'George Town',
-  'EX' : 'Exeter',
-  'TI' : 'Ti Tree Bend',
-  'SL' : 'South Launceston',
-  'LD' : 'Lilydale',
-  'SC' : 'Scottsdale',
-  'DE' : 'Derby',
-  'SH' : 'St Helens',
-  'FI' : 'Fingal',
-  'PO' : 'Poatina',
-  'CT' : 'Campbell Town',
-  'OL' : 'Oatlands',
-  'TR' : 'Triabunna',
-  'BC' : 'Bream Creek',
-  'GR' : 'Gretna',
-  'NN' : 'New Norfolk',
-  'GO' : 'Glenorchy',
-  'HT' : 'Hobart',
-  'MT' : 'Mornington',
-  'JB' : 'Judbury',
-  'HV' : 'Huonville',
-  'CY' : 'Cygnet',
-  'GV' : 'Geeveston'
+    'ST':'Smithton',
+    'WY':'Wynyard',
+    'ER':'Emu River',
+    'WU':'West Ulverstone',
+    'DT':'Devonport',
+    'SF':'Sheffield',
+    'DL':'Deloraine',
+    'WE':'Westbury',
+    'HA':'Hadspen',
+    'LF':'Longford',
+    'PE':'Perth',
+    'GB':'George Town',
+    'EX':'Exeter',
+    'TI':'Ti Tree Bend',
+    'SL':'South Launceston',
+    'LD':'Lilydale',
+    'SC':'Scottsdale',
+    'DE':'Derby',
+    'SH':'St Helens',
+    'FI':'Fingal',
+    'PO':'Poatina',
+    'CT':'Campbell Town',
+    'OL':'Oatlands',
+    'TR':'Triabunna',
+    'BC':'Bream Creek',
+    'GR':'Gretna',
+    'NN':'New Norfolk',
+    'GO':'Glenorchy',
+    'HT':'Hobart',
+    'MT':'Mornington',
+    'JB':'Judbury',
+    'HV':'Huonville',
+    'CY':'Cygnet',
+    'GV':'Geeveston'
   };
 
   var output = [];
