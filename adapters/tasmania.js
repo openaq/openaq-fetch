@@ -115,7 +115,6 @@ var formatData = function (data) {
         attribution: [{name: 'Environmental Protection Authority - Tasmania', url: 'http://epa.tas.gov.au'}],
         averagingPeriod: {value: 0.25, unit: 'hours'}
       };
-      console.log(m);
       measurements.push(m);
 
       // PM10 entry
