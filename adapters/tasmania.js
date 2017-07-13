@@ -21,7 +21,7 @@ exports.fetchData = function (source, cb) {
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-      var data = formatData(body);
+      var data = formatData(body, source);
       if (data === undefined) {
         return cb({message: 'Failure to parse data.'});
       }
@@ -32,7 +32,7 @@ exports.fetchData = function (source, cb) {
   });
 };
 
-var formatData = function (data) {
+var formatData = function (data, source) {
   var parseDate = function (string) {
     var date = moment.tz(string, 'HHmmss', 'Australia/Hobart');
     return {utc: date.toDate(), local: date.format()};
@@ -92,48 +92,45 @@ var formatData = function (data) {
 
     // Tasmania stations seem to use hhmmss = 999999 when the station
     // is not available. check for and ignore these records
-    if (currentDate !== '999999') {
-      var location = stations[value[0]];
-      var dates = parseDate(currentDate);
-      var pm25 = value[2];
-      var pm10 = value[3];
-      var lat = value[4];
-      var lng = value[5];
-
-      // PM2.5 entry
-      var m = {
-        location: location,
-        city: 'Tasmania Region',
-        parameter: 'pm25',
-        date: dates,
-        coordinates: {
-          latitude: Number(lat),
-          longitude: Number(lng)
-        },
-        value: Number(pm25),
-        unit: 'µg/m³',
-        attribution: [{name: 'Environmental Protection Authority - Tasmania', url: 'http://epa.tas.gov.au'}],
-        averagingPeriod: {value: 0.25, unit: 'hours'}
-      };
-      measurements.push(m);
-
-      // PM10 entry
-      var p = {
-        location: location,
-        city: 'Tasmania Region',
-        parameter: 'pm10',
-        date: dates,
-        coordinates: {
-          latitude: Number(lat),
-          longitude: Number(lng)
-        },
-        value: Number(pm10),
-        unit: 'µg/m³',
-        attribution: [{name: 'Environmental Protection Authority - Tasmania', url: 'http://epa.tas.gov.au'}],
-        averagingPeriod: {value: 0.25, unit: 'hours'}
-      };
-      measurements.push(p);
+    // also check the name matched in the locations list, otherwise this is a new station
+    var location = stations[value[0]];
+    if (currentDate === '99999' && location !== 'undefined') {
+      continue;
     }
+    var dates = parseDate(currentDate);
+    var pm25 = value[2];
+    var pm10 = value[3];
+    var lat = value[4];
+    var lng = value[5];
+
+    // base obj for resuse
+    const baseObj = {
+      location: location,
+      city: source.city,
+      unit: 'µg/m³',
+      averagingPeriod: {'value': 0.25, 'unit': 'hours'},
+      attribution: [{
+        name: 'Environmental Protection Authority - Tasmania',
+        url: 'http://epa.tas.gov.au'}
+      ],
+      coordinates: {
+        latitude: Number(lat),
+        longitude: Number(lng)
+      },
+      date: dates
+    };
+
+    // PM2.5 entry
+    const objPM25 = _.cloneDeep(baseObj);
+    objPM25.value = Number(pm25);
+    objPM25.parameter = 'pm25';
+    measurements.push(objPM25);
+
+    // PM10 entry
+    const objPM10 = _.cloneDeep(baseObj);
+    objPM10.value = Number(pm10);
+    objPM10.parameter = 'pm10';
+    measurements.push(objPM10);
   }
   measurements = convertUnits(_.flatten(measurements));
   return {
