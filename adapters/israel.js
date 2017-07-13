@@ -1,5 +1,4 @@
 'use strict';
-
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
@@ -11,19 +10,35 @@ const _ = lodash;
 import { convertUnits } from '../lib/utils';
 import { default as parse } from 'csv-parse/lib/sync';
 
-// link of lists for each region's site page
-const regionPages = (start, end) => [...Array(end - start + 1)].map((_, i) => {
-  return 'http://www.svivaaqm.net/' + 'DynamicTable.aspx?G_ID=' + (start + i);
-});
-let regionPageTasks = regionPages(8, 20);
 
-exports.name = 'israel';
-exports.fetchData = (callback) => {
-  regionPageTasks.forEach((source, index) => {
-    callback(null, handleState(source));
+export const name = 'israel';
+
+export function fetchData (source, callback) {
+  const regionPageTasks = regionPages(8, 20, source);
+
+  regionPageTasks.map((source, index) => {
+    // since handeState wraps async.waterfall w/a callback,
+    // this returns a async.waterfall's callback
+    const data = handleState(source, callback);
+
+    // if data for the region exists, cb, not cb err
+    try {
+      if (data === undefined) {
+        return callback(new Error('Failed to parse data.'))
+      }
+      // return obj with data for stations within single region
+      callback(null, data)
+    } catch (err) {
+      return err;
+    }
   });
-};
+}
 
+
+// link of lists for each region's site page
+const regionPages = (start, end, source) => [...Array(end - start + 1)].map((_, i) => {
+  return source + 'DynamicTable.aspx?G_ID=' + (start + i);
+});
 
 /* return data for all stations in each region
  *
@@ -32,7 +47,7 @@ exports.fetchData = (callback) => {
  * 3) comebine these with each region name
  *
  */
-function handleState (source) {
+var handleState = function (source, callback) {
   async.waterfall([
     function (callback) {
       let headers = {
@@ -46,17 +61,19 @@ function handleState (source) {
         headers: headers
       }, (err, res, body) => {
         if (err || res.statusCode !== 200) {
-          return callback(err, []);
+          return callback(new Error('Failed to access: ' + source));
         }
         let $ = cheerio.load(body);
         // get regoin name from <span> with this id
-        const name = $('#lblCaption').text().split('- ')[1];
+        let name = $('#lblCaption').text().split('- ')[1];
+        if (name) { name = name.split('').reverse().join(''); }
         // grab all <a></a> elements and get attached links
         const links = $('a');
         let stationLinks = [];
         links.map((a) => {
           stationLinks.push(links[a].attribs.href);
         });
+        // get list of requests to station pages
         const stationRequests = handleStation(stationLinks, headers, source);
         callback(null, stationRequests, name);
       });
@@ -67,29 +84,24 @@ function handleState (source) {
         stationRequests,
         (err, results) => {
           if (err) {
-            callback(err, []);
+            return callback(new Error('Failed to gather measurements for:' + name));
           }
           // merge each measurements list into one large list
           measurementsFin = [].concat.apply([], results);
-          console.log(measurementsFin);
           callback(null, measurementsFin, name);
         }
       );
     },
     function (measurementsFin, name, callback) {
-      const aqObj = {};
-      aqObj['name'] = name;
-      aqObj['measurements'] = measurementsFin;
-      callback(null, aqObj);
+      if (!(measurementsFin.length === 0)) {
+        const aqObj = {};
+        aqObj['name'] = name;
+        aqObj['measurements'] = measurementsFin;
+        callback(null, aqObj);
+      }
     }
-  ], (err, result) => {
-    if (err) {
-      console.log(err);
-      return {};
-    }
-    return result;
-  });
-}
+  ], callback);
+};
 
 /* make list of functions to grab data from each region page
  * each of these functsion does the following
@@ -99,7 +111,7 @@ function handleState (source) {
  * 3) generate a final object that meets open-aq standard with region name and measurements
  *
  */
-function handleStation (stationLinks, headers, source) {
+var handleStation = function (stationLinks, headers, source) {
   return stationLinks
     .filter((link) => { return link !== undefined; })
     .filter((link) => { return link.match(/StationInfo5/); })
@@ -112,38 +124,14 @@ function handleStation (stationLinks, headers, source) {
           headers: headers
         }, (err, res, body) => {
           if (err || res.statusCode !== 200) {
-            return callback(err, []);
+            return callback(err, [{}]);
           }
-          let $ = cheerio.load(body);
-          // get the data table
-          let aqData = [];
-          // get text from each cell and push it to aqData
-          $('table #C1WebGrid1 > tr', 'td').each((i, el) => {
-            let data = $(el).children().text().match(/\r\n\t(.*?)\r\n/g);
-            data = data.map((dataPoint) => {
-              return dataPoint.replace(/\r\n/g, '').replace(/\t/g, '');
-            });
-            aqData.push(data);
-          });
-          // get coordinates
-          const coords = [];
-          // find the 6th + 7th child of table selected.
-          // these are longitude & latitude, in that order
-          $('div #stationInfoDiv > table').each((i, el) => {
-            $(el).children().each((j, element) => {
-              if (j === 6 || j === 7) {
-                const coord = $(element).html()
-                  .split('"value">')[1]
-                  .split('<')[0];
-                coords.push(coord);
-              }
-            });
-          });
+          let [aqData, coords] = parseData(body);
           // populate measurements array
           const measurements = [];
-          // iterate over three equal lenght lists in aqData
-          // doing so, genereate the objects within a measurements lists
-          if (aqData[0].length > 0) {
+          // aqData.lenght === 3 indicates data recorded.
+          // if shorter, do nothing.
+          if (aqData.length > 2) {
             aqData[0].forEach((val, index) => {
               // ignore the first element, it holds the title and date.
               if (index > 0) {
@@ -191,4 +179,34 @@ function handleStation (stationLinks, headers, source) {
         });
       };
     });
-}
+};
+
+/* take in data from page and return [list of rows, coordinates] */
+var parseData = function (pageBody) {
+  let $ = cheerio.load(pageBody);
+  // get the data table
+  let aqData = [];
+  // get text from each cell and push it to aqData
+  $('table #C1WebGrid1 > tr', 'td').each((i, el) => {
+    let data = $(el).children().text().match(/\r\n\t(.*?)\r\n/g);
+    data = data.map((dataPoint) => {
+      return dataPoint.replace(/\r\n/g, '').replace(/\t/g, '');
+    });
+    aqData.push(data);
+  });
+  // get coordinates
+  const coords = [];
+  // find the 6th + 7th child of table selected.
+  // these are longitude & latitude, in that order
+  $('div #stationInfoDiv > table').each((i, el) => {
+    $(el).children().each((j, element) => {
+      if (j === 6 || j === 7) {
+        const coord = $(element).html()
+          .split('"value">')[1]
+          .split('<')[0];
+        coords.push(coord);
+      }
+    });
+  });
+  return [aqData, coords];
+};
