@@ -2,14 +2,12 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
-import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
-import { removeUnwantedParameters, convertUnits } from '../lib/utils';
 import async from 'async';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-export const name = 'buenos aires'
+export const name = 'buenos aires';
 export function fetchData (source, callback) {
   // list of requests used to get data
   const tasks = generateTasks(source);
@@ -22,12 +20,12 @@ export function fetchData (source, callback) {
     // wrap in try catch to handle possible errors
     try {
       const data = formatData(response);
-      if (data === undefined ) {
-        return callback(new Error('Failure to parse data.'))
+      if (data === undefined) {
+        return callback(new Error('Failure to parse data.'));
       }
       callback(null, data);
     } catch (e) {
-      return callback(new Error('Unknown adapter error.'))
+      return callback(new Error('Unknown adapter error.'));
     }
   });
 }
@@ -87,11 +85,11 @@ const generateTasks = (source) => {
             url: link
           }, (err, res, body) => {
             if (err || res.statusCode !== 200) {
-              return callback(new Error('was not able to retrieve' + pollutant + ' data for ' + statoin));
+              return callback(new Error('was not able to retrieve' + pollutant + ' data for ' + station));
             }
-            callback(null, body)
-          })
-        }
+            callback(null, body);
+          });
+        };
         linkRequests.push(linkRequest);
       };
       makeLinks(station, pollutant);
@@ -145,17 +143,17 @@ const formatData = (htmlList) => {
     // data is in imgs' title tags like [pollutantVal - hr]
     // aqData is list of lists with said data
     let aqData = html.match(/<img[^>]+>/g).filter((img) => {
-      return img.match(/hs/)
+      return img.match(/hs/);
     });
     aqData = aqData.map((img) => {
       return img
         .split('title=')[1]
         .split("'")[1]
         .replace(' hs.', '')
-        .split(' - ')
+        .split(' - ');
     })[aqData.length - 1];
     // take hr from aqData and make into proper date
-    aqData[1] = moment().startOf('day').add(aqData[1], 'h')
+    aqData[1] = moment().startOf('day').add(aqData[1], 'h');
     aqData[1] = moment.tz(
       aqData[1],
       'DD/MM/YYYY HH:mm:ss',
@@ -167,20 +165,20 @@ const formatData = (htmlList) => {
     const contaminante = $('#contaminante').html().split('selected>')[1].split('<')[0];
     const estacion = $('#estacion').html().split('selected>')[1].split('<')[0];
     const measurement = {};
-    measurement['parameter'] = contaminante === 'PM10' ? 'pm10' : contaminante
+    measurement['parameter'] = contaminante === 'PM10' ? 'pm10' : contaminante;
     measurement['date'] = {
       utc: aqData[1].toDate(),
       local: aqData[1].format()
     };
     measurement['coordinates'] = setCoordinates(estacion);
-    measurement['value'] = aqData[0]
-    measurement['unit'] = setUnits(contaminante)
+    measurement['value'] = aqData[0];
+    measurement['unit'] = setUnits(contaminante);
     measurement['attribution'] = [
       {
         name: 'Buenos Aires Ciudad, Agencia de Protección Ambiental',
         url: 'http://www.buenosaires.gob.ar/agenciaambiental/monitoreoambiental/calidadaire'
       }
-    ]
+    ];
     measurement['averagingPeriod'] = setPeriod(contaminante);
     return measurement;
   });
@@ -188,7 +186,7 @@ const formatData = (htmlList) => {
   // merge measurements into one large measurements list
   measurements = [].concat.apply([], measurements);
   const aqObj = {};
-  aqObj["name"] = "Buenos Aires"
-  aqObj["measurements"] = measurements
-  return aqObj
-}
+  aqObj['name'] = 'Buenos Aires';
+  aqObj['measurements'] = measurements;
+  return aqObj;
+};
