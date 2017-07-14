@@ -13,26 +13,7 @@ import { default as parse } from 'csv-parse/lib/sync';
 
 export const name = 'israel';
 
-export function fetchData (source, callback) {
-  const regionPageTasks = regionPages(8, 20, source);
-
-  regionPageTasks.map((source, index) => {
-    // since handeState wraps async.waterfall w/a callback,
-    // this returns a async.waterfall's callback
-    const data = handleState(source, callback);
-
-    // if data for the region exists, cb, not cb err
-    try {
-      if (data === undefined) {
-        return callback(new Error('Failed to parse data.'))
-      }
-      // return obj with data for stations within single region
-      callback(null, data)
-    } catch (err) {
-      return err;
-    }
-  });
-}
+export function fetchData (source, callback) {}
 
 
 // link of lists for each region's site page
@@ -47,7 +28,7 @@ const regionPages = (start, end, source) => [...Array(end - start + 1)].map((_, 
  * 3) comebine these with each region name
  *
  */
-var handleState = function (source, callback) {
+var handleState = function (source) {
   async.waterfall([
     function (callback) {
       let headers = {
@@ -73,34 +54,72 @@ var handleState = function (source, callback) {
         links.map((a) => {
           stationLinks.push(links[a].attribs.href);
         });
-        // get list of requests to station pages
-        const stationRequests = handleStation(stationLinks, headers, source);
-        callback(null, stationRequests, name);
+        // station data and their averaging intervals exist on two separate pages
+        // so, two lists of requests are made. One for data, the other for
+        // interavls.
+        const stationDataRequests = handleStation(stationLinks, headers, source);
+        const stationIntervalRequests = handleInterval(stationLinks, headers, source);
+
+        callback(null, [stationDataRequests, stationIntervalRequests], name);
       });
     },
     function (stationRequests, name, callback) {
-      let measurementsFin;
-      async.parallel(
-        stationRequests,
-        (err, results) => {
-          if (err) {
-            return callback(new Error('Failed to gather measurements for:' + name));
-          }
-          // merge each measurements list into one large list
-          measurementsFin = [].concat.apply([], results);
-          callback(null, measurementsFin, name);
+      // pass stationDataRequests and stationIntervalRequests into
+      // their own async parallels sitting in an async. series
+      // upon their completion, map intervals to the different stations'
+      // interval values.
+      async.series([
+        function(callback) {
+          async.parallelLimit(
+            stationRequests[0], 2,
+            (err, results) => {
+              if (err) {
+                return callback(new Error('Failed to gather measurements for:' + name));
+              }
+              // merge each measurements list into one large list
+              callback(null, results, name);
+            }
+          );
+        },
+        function(callback) {
+          let intervalsFin;
+          async.parallelLimit(
+            stationRequests[1], 2,
+            (err, results) => {
+              if (err) {
+                return callback(new Error('Failed to gather measurements for:' + name));
+              }
+              // merge each measurements list into one large list
+              intervalsFin = [].concat.apply([], results);
+              callback(null, intervalsFin, name);
+            }
+          );
         }
-      );
+      ], (err, results) => {
+        if (err) {
+          return callback(new Error('Failed to gather data and intervals'));
+        }
+        results[0][0].forEach((val, index) => {
+          val.forEach((innerVal, innerIndex) => {
+            results[0][0][index][innerIndex].averagingPeriod.value = results[1][0][index]
+          })
+        })
+        const finMeasurements = [].concat.apply([], results[0][0]);
+        callback(null, finMeasurements);
+      })
     },
-    function (measurementsFin, name, callback) {
+    function (measurementsFin, callback) {
       if (!(measurementsFin.length === 0)) {
         const aqObj = {};
-        aqObj['name'] = name;
+        aqObj['name'] = 'Israel';
         aqObj['measurements'] = measurementsFin;
+        console.log(aqObj);
         callback(null, aqObj);
       }
     }
-  ], callback);
+  ], (err, res) => {
+    if (err) { throw err }
+  });
 };
 
 /* make list of functions to grab data from each region page
@@ -181,6 +200,39 @@ var handleStation = function (stationLinks, headers, source) {
     });
 };
 
+/* make list of functions to grab data from each region page
+ * each of these functsion does the following
+ *
+ * 1) get links for each of the regions' station pages, then return a measurement list for each station as well as region name
+ * 2) merge each station's measurement list into one large list of measurements for entire region
+ * 3) generate a final object that meets open-aq standard with region name and measurements
+ *
+ */
+var handleInterval = function (stationLinks, headers, source) {
+  return stationLinks
+    .filter((link) => { return link !== undefined; })
+    .filter((link) => { return link.match(/StationInfo5/); })
+    .map((link) => {
+      link = 'http://www.svivaaqm.net/' + link.replace('StationInfo5', 'StationReportFast');
+      return function (callback) {
+        headers.Referer = source;
+        request.get({
+          url: link,
+          headers: headers
+        }, (err, res, body) => {
+          if (err || res.statusCode !== 200) {
+            return callback(err, [{}]);
+          }
+          const $ = cheerio.load(body);
+          let interval = $('#ddlTimeBase').children().first().text()
+          if ( interval.match(/Minutes/)) {
+            interval = parseInt(interval) / 60
+          }
+          callback(null, interval);
+        });
+      };
+    });
+};
 /* take in data from page and return [list of rows, coordinates] */
 var parseData = function (pageBody) {
   let $ = cheerio.load(pageBody);
@@ -210,3 +262,21 @@ var parseData = function (pageBody) {
   });
   return [aqData, coords];
 };
+const regionPageTasks = regionPages(9, 20, 'http://www.svivaaqm.net/');
+
+regionPageTasks.map((source, index) => {
+  // since handeState wraps async.waterfall w/a callback,
+  // this returns a async.waterfall's callback
+  const data = handleState(source);
+
+  // if data for the region exists, cb, not cb err
+  try {
+    if (data === undefined) {
+      return callback(new Error('Failed to parse data.'))
+    }
+    // return obj with data for stations within single region
+    callback(null, data)
+  } catch (err) {
+    return err;
+  }
+});
