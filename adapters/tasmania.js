@@ -3,7 +3,7 @@
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
-import _ from 'lodash';
+import { flatten, cloneDeep } from 'lodash';
 import { default as moment } from 'moment-timezone';
 import { convertUnits } from '../lib/utils';
 
@@ -121,7 +121,7 @@ var formatData = function (data, source) {
     };
 
     // PM2.5 entry
-    const objPM25 = _.cloneDeep(baseObj);
+    const objPM25 = cloneDeep(baseObj);
     objPM25.value = Number(pm25);
     objPM25.parameter = 'pm25';
     measurements.push(objPM25);
@@ -132,7 +132,7 @@ var formatData = function (data, source) {
     objPM10.parameter = 'pm10';
     measurements.push(objPM10);
   }
-  measurements = convertUnits(_.flatten(measurements));
+  measurements = convertUnits(flatten(measurements));
   return {
     name: 'unused',
     measurements: measurements
