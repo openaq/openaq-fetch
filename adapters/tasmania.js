@@ -127,7 +127,7 @@ var formatData = function (data, source) {
     measurements.push(objPM25);
 
     // PM10 entry
-    const objPM10 = _.cloneDeep(baseObj);
+    const objPM10 = cloneDeep(baseObj);
     objPM10.value = Number(pm10);
     objPM10.parameter = 'pm10';
     measurements.push(objPM10);
