@@ -94,7 +94,7 @@ var formatData = function (data, source) {
     // is not available. check for and ignore these records
     // also check the name matched in the locations list, otherwise this is a new station
     var location = stations[value[0]];
-    if (currentDate === '99999' || location !== 'undefined') {
+    if (currentDate === '99999' || location === 'undefined') {
       continue;
     }
     var dates = parseDate(currentDate);
@@ -121,13 +121,13 @@ var formatData = function (data, source) {
     };
 
     // PM2.5 entry
-    const objPM25 = cloneDeep(baseObj);
+    var objPM25 = cloneDeep(baseObj);
     objPM25.value = Number(pm25);
     objPM25.parameter = 'pm25';
     measurements.push(objPM25);
 
     // PM10 entry
-    const objPM10 = cloneDeep(baseObj);
+    var objPM10 = cloneDeep(baseObj);
     objPM10.value = Number(pm10);
     objPM10.parameter = 'pm10';
     measurements.push(objPM10);
