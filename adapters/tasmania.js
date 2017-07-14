@@ -94,7 +94,7 @@ var formatData = function (data, source) {
     // is not available. check for and ignore these records
     // also check the name matched in the locations list, otherwise this is a new station
     var location = stations[value[0]];
-    if (currentDate === '99999' || location === 'undefined') {
+    if (currentDate === '999999' || location === 'undefined') {
       continue;
     }
     var dates = parseDate(currentDate);
