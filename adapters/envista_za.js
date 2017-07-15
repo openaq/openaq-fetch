@@ -193,22 +193,6 @@ const getDate = function (s) {
   return {utc: date.toDate(), local: date.format()};
 };
 
-const getLstMonitors = function () {
-  /*
-    TODO
-    An XML tree that describes the checkedness of
-    the monitors is URLencoded and passed as a string parameter
-    in the form.
-
-    It looks like below when decoded, going up to 20 something monitors:
-    <WebTree><Nodes><lstMonitors_1 Checked="true"></lstMonitors_1><lstMonitors_2 Checked="true"></lstMonitors_2><lstMonitors_3 Checked="false"></lstMonitors_3></Nodes></WebTree>
-
-    It cannot be queried with cheerio, as it's generated
-    on the client. But as structure of the tree is known,
-    it can be generated using the list of monitors and their tag ID.
-  */
-};
-
 // generated with ../data_scripts/richards-bay.js
 const coordinates = {
   Arboretum: { coordinates: { longitude: 32.062646, latitude: -28.752435 } },
