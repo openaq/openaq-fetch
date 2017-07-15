@@ -2,10 +2,9 @@
 
 import { default as baseRequest } from 'request';
 import { REQUEST_TIMEOUT } from '../lib/constants';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT, jar: true});
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT*3});
 import cheerio from 'cheerio';
 import { default as moment } from 'moment-timezone';
-var Iconv = require('iconv').Iconv;
 import { flattenDeep, isFinite } from 'lodash';
 import { parallel } from 'async';
 import { acceptableParameters, convertUnits } from '../lib/utils';
@@ -23,7 +22,6 @@ export function fetchData (source, cb) {
     let city_links = body.match(/DynamicTable.aspx\?G_ID=(\d*)/g);
     while (city_links.length > 0) {
       let link = source.url + city_links.pop();
-      console.log(link);
       tasks.push(handleCity(source.url, link));
     }
 
@@ -32,8 +30,8 @@ export function fetchData (source, cb) {
         return cb(err, []);
       }
 
-      // flattenDeep
-      // convertUnits
+      results = flattenDeep(results);
+      results = convertUnits(results);
 
       return cb(err, {name: 'unused', measurements: results});
     });
@@ -52,12 +50,8 @@ const handleCity = function (sourceUrl, link) {
       while (stationIds.length > 0) {
         let link = sourceUrl + stationIds.pop();
         link = link.replace('StationInfo', 'StationReportFast');
-        console.log(link);
         tasks.push(handleStation(sourceUrl, link));
       }
-
-      // DEBUG
-      tasks = tasks.slice(1, 2)
 
       parallel(tasks, (err, results) => {
         return done(err, results);
@@ -76,28 +70,28 @@ const handleStation = function (sourceUrl, link) {
       const $ = cheerio.load(body);
 
       // Form inputs
-      // some of them might be not required (like txtEndTime_p), try omitting them
       let form = {};
-      form['__VIEWSTATE'] = $('input[name=__VIEWSTATE]').attr('value');
+      form['__VIEWSTATE'] = $('#__VIEWSTATE').attr('value');
       // TODO: try to get lstMonitors dynamically
       form['lstMonitors'] = "%3CWebTree%3E%3CNodes%3E%3ClstMonitors_1%20Checked%3D%22true%22%3E%3C/lstMonitors_1%3E%3ClstMonitors_2%20Checked%3D%22true%22%3E%3C/lstMonitors_2%3E%3ClstMonitors_3%20Checked%3D%22true%22%3E%3C/lstMonitors_3%3E%3ClstMonitors_4%20Checked%3D%22true%22%3E%3C/lstMonitors_4%3E%3ClstMonitors_5%20Checked%3D%22true%22%3E%3C/lstMonitors_5%3E%3ClstMonitors_6%20Checked%3D%22true%22%3E%3C/lstMonitors_6%3E%3ClstMonitors_7%20Checked%3D%22true%22%3E%3C/lstMonitors_7%3E%3ClstMonitors_8%20Checked%3D%22true%22%3E%3C/lstMonitors_8%3E%3ClstMonitors_9%20Checked%3D%22true%22%3E%3C/lstMonitors_9%3E%3ClstMonitors_10%20Checked%3D%22true%22%3E%3C/lstMonitors_10%3E%3ClstMonitors_11%20Checked%3D%22true%22%3E%3C/lstMonitors_11%3E%3ClstMonitors_12%20Checked%3D%22true%22%3E%3C/lstMonitors_12%3E%3ClstMonitors_13%20Checked%3D%22true%22%3E%3C/lstMonitors_13%3E%3ClstMonitors_14%20Checked%3D%22true%22%3E%3C/lstMonitors_14%3E%3ClstMonitors_15%20Checked%3D%22true%22%3E%3C/lstMonitors_15%3E%3ClstMonitors_16%20Checked%3D%22true%22%3E%3C/lstMonitors_16%3E%3ClstMonitors_17%20Checked%3D%22true%22%3E%3C/lstMonitors_17%3E%3ClstMonitors_18%20Checked%3D%22true%22%3E%3C/lstMonitors_18%3E%3ClstMonitors_19%20Checked%3D%22true%22%3E%3C/lstMonitors_19%3E%3ClstMonitors_20%20Checked%3D%22true%22%3E%3C/lstMonitors_20%3E%3C/Nodes%3E%3C/WebTree%3E";
       form['chkall'] = 'on';
       form['RadioButtonList1'] = 0;
-      form['RadioButtonList2'] = 3;
-      // replace with Now-3h or similar
-      form['BasicDatePicker1$textBox'] = '11/07/2017';
+      form['RadioButtonList2'] = 0;
+      // FIXME
+      // the date range is used as is
+      // could be customized to get fewer and the newest records
+      form['BasicDatePicker1$textBox'] = $('#BasicDatePicker1_textBox').attr('value');
       form['txtStartTime'] = '00:00';
-      form['txtStartTime_p'] = '2017-7-12-0-0-0-0';
-      // replace with Now
-      form['BasicDatePicker2$textBox'] = '12/07/2017';
+      form['txtStartTime_p'] = $('#txtStartTime_p').attr('value');
+      form['BasicDatePicker2$textBox'] = $('#BasicDatePicker2_textBox').attr('value');
       form['txtEndTime'] = '00:00';
-      form['txtEndTime_p'] = '2017-7-12-0-0-0-0';;
+      form['txtEndTime_p'] = $('#txtEndTime_p').attr('value');
       form['ddlAvgType'] = 'AVG';
       form['ddlTimeBase'] = 15;
       form['btnGenerateReport'] = 'GenerateReport';
-      form['startIndex'] = 1;
 
-      const tasks = [queryStation(sourceUrl, link, form)];
+      const j = request.jar();
+      const tasks = [queryStation(sourceUrl, link, form, j)];
       parallel(tasks, (err, results) => {
         return done(err, results);
       });
@@ -105,12 +99,13 @@ const handleStation = function (sourceUrl, link) {
   }
 };
 
-const queryStation = function(sourceUrl, link, form) {
+const queryStation = function(sourceUrl, link, qform, jar) {
   return function (done) {
     request.post({
       url: link,
-      form: form,
-      followAllRedirects: true
+      form: qform,
+      followAllRedirects: true,
+      jar: jar
     }, (err, res, body) => {
       if (err || res.statusCode !== 200) {
         return done(null, []);
@@ -120,14 +115,14 @@ const queryStation = function(sourceUrl, link, form) {
       let form = {};
       form['__EVENTTARGET'] = '';
       form['__EVENTARGUMENT'] = '';
-      form['__VIEWSTATE'] = $('input[name=__VIEWSTATE]').attr('value');
-      form['__EVENTVALIDATION'] = $('input[name=__EVENTVALIDATION]').attr('value');
-      form['EnvitechGrid1$CSVExport'] = 'CSV';
+      form['__VIEWSTATE'] = $('#__VIEWSTATE').attr('value');
+      form['__EVENTVALIDATION'] = $('#__EVENTVALIDATION').attr('value');
+      form['EnvitechGrid1$XMLExport'] = 'XML';
       form['EnvitechGrid1$_tSearch'] = "Search+Here";
 
       let export_link = $('#form1').attr('action');
       export_link = sourceUrl + export_link;
-      const tasks = [exportStationCSV(export_link, form)];
+      const tasks = [exportStationXML(export_link, form)];
       parallel(tasks, (err, results) => {
         return done(err, results);
       });
@@ -135,31 +130,82 @@ const queryStation = function(sourceUrl, link, form) {
   }
 };
 
-const exportStationCSV = function (link, form) {
+const exportStationXML = function (link, form) {
   return function (done) {
-    console.log(link, form);
     request.post({
       url: link,
-      form: form,
-      gzip: true,
-      headers: {
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1'
-      }
+      form: form
     }, (err, res, body) => {
       if (err || res.statusCode !== 200) {
         return done(null, []);
       }
-      // TODO: handle body
-      console.log(res.headers);
-      console.log(res.body);
+      formatData(body, (measurements) => {
+        return done(null, measurements);
+      });
     });
   }
 };
 
-const formatData = function (data, stationId, cb) {
-  
+const formatData = function (data, cb) {
+  const $ = cheerio.load(data, { xmlMode: true });
+
+  const location = $('data').eq(0).attr('value').split(':')[1].trim();
+  let base = {
+    location: location,
+    averagingPeriod: {unit: 'hours', value: 0.25},
+    attribution: [{
+      name: 'Richards Bay Clean Air Association',
+      url: 'http://rbcaa.org.za/'
+    }]
+  };
+  base = Object.assign(base, coordinates[location]);
+
+  let rFullDate = /(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2})/;
+  let measurements = [];
+  $('data').filter(function (i, el) {
+    return rFullDate.test($(this).attr('value'));
+  }).each(function (i, el) {
+    let dateM = rFullDate.exec($(this).attr('value'));
+    let dateProp = getDate(dateM[0]);
+    let rParamUnit = /(\w*)\[ ([\w\d\/]*)\]/i;
+    $(this).find('name').filter(function (i, el) {
+      let match = rParamUnit.exec($(this).text());
+      if (!match) { return false }
+      return acceptableParameters.indexOf(match[1].toLowerCase()) >= 0;
+    }).each(function (i, el) {
+      let paramUnitM = rParamUnit.exec($(this).text());
+      let m = Object.assign({}, base);
+      m.date = dateProp;
+      m.parameter = paramUnitM[1].toLowerCase();
+      m.unit = paramUnitM[2];
+      m.value = Number($(this).next().text());
+      measurements.push(m);
+    });
+  });
+  console.log(location + ': ' + measurements.length);
+  return cb(measurements);
 };
+
+const getDate = function (s) {
+  const date = moment.tz(s, 'DD/MM/YYYY HH:mm', 'Africa/Johannesburg');
+  return {utc: date.toDate(), local: date.format()};
+}
+
+const getLstMonitors = function () {
+  /*
+    TODO
+    An XML tree that describes the checkedness of
+    the monitors is URLencoded and passed as a string parameter
+    in the form.
+
+    It looks like below when decoded, going up to 20 something monitors:
+    <WebTree><Nodes><lstMonitors_1 Checked="true"></lstMonitors_1><lstMonitors_2 Checked="true"></lstMonitors_2><lstMonitors_3 Checked="false"></lstMonitors_3></Nodes></WebTree>
+    
+    It cannot be queried with cheerio, as it's generated
+    on the client. But as structure of the tree is known,
+    it can be generated using the list of monitors and their tag ID.
+  */
+}
 
 // generated with ../data_scripts/richards-bay.js
 const coordinates = {
