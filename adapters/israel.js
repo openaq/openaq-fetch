@@ -5,15 +5,30 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import async from 'async';
-import lodash  from 'lodash';
+import lodash from 'lodash';
 const _ = lodash;
-import { convertUnits } from '../lib/utils';
-import { default as parse } from 'csv-parse/lib/sync';
 
 
 export const name = 'israel';
 
-export function fetchData (source, callback) {}
+export function fetchData (source, callback) {
+  regionPageTasks.map((source, index) => {
+    // since handeState wraps async.waterfall w/a callback,
+    // this returns a async.waterfall's callback
+    const data = handleState(source);
+
+    // if data for the region exists, cb, not cb err
+    try {
+      if (data === undefined) {
+        return callback(new Error('Failed to parse data.'));
+      }
+      // return obj with data for stations within single region
+      callback(null, data);
+    } catch (err) {
+      return err;
+    }
+  });
+}
 
 
 // link of lists for each region's site page
@@ -30,7 +45,7 @@ const regionPages = (start, end, source) => [...Array(end - start + 1)].map((_, 
  */
 var handleState = function (source) {
   async.waterfall([
-    function (callback) {
+    (callback) => {
       let headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -69,7 +84,7 @@ var handleState = function (source) {
       // upon their completion, map intervals to the different stations'
       // interval values.
       async.series([
-        function(callback) {
+        (callback) => {
           async.parallelLimit(
             stationRequests[0], 2,
             (err, results) => {
@@ -81,7 +96,7 @@ var handleState = function (source) {
             }
           );
         },
-        function(callback) {
+        (callback) => {
           let intervalsFin;
           async.parallelLimit(
             stationRequests[1], 2,
@@ -101,12 +116,12 @@ var handleState = function (source) {
         }
         results[0][0].forEach((val, index) => {
           val.forEach((innerVal, innerIndex) => {
-            results[0][0][index][innerIndex].averagingPeriod.value = results[1][0][index]
-          })
-        })
+            results[0][0][index][innerIndex].averagingPeriod.value = results[1][0][index];
+          });
+        });
         const finMeasurements = [].concat.apply([], results[0][0]);
         callback(null, finMeasurements);
-      })
+      });
     },
     function (measurementsFin, callback) {
       if (!(measurementsFin.length === 0)) {
@@ -118,7 +133,7 @@ var handleState = function (source) {
       }
     }
   ], (err, res) => {
-    if (err) { throw err }
+    if (err) { throw err; }
   });
 };
 
@@ -224,9 +239,9 @@ var handleInterval = function (stationLinks, headers, source) {
             return callback(err, [{}]);
           }
           const $ = cheerio.load(body);
-          let interval = $('#ddlTimeBase').children().first().text()
-          if ( interval.match(/Minutes/)) {
-            interval = parseInt(interval) / 60
+          let interval = $('#ddlTimeBase').children().first().text();
+          if (interval.match(/Minutes/)) {
+            interval = parseInt(interval) / 60;
           }
           callback(null, interval);
         });
@@ -263,20 +278,3 @@ var parseData = function (pageBody) {
   return [aqData, coords];
 };
 const regionPageTasks = regionPages(9, 20, 'http://www.svivaaqm.net/');
-
-regionPageTasks.map((source, index) => {
-  // since handeState wraps async.waterfall w/a callback,
-  // this returns a async.waterfall's callback
-  const data = handleState(source);
-
-  // if data for the region exists, cb, not cb err
-  try {
-    if (data === undefined) {
-      return callback(new Error('Failed to parse data.'))
-    }
-    // return obj with data for stations within single region
-    callback(null, data)
-  } catch (err) {
-    return err;
-  }
-});
