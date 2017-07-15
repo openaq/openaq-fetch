@@ -2,7 +2,7 @@
 
 import { default as baseRequest } from 'request';
 import { REQUEST_TIMEOUT } from '../lib/constants';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT*3});
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT * 3});
 import cheerio from 'cheerio';
 import { default as moment } from 'moment-timezone';
 import { flattenDeep, isFinite } from 'lodash';
@@ -18,10 +18,10 @@ export function fetchData (source, cb) {
       return cb({message: 'Failure to load data url.'});
     }
 
-    let tasks = []
-    let city_links = body.match(/DynamicTable.aspx\?G_ID=(\d*)/g);
-    while (city_links.length > 0) {
-      let link = source.url + city_links.pop();
+    let tasks = [];
+    let cityLinks = body.match(/DynamicTable.aspx\?G_ID=(\d*)/g);
+    while (cityLinks.length > 0) {
+      let link = source.url + cityLinks.pop();
       tasks.push(handleCity(source.url, link));
     }
 
@@ -36,7 +36,7 @@ export function fetchData (source, cb) {
       return cb(err, {name: 'unused', measurements: results});
     });
   });
-};
+}
 
 const handleCity = function (sourceUrl, link) {
   return function (done) {
@@ -57,7 +57,7 @@ const handleCity = function (sourceUrl, link) {
         return done(err, results);
       });
     });
-  }
+  };
 };
 
 const handleStation = function (sourceUrl, link) {
@@ -73,7 +73,7 @@ const handleStation = function (sourceUrl, link) {
       let form = {};
       form['__VIEWSTATE'] = $('#__VIEWSTATE').attr('value');
       // TODO: try to get lstMonitors dynamically
-      form['lstMonitors'] = "%3CWebTree%3E%3CNodes%3E%3ClstMonitors_1%20Checked%3D%22true%22%3E%3C/lstMonitors_1%3E%3ClstMonitors_2%20Checked%3D%22true%22%3E%3C/lstMonitors_2%3E%3ClstMonitors_3%20Checked%3D%22true%22%3E%3C/lstMonitors_3%3E%3ClstMonitors_4%20Checked%3D%22true%22%3E%3C/lstMonitors_4%3E%3ClstMonitors_5%20Checked%3D%22true%22%3E%3C/lstMonitors_5%3E%3ClstMonitors_6%20Checked%3D%22true%22%3E%3C/lstMonitors_6%3E%3ClstMonitors_7%20Checked%3D%22true%22%3E%3C/lstMonitors_7%3E%3ClstMonitors_8%20Checked%3D%22true%22%3E%3C/lstMonitors_8%3E%3ClstMonitors_9%20Checked%3D%22true%22%3E%3C/lstMonitors_9%3E%3ClstMonitors_10%20Checked%3D%22true%22%3E%3C/lstMonitors_10%3E%3ClstMonitors_11%20Checked%3D%22true%22%3E%3C/lstMonitors_11%3E%3ClstMonitors_12%20Checked%3D%22true%22%3E%3C/lstMonitors_12%3E%3ClstMonitors_13%20Checked%3D%22true%22%3E%3C/lstMonitors_13%3E%3ClstMonitors_14%20Checked%3D%22true%22%3E%3C/lstMonitors_14%3E%3ClstMonitors_15%20Checked%3D%22true%22%3E%3C/lstMonitors_15%3E%3ClstMonitors_16%20Checked%3D%22true%22%3E%3C/lstMonitors_16%3E%3ClstMonitors_17%20Checked%3D%22true%22%3E%3C/lstMonitors_17%3E%3ClstMonitors_18%20Checked%3D%22true%22%3E%3C/lstMonitors_18%3E%3ClstMonitors_19%20Checked%3D%22true%22%3E%3C/lstMonitors_19%3E%3ClstMonitors_20%20Checked%3D%22true%22%3E%3C/lstMonitors_20%3E%3C/Nodes%3E%3C/WebTree%3E";
+      form['lstMonitors'] = '%3CWebTree%3E%3CNodes%3E%3ClstMonitors_1%20Checked%3D%22true%22%3E%3C/lstMonitors_1%3E%3ClstMonitors_2%20Checked%3D%22true%22%3E%3C/lstMonitors_2%3E%3ClstMonitors_3%20Checked%3D%22true%22%3E%3C/lstMonitors_3%3E%3ClstMonitors_4%20Checked%3D%22true%22%3E%3C/lstMonitors_4%3E%3ClstMonitors_5%20Checked%3D%22true%22%3E%3C/lstMonitors_5%3E%3ClstMonitors_6%20Checked%3D%22true%22%3E%3C/lstMonitors_6%3E%3ClstMonitors_7%20Checked%3D%22true%22%3E%3C/lstMonitors_7%3E%3ClstMonitors_8%20Checked%3D%22true%22%3E%3C/lstMonitors_8%3E%3ClstMonitors_9%20Checked%3D%22true%22%3E%3C/lstMonitors_9%3E%3ClstMonitors_10%20Checked%3D%22true%22%3E%3C/lstMonitors_10%3E%3ClstMonitors_11%20Checked%3D%22true%22%3E%3C/lstMonitors_11%3E%3ClstMonitors_12%20Checked%3D%22true%22%3E%3C/lstMonitors_12%3E%3ClstMonitors_13%20Checked%3D%22true%22%3E%3C/lstMonitors_13%3E%3ClstMonitors_14%20Checked%3D%22true%22%3E%3C/lstMonitors_14%3E%3ClstMonitors_15%20Checked%3D%22true%22%3E%3C/lstMonitors_15%3E%3ClstMonitors_16%20Checked%3D%22true%22%3E%3C/lstMonitors_16%3E%3ClstMonitors_17%20Checked%3D%22true%22%3E%3C/lstMonitors_17%3E%3ClstMonitors_18%20Checked%3D%22true%22%3E%3C/lstMonitors_18%3E%3ClstMonitors_19%20Checked%3D%22true%22%3E%3C/lstMonitors_19%3E%3ClstMonitors_20%20Checked%3D%22true%22%3E%3C/lstMonitors_20%3E%3C/Nodes%3E%3C/WebTree%3E';
       form['chkall'] = 'on';
       form['RadioButtonList1'] = 0;
       form['RadioButtonList2'] = 0;
@@ -96,10 +96,10 @@ const handleStation = function (sourceUrl, link) {
         return done(err, results);
       });
     });
-  }
+  };
 };
 
-const queryStation = function(sourceUrl, link, qform, jar) {
+const queryStation = function (sourceUrl, link, qform, jar) {
   return function (done) {
     request.post({
       url: link,
@@ -118,16 +118,16 @@ const queryStation = function(sourceUrl, link, qform, jar) {
       form['__VIEWSTATE'] = $('#__VIEWSTATE').attr('value');
       form['__EVENTVALIDATION'] = $('#__EVENTVALIDATION').attr('value');
       form['EnvitechGrid1$XMLExport'] = 'XML';
-      form['EnvitechGrid1$_tSearch'] = "Search+Here";
+      form['EnvitechGrid1$_tSearch'] = 'Search+Here';
 
-      let export_link = $('#form1').attr('action');
-      export_link = sourceUrl + export_link;
-      const tasks = [exportStationXML(export_link, form)];
+      let exportLink = $('#form1').attr('action');
+      exportLink = sourceUrl + exportLink;
+      const tasks = [exportStationXML(exportLink, form)];
       parallel(tasks, (err, results) => {
         return done(err, results);
       });
     });
-  }
+  };
 };
 
 const exportStationXML = function (link, form) {
@@ -143,7 +143,7 @@ const exportStationXML = function (link, form) {
         return done(null, measurements);
       });
     });
-  }
+  };
 };
 
 const formatData = function (data, cb) {
@@ -170,7 +170,7 @@ const formatData = function (data, cb) {
     let rParamUnit = /(\w*)\[ ([\w\d\/]*)\]/i;
     $(this).find('name').filter(function (i, el) {
       let match = rParamUnit.exec($(this).text());
-      if (!match) { return false }
+      if (!match) { return false; }
       return acceptableParameters.indexOf(match[1].toLowerCase()) >= 0;
     }).each(function (i, el) {
       let paramUnitM = rParamUnit.exec($(this).text());
@@ -179,7 +179,9 @@ const formatData = function (data, cb) {
       m.parameter = paramUnitM[1].toLowerCase();
       m.unit = paramUnitM[2];
       m.value = Number($(this).next().text());
-      measurements.push(m);
+      if (isFinite(m.value)) {
+        measurements.push(m);
+      }
     });
   });
   console.log(location + ': ' + measurements.length);
@@ -189,7 +191,7 @@ const formatData = function (data, cb) {
 const getDate = function (s) {
   const date = moment.tz(s, 'DD/MM/YYYY HH:mm', 'Africa/Johannesburg');
   return {utc: date.toDate(), local: date.format()};
-}
+};
 
 const getLstMonitors = function () {
   /*
@@ -200,12 +202,12 @@ const getLstMonitors = function () {
 
     It looks like below when decoded, going up to 20 something monitors:
     <WebTree><Nodes><lstMonitors_1 Checked="true"></lstMonitors_1><lstMonitors_2 Checked="true"></lstMonitors_2><lstMonitors_3 Checked="false"></lstMonitors_3></Nodes></WebTree>
-    
+
     It cannot be queried with cheerio, as it's generated
     on the client. But as structure of the tree is known,
     it can be generated using the list of monitors and their tag ID.
   */
-}
+};
 
 // generated with ../data_scripts/richards-bay.js
 const coordinates = {

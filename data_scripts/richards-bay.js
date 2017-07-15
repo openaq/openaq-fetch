@@ -1,6 +1,6 @@
 'use strict';
 
-/* 
+/*
    A script to collect coordinates
    for Richards Bay stations
 */
@@ -8,17 +8,16 @@
 var async = require('async');
 var request = require('request');
 var cheerio = require('cheerio');
-var _ = require('lodash');
 
 let stationIds = [1, 2, 3, 4, 5, 6, 9, 11, 13, 15, 16];
 let baseUrl = 'http://live.rbcaa.org.za/StationDetails.aspx?ST_ID=';
 
-let findTextGetNext = function($, text) {
+let findTextGetNext = function ($, text) {
   let textNode = $('.TitleLabel').filter(function (i, el) {
     return $(this).text() === text;
   });
   return $(textNode).parent().next().text();
-}
+};
 
 let getCoordinates = function (stationId) {
   return function (done) {
@@ -38,8 +37,8 @@ let getCoordinates = function (stationId) {
         return done(null, []);
       }
     });
-  }
-}
+  };
+};
 
 let tasks = [];
 while (stationIds.length > 0) {
@@ -51,8 +50,8 @@ async.parallel(tasks, function (err, results) {
     console.error(err);
   }
 
-  let locations = {}
-  while ( results.length > 0) {
+  let locations = {};
+  while (results.length > 0) {
     let result = results.pop();
     if (!result[0]) {
       continue;
