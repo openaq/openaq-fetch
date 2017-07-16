@@ -68,6 +68,9 @@ const handleStation = function (sourceUrl, link) {
       }
 
       const $ = cheerio.load(body);
+      if (!hasAcceptedParameters($)) {
+        return done(null, []);
+      }
 
       // Form inputs
       let form = {};
@@ -186,13 +189,20 @@ const formatData = function (data, cb) {
       }
     });
   });
-  console.log(location + ': ' + measurements.length);
   return cb(measurements);
 };
 
 const getDate = function (s) {
   const date = moment.tz(s, 'DD/MM/YYYY HH:mm', 'Africa/Johannesburg');
   return {utc: date.toDate(), local: date.format()};
+};
+
+const hasAcceptedParameters = function ($) {
+  let acceptedCount = $('#M_lstMonitors').children().filter(function (i, el) {
+    let monitor = $(this).find('span[igtxt=1]').first().text();
+    return acceptableParameters.indexOf(monitor.toLowerCase()) >= 0;
+  }).length;
+  return Boolean(acceptedCount);
 };
 
 const getLstMonitors = function ($) {
