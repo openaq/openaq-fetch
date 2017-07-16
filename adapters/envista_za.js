@@ -205,7 +205,7 @@ const getLstMonitors = function ($) {
     monitorsToCheck.push(Number($(this).attr('igtag')));
   });
   let xmlMonitors = ['<WebTree><Nodes>'];
-  for (let i=1; i <= monitorsCount; i++) {
+  for (let i = 1; i <= monitorsCount; i++) {
     let isChecked = false;
     if (monitorsToCheck.indexOf(i) >= 0) {
       isChecked = true;
@@ -215,7 +215,7 @@ const getLstMonitors = function ($) {
   }
   xmlMonitors.push('</Nodes></WebTree>');
   return xmlMonitors.join('');
-}
+};
 
 // generated with ../data_scripts/richards-bay.js
 const coordinates = {
