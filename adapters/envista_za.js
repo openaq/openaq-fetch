@@ -72,8 +72,10 @@ const handleStation = function (sourceUrl, link) {
       // Form inputs
       let form = {};
       form['__VIEWSTATE'] = $('#__VIEWSTATE').attr('value');
-      // TODO: try to get lstMonitors dynamically
-      form['lstMonitors'] = '%3CWebTree%3E%3CNodes%3E%3ClstMonitors_1%20Checked%3D%22true%22%3E%3C/lstMonitors_1%3E%3ClstMonitors_2%20Checked%3D%22true%22%3E%3C/lstMonitors_2%3E%3ClstMonitors_3%20Checked%3D%22true%22%3E%3C/lstMonitors_3%3E%3ClstMonitors_4%20Checked%3D%22true%22%3E%3C/lstMonitors_4%3E%3ClstMonitors_5%20Checked%3D%22true%22%3E%3C/lstMonitors_5%3E%3ClstMonitors_6%20Checked%3D%22true%22%3E%3C/lstMonitors_6%3E%3ClstMonitors_7%20Checked%3D%22true%22%3E%3C/lstMonitors_7%3E%3ClstMonitors_8%20Checked%3D%22true%22%3E%3C/lstMonitors_8%3E%3ClstMonitors_9%20Checked%3D%22true%22%3E%3C/lstMonitors_9%3E%3ClstMonitors_10%20Checked%3D%22true%22%3E%3C/lstMonitors_10%3E%3ClstMonitors_11%20Checked%3D%22true%22%3E%3C/lstMonitors_11%3E%3ClstMonitors_12%20Checked%3D%22true%22%3E%3C/lstMonitors_12%3E%3ClstMonitors_13%20Checked%3D%22true%22%3E%3C/lstMonitors_13%3E%3ClstMonitors_14%20Checked%3D%22true%22%3E%3C/lstMonitors_14%3E%3ClstMonitors_15%20Checked%3D%22true%22%3E%3C/lstMonitors_15%3E%3ClstMonitors_16%20Checked%3D%22true%22%3E%3C/lstMonitors_16%3E%3ClstMonitors_17%20Checked%3D%22true%22%3E%3C/lstMonitors_17%3E%3ClstMonitors_18%20Checked%3D%22true%22%3E%3C/lstMonitors_18%3E%3ClstMonitors_19%20Checked%3D%22true%22%3E%3C/lstMonitors_19%3E%3ClstMonitors_20%20Checked%3D%22true%22%3E%3C/lstMonitors_20%3E%3C/Nodes%3E%3C/WebTree%3E';
+      let lstMonitors = encodeURIComponent(getLstMonitors($));
+      // the system kept the / symbol unencoded
+      lstMonitors = lstMonitors.replace(/%2F/g, '/');
+      form['lstMonitors'] = lstMonitors;
       form['chkall'] = 'on';
       form['RadioButtonList1'] = 0;
       form['RadioButtonList2'] = 0;
@@ -192,6 +194,28 @@ const getDate = function (s) {
   const date = moment.tz(s, 'DD/MM/YYYY HH:mm', 'Africa/Johannesburg');
   return {utc: date.toDate(), local: date.format()};
 };
+
+const getLstMonitors = function ($) {
+  let monitorsCount = $('#M_lstMonitors').children().length;
+  let monitorsToCheck = [];
+  $('#M_lstMonitors').children().filter(function (i, el) {
+    let monitor = $(this).find('span[igtxt=1]').first().text();
+    return acceptableParameters.indexOf(monitor.toLowerCase()) >= 0;
+  }).each(function (i, el) {
+    monitorsToCheck.push(Number($(this).attr('igtag')));
+  });
+  let xmlMonitors = ['<WebTree><Nodes>'];
+  for (let i=1; i <= monitorsCount; i++) {
+    let isChecked = false;
+    if (monitorsToCheck.indexOf(i) >= 0) {
+      isChecked = true;
+    }
+    let monitorNode = `<lstMonitors_${i} Checked="${isChecked}"></lstMonitors_${i}>`;
+    xmlMonitors.push(monitorNode);
+  }
+  xmlMonitors.push('</Nodes></WebTree>');
+  return xmlMonitors.join('');
+}
 
 // generated with ../data_scripts/richards-bay.js
 const coordinates = {
