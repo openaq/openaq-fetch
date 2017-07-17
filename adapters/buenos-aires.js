@@ -4,7 +4,7 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
-import async from 'async';
+import { parallel } from 'async';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'buenos aires';
@@ -12,7 +12,7 @@ export function fetchData (source, callback) {
   // list of requests used to get data
   const tasks = generateTasks(source);
 
-  async.parallel(tasks, (err, response) => {
+  parallel(tasks, (err, response) => {
     if (err) {
       return callback(new Error('Failure to load data urls.'));
     }
@@ -32,54 +32,16 @@ export function fetchData (source, callback) {
 
 // makes a requests list of requests for each station to each pollutant
 const generateTasks = (source) => {
-  const linkRequests = [];
-  ['CENTENARIO', 'CORDOBA', 'LA BOCA'].forEach((station) => {
-    ['CO', 'NO2', 'PM10'].forEach((pollutant) => {
-      const makeLinks = (station, pollutant) => {
-        const day = moment().date().toString();
-        const month = '0' + (moment().month() + 1).toString();
-        const year = moment().year().toString();
-        let stationNum;
-        switch (station) {
-          case 'LA BOCA':
-            stationNum = 1;
-            break;
-          case 'CENTENARIO':
-            stationNum = 2;
-            break;
-          case 'CORDOBA':
-            stationNum = 3;
-            break;
-          default:
-            break;
-        }
-        let pollutantNum;
-        switch (pollutant) {
-          case 'CO':
-            pollutantNum = 1;
-            break;
-          case 'NO2':
-            pollutantNum = 2;
-            break;
-          case 'PM10':
-            pollutantNum = 3;
-            break;
-          default:
-            break;
-        }
-        const link = [
-          source,
-          pollutantNum,
-          '&estacion=',
-          stationNum,
-          '&fecha_dia=',
-          day,
-          '&fecha_mes=',
-          month,
-          '&fecha_anio=',
-          year,
-          '&menu_id=34234&buscar=Buscar'
-        ].join('');
+  const tasks = []
+  ['LA BOCA', 'CENTENARIO', 'CORDOBA'].forEach((station, ix) => {
+    const day = moment().format('DD');
+    const month = moment.format('MM');
+    const year = moment().format('YY');
+    const stationTask = {
+      name: station,
+      stationNum: ix,
+      coordinates: setCoordinates(ix)
+    }
         const linkRequest = (callback) => {
           request.get({
             url: link
@@ -164,29 +126,29 @@ const formatData = (htmlList) => {
     const $ = cheerio.load(html);
     const contaminante = $('#contaminante').html().split('selected>')[1].split('<')[0];
     const estacion = $('#estacion').html().split('selected>')[1].split('<')[0];
-    const measurement = {};
-    measurement['parameter'] = contaminante === 'PM10' ? 'pm10' : contaminante;
-    measurement['date'] = {
-      utc: aqData[1].toDate(),
-      local: aqData[1].format()
-    };
-    measurement['coordinates'] = setCoordinates(estacion);
-    measurement['value'] = aqData[0];
-    measurement['unit'] = setUnits(contaminante);
-    measurement['attribution'] = [
-      {
+    const measurement = {
+      parameter: contaminante === 'PM10' ? 'pm10' : contaminante,
+      date: {
+        utc: aqData[1].toDate(),
+        local: aqData[1].format()
+      },
+      coordinates: setCoordinates(estacion),
+      value: aqData[0],
+      unit: setUnits(contaminante),
+      attribution: {
         name: 'Buenos Aires Ciudad, Agencia de Protección Ambiental',
         url: 'http://www.buenosaires.gob.ar/agenciaambiental/monitoreoambiental/calidadaire'
-      }
-    ];
-    measurement['averagingPeriod'] = setPeriod(contaminante);
+      },
+      averagingPeriod: setPeriod(contaminante)
+    };
     return measurement;
   });
 
   // merge measurements into one large measurements list
   measurements = [].concat.apply([], measurements);
-  const aqObj = {};
-  aqObj['name'] = 'Buenos Aires';
-  aqObj['measurements'] = measurements;
+  const aqObj = {
+    name: 'Buenos Aires',
+    measurements: measurements
+  };
   return aqObj;
 };
