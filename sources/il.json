@@ -1,0 +1,13 @@
+[
+  {
+    "url": "http://www.svivaaqm.net/",
+    "adapter": "israel",
+    "name": "Israel",
+    "country": "IL",
+    "description": "Israel data from Israel Ministry of Environmental Protection",
+    "sourceURL": "http://www.svivaaqm.net/",
+    "contacts": [
+      "info@openaq.org"
+    ]
+  }
+]

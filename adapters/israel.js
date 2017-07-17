@@ -10,6 +10,7 @@ const _ = lodash;
 export const name = 'israel';
 
 export function fetchData (source, callback) {
+  const regionPageTasks = regionPages(9, 20, source);
   regionPageTasks.map((source, index) => {
     // since handeState wraps async.waterfall w/a callback,
     // this returns a async.waterfall's callback
@@ -125,7 +126,6 @@ var handleState = function (source) {
         const aqObj = {};
         aqObj['name'] = 'Israel';
         aqObj['measurements'] = measurementsFin;
-        console.log(aqObj);
         callback(null, aqObj);
       }
     }
@@ -238,7 +238,9 @@ var handleInterval = function (stationLinks, headers, source) {
           const $ = cheerio.load(body);
           let interval = $('#ddlTimeBase').children().first().text();
           if (interval.match(/Minutes/)) {
-            interval = parseInt(interval) / 60;
+            interval = parseInt(interval.split(' ')[0]) / 60;
+          } else {
+            interval = interval.split(' ')[0];
           }
           callback(null, interval);
         });
@@ -274,4 +276,3 @@ var parseData = function (pageBody) {
   });
   return [aqData, coords];
 };
-const regionPageTasks = regionPages(9, 20, 'http://www.svivaaqm.net/');
