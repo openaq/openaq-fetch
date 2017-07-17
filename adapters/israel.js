@@ -1,14 +1,12 @@
 'use strict';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
-import async from 'async';
 import lodash from 'lodash';
+import async from 'async';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 const _ = lodash;
-
-
 export const name = 'israel';
 
 export function fetchData (source, callback) {
@@ -29,7 +27,6 @@ export function fetchData (source, callback) {
     }
   });
 }
-
 
 // link of lists for each region's site page
 const regionPages = (start, end, source) => [...Array(end - start + 1)].map((_, i) => {
