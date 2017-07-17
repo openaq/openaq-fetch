@@ -10,7 +10,7 @@ const _ = lodash;
 export const name = 'israel';
 
 export function fetchData (source, callback) {
-  const regionPageTasks = regionPages(9, 20, source);
+  const regionPageTasks = regionPages(9, 20, source.url);
   regionPageTasks.map((source, index) => {
     // since handeState wraps async.waterfall w/a callback,
     // this returns a async.waterfall's callback
