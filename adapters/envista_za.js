@@ -1,8 +1,14 @@
 'use strict';
 
+const headers = {
+  'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+  'Content-Type': 'text/html; charset=utf-8',
+};
+
 import { default as baseRequest } from 'request';
 import { REQUEST_TIMEOUT } from '../lib/constants';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT, jar: true, headers: headers});
 import cheerio from 'cheerio';
 import { default as moment } from 'moment-timezone';
 import { flattenDeep, isFinite } from 'lodash';
@@ -11,9 +17,10 @@ import { acceptableParameters, convertUnits } from '../lib/utils';
 
 export const name = 'envista_za';
 
+
 export function fetchData (source, cb) {
   let menuSiteUrl = source.url + 'MenuSite.aspx';
-  request(menuSiteUrl, (err, res, body) => {
+  request({url: menuSiteUrl}, (err, res, body) => {
     if (err || res.statusCode !== 200) {
       return cb({message: 'Failure to load data url.'});
     }
@@ -24,6 +31,10 @@ export function fetchData (source, cb) {
       let link = source.url + cityLinks.pop();
       tasks.push(handleCity(source.url, link));
     }
+
+    //debug
+    tasks = tasks.reverse();
+    tasks = tasks.slice(0, 1);
 
     parallel(tasks, (err, results) => {
       if (err) {
@@ -46,12 +57,18 @@ const handleCity = function (sourceUrl, link) {
       }
 
       let tasks = [];
-      let stationIds = body.match(/StationInfo.aspx\?ST_ID=(\d*)/g);
+      let stationIds = body.match(/StationInfo[5]?.aspx\?ST_ID=(\d*)/g);
+      console.log(stationIds.length);
       while (stationIds.length > 0) {
         let link = sourceUrl + stationIds.pop();
-        link = link.replace('StationInfo', 'StationReportFast');
+        link = link.replace(/StationInfo[5]?/, 'StationReportFast');
+        //console.log(link);
         tasks.push(handleStation(sourceUrl, link));
       }
+
+      //debug
+      tasks = tasks.reverse();
+      tasks = tasks.slice(0, 3);
 
       parallel(tasks, (err, results) => {
         return done(err, results);
@@ -75,6 +92,7 @@ const handleStation = function (sourceUrl, link) {
       // Form inputs
       let form = {};
       form['__VIEWSTATE'] = $('#__VIEWSTATE').attr('value');
+      form['__VIEWSTATEGENERATOR'] = $('#__VIEWSTATEGENERATOR').attr('value');
       let lstMonitors = encodeURIComponent(getLstMonitors($));
       // the system kept the / symbol unencoded
       lstMonitors = lstMonitors.replace(/%2F/g, '/');
@@ -85,15 +103,15 @@ const handleStation = function (sourceUrl, link) {
       // FIXME
       // the date range is used as is
       // could be customized to get fewer and the newest records
-      form['BasicDatePicker1$textBox'] = $('#BasicDatePicker1_textBox').attr('value');
+      form['BasicDatePicker1$textBox'] = $('#BasicDatePicker1_TextBox').attr('value');
       form['txtStartTime'] = '00:00';
-      form['txtStartTime_p'] = $('#txtStartTime_p').attr('value');
-      form['BasicDatePicker2$textBox'] = $('#BasicDatePicker2_textBox').attr('value');
+      form['txtStartTime_p'] = '2017-7-17-0-0-0-0';//$('#txtStartTime_p').attr('value');
+      form['BasicDatePicker2$textBox'] = $('#BasicDatePicker2_TextBox').attr('value');
       form['txtEndTime'] = '00:00';
-      form['txtEndTime_p'] = $('#txtEndTime_p').attr('value');
+      form['txtEndTime_p'] = '2017-7-17-0-0-0-0';//$('#txtEndTime_p').attr('value');
       form['ddlAvgType'] = 'AVG';
       form['ddlTimeBase'] = 15;
-      form['btnGenerateReport'] = 'GenerateReport';
+      form['btnGenerateReport'] = 'הצג+דוח';
 
       const j = request.jar();
       const tasks = [queryStation(sourceUrl, link, form, j)];
@@ -109,23 +127,27 @@ const queryStation = function (sourceUrl, link, qform, jar) {
     request.post({
       url: link,
       form: qform,
-      followAllRedirects: true,
-      jar: jar
+      followAllRedirects: true
     }, (err, res, body) => {
+      console.log(res.request.req._header);
       if (err || res.statusCode !== 200) {
         return done(null, []);
       }
       const $ = cheerio.load(body);
+
       // replicate the export form
       let form = {};
-      form['__EVENTTARGET'] = '';
+      form['__EVENTTARGET'] = 'lnkExport';
       form['__EVENTARGUMENT'] = '';
       form['__VIEWSTATE'] = $('#__VIEWSTATE').attr('value');
+      form['__VIEWSTATEGENERATOR'] = $('#__VIEWSTATEGENERATOR').attr('value');
       form['__EVENTVALIDATION'] = $('#__EVENTVALIDATION').attr('value');
-      form['EnvitechGrid1$XMLExport'] = 'XML';
-      form['EnvitechGrid1$_tSearch'] = 'Search+Here';
+      form['ddlExport'] = 'XML';
+      form['lblCurrentPage'] = '1';
 
       let exportLink = $('#form1').attr('action');
+      //temp measure
+      exportLink = exportLink.replace('./NewGrid', 'NewGrid');
       exportLink = sourceUrl + exportLink;
       const tasks = [exportStationXML(exportLink, form)];
       parallel(tasks, (err, results) => {
