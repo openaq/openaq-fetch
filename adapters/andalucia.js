@@ -121,12 +121,11 @@ const formatData = ($, stations) => {
 
 const mapStationCoords = (station) => {
   return stations.filter((stationObj) => {
-    return stationObj['ESTACION'] === station;
+    return stationObj['name'] === station;
   }).map((stationObj) => {
-    // TODO: figure out places' utm zome, then use utm.js to convert to wgs84
     return {
-      longitude: stationObj.UTMx,
-      latitude: stationObj.UTMy
+      longitude: stationObj['coordinates'][0],
+      latitude: stationObj['coordinates'][1]
     };
   });
 };
@@ -218,796 +217,711 @@ const makeDate = (date) => {
 };
 
 const stations = [
-  {
-    'num': 1,
-    'ESTACION': 'EL BOTICARIO',
-    'MUNICIPIO': 'ALMERÍA',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 554327,
-    'UTMy': 4080065
-  },
-  {
-    'num': 2,
-    'ESTACION': 'MEDITERRANEO',
-    'MUNICIPIO': 'ALMERÍA',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 549331,
-    'UTMy': 4077414
-  },
-  {
-    'num': 3,
-    'ESTACION': 'BEDAR',
-    'MUNICIPIO': 'BÉDAR',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 590047,
-    'UTMy': 4116812
-  },
-  {
-    'num': 4,
-    'ESTACION': 'BENAHADUX',
-    'MUNICIPIO': 'BENAHADUX',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 547809,
-    'UTMy': 4086476
-  },
-  {
-    'num': 5,
-    'ESTACION': 'CARBONERAS',
-    'MUNICIPIO': 'CARBONERAS',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 598587,
-    'UTMy': 4095385
-  },
-  {
-    'num': 6,
-    'ESTACION': 'T.M. CTLA (SUP)',
-    'MUNICIPIO': 'CARBONERAS',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 597461,
-    'UTMy': 4093028
-  },
-  {
-    'num': 7,
-    'ESTACION': 'T.M. CTLA (10 MTS)',
-    'MUNICIPIO': 'CARBONERAS',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 597461,
-    'UTMy': 4093028
-  },
-  {
-    'num': 8,
-    'ESTACION': 'T.M. CTLA (30 MTS)',
-    'MUNICIPIO': 'CARBONERAS',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 597461,
-    'UTMy': 4093028
-  },
-  {
-    'num': 9,
-    'ESTACION': 'T.M. CTLA (60 MTS)',
-    'MUNICIPIO': 'CARBONERAS',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 597461,
-    'UTMy': 4093028
-  },
-  {
-    'num': 10,
-    'ESTACION': 'PZA. DEL CASTILLO',
-    'MUNICIPIO': 'CARBONERAS',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 598293,
-    'UTMy': 4095086
-  },
-  {
-    'num': 11,
-    'ESTACION': 'PALOMARES',
-    'MUNICIPIO': 'CUEVAS DEL ALMANZORA',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 608036,
-    'UTMy': 4123853
-  },
-  {
-    'num': 12,
-    'ESTACION': 'T.M. VILLARICOS',
-    'MUNICIPIO': 'CUEVAS DEL ALMANZORA',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 609489,
-    'UTMy': 4124293
-  },
-  {
-    'num': 13,
-    'ESTACION': 'VILLARICOS',
-    'MUNICIPIO': 'CUEVAS DEL ALMANZORA',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 609007,
-    'UTMy': 4123562
-  },
-  {
-    'num': 14,
-    'ESTACION': 'EL EJIDO',
-    'MUNICIPIO': 'EL EJIDO',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 516870,
-    'UTMy': 4069344
-  },
-  {
-    'num': 15,
-    'ESTACION': 'MOJACAR',
-    'MUNICIPIO': 'MOJÁCAR',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 602830,
-    'UTMy': 4110897
-  },
-  {
-    'num': 16,
-    'ESTACION': 'CAMPOHERMOSO',
-    'MUNICIPIO': 'NÍJAR',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 577638,
-    'UTMy': 4087889
-  },
-  {
-    'num': 17,
-    'ESTACION': 'RODALQUILAR',
-    'MUNICIPIO': 'NÍJAR',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 585750,
-    'UTMy': 4078382
-  },
-  {
-    'num': 18,
-    'ESTACION': 'LA JOYA',
-    'MUNICIPIO': 'NÍJAR',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 592465,
-    'UTMy': 4089830
-  },
-  {
-    'num': 19,
-    'ESTACION': 'FERNAN PEREZ',
-    'MUNICIPIO': 'NÍJAR',
-    'PROVINCIA': 'ALMERÍA',
-    'UTMx': 584936,
-    'UTMy': 4083660
-  },
-  {
-    'num': 20,
-    'ESTACION': 'ALGAR',
-    'MUNICIPIO': 'ALGAR',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 262092,
-    'UTMy': 4059306
-  },
-  {
-    'num': 21,
-    'ESTACION': 'E4: RINCONCILLO',
-    'MUNICIPIO': 'ALGECIRAS',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 280289,
-    'UTMy': 4004653
-  },
-  {
-    'num': 22,
-    'ESTACION': 'ALGECIRAS EPS',
-    'MUNICIPIO': 'ALGECIRAS',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 279239,
-    'UTMy': 4001847
-  },
-  {
-    'num': 23,
-    'ESTACION': 'ARCOS',
-    'MUNICIPIO': 'ARCOS DE LA FRONTERA',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 255018,
-    'UTMy': 4069513
-  },
-  {
-    'num': 24,
-    'ESTACION': 'JÉDULA',
-    'MUNICIPIO': 'ARCOS DE LA FRONTERA',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 239184,
-    'UTMy': 4070198
-  },
-  {
-    'num': 25,
-    'ESTACION': 'T.M. ARCOS',
-    'MUNICIPIO': 'ARCOS DE LA FRONTERA',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 248497,
-    'UTMy': 4061871
-  },
-  {
-    'num': 26,
-    'ESTACION': 'Avda. MARCONI',
-    'MUNICIPIO': 'CÁDIZ',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 207258,
-    'UTMy': 4045046
-  },
-  {
-    'num': 27,
-    'ESTACION': 'CARTUJA',
-    'MUNICIPIO': 'JEREZ',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 221619,
-    'UTMy': 4061772
-  },
-  {
-    'num': 28,
-    'ESTACION': 'JEREZ-CHAPIN',
-    'MUNICIPIO': 'JEREZ',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 221473,
-    'UTMy': 4064853
-  },
-  {
-    'num': 29,
-    'ESTACION': 'E7: EL ZABAL',
-    'MUNICIPIO': 'LA LÍNEA DE LA CONCEPCIÓN',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 289371,
-    'UTMy': 4005695
-  },
-  {
-    'num': 30,
-    'ESTACION': 'LA LINEA',
-    'MUNICIPIO': 'LA LÍNEA DE LA CONCEPCIÓN',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 288757,
-    'UTMy': 4004181
-  },
-  {
-    'num': 31,
-    'ESTACION': 'E1: COLEGIO LOS BARRIOS',
-    'MUNICIPIO': 'LOS BARRIOS',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 276184,
-    'UTMy': 4007408
-  },
-  {
-    'num': 32,
-    'ESTACION': 'E2: ALCORNOCALES',
-    'MUNICIPIO': 'LOS BARRIOS',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 260630,
-    'UTMy': 4013178
-  },
-  {
-    'num': 33,
-    'ESTACION': 'E5: PALMONES',
-    'MUNICIPIO': 'LOS BARRIOS',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 281205,
-    'UTMy': 4006069
-  },
-  {
-    'num': 34,
-    'ESTACION': 'T.M.-CTLB(15MTS)',
-    'MUNICIPIO': 'LOS BARRIOS',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 282663,
-    'UTMy': 4006747
-  },
-  {
-    'num': 35,
-    'ESTACION': 'LOS BARRIOS',
-    'MUNICIPIO': 'LOS BARRIOS',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 276884,
-    'UTMy': 4006254
-  },
-  {
-    'num': 36,
-    'ESTACION': 'CORTIJILLOS',
-    'MUNICIPIO': 'LOS BARRIOS',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 280980,
-    'UTMy': 4007826
-  },
-  {
-    'num': 37,
-    'ESTACION': 'PRADO REY',
-    'MUNICIPIO': 'PRADO DEL REY',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 274120,
-    'UTMy': 4075065
-  },
-  {
-    'num': 38,
-    'ESTACION': 'RIO SAN PEDRO',
-    'MUNICIPIO': 'PUERTO REAL',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 211209,
-    'UTMy': 4046780
-  },
-  {
-    'num': 39,
-    'ESTACION': 'SAN FERNANDO',
-    'MUNICIPIO': 'SAN FERNANDO',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 212959,
-    'UTMy': 4039808
-  },
-  {
-    'num': 40,
-    'ESTACION': 'E3: COLEGIO CARTEYA',
-    'MUNICIPIO': 'SAN ROQUE',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 285021,
-    'UTMy': 4009758
-  },
-  {
-    'num': 41,
-    'ESTACION': 'E6: ESTACION DE FFCC S. ROQUE',
-    'MUNICIPIO': 'SAN ROQUE',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 281534,
-    'UTMy': 4010206
-  },
-  {
-    'num': 42,
-    'ESTACION': 'CAMPAMENTO',
-    'MUNICIPIO': 'SAN ROQUE',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 286237,
-    'UTMy': 4006469
-  },
-  {
-    'num': 43,
-    'ESTACION': 'E. DE HOSTELERIA',
-    'MUNICIPIO': 'SAN ROQUE',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 285698,
-    'UTMy': 4009196
-  },
-  {
-    'num': 44,
-    'ESTACION': 'ECONOMATO',
-    'MUNICIPIO': 'SAN ROQUE',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 285910,
-    'UTMy': 4007229
-  },
-  {
-    'num': 45,
-    'ESTACION': 'GUADARRANQUE',
-    'MUNICIPIO': 'SAN ROQUE',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 283147,
-    'UTMy': 4006841
-  },
-  {
-    'num': 46,
-    'ESTACION': 'MADREVIEJA',
-    'MUNICIPIO': 'SAN ROQUE',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 283811,
-    'UTMy': 4009303
-  },
-  {
-    'num': 47,
-    'ESTACION': 'T. M. CEPSA (10 MTS)',
-    'MUNICIPIO': 'SAN ROQUE',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 284174,
-    'UTMy': 4008114
-  },
-  {
-    'num': 48,
-    'ESTACION': 'T. M. CEPSA (60 MTS)',
-    'MUNICIPIO': 'SAN ROQUE',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 284174,
-    'UTMy': 4008114
-  },
-  {
-    'num': 49,
-    'ESTACION': 'PUENTE MAYORGA',
-    'MUNICIPIO': 'SAN ROQUE',
-    'PROVINCIA': 'CÁDIZ',
-    'UTMx': 285741,
-    'UTMy': 4006559
-  },
-  {
-    'num': 50,
-    'ESTACION': 'LEPANTO',
-    'MUNICIPIO': 'CÓRDOBA',
-    'PROVINCIA': 'CÓRDOBA',
-    'UTMx': 345040,
-    'UTMy': 4195364
-  },
-  {
-    'num': 51,
-    'ESTACION': 'PARQUE JOYERO',
-    'MUNICIPIO': 'CÓRDOBA',
-    'PROVINCIA': 'CÓRDOBA',
-    'UTMx': 340299,
-    'UTMy': 4193525
-  },
-  {
-    'num': 52,
-    'ESTACION': 'AVDA. AL-NASIR',
-    'MUNICIPIO': 'CÓRDOBA',
-    'PROVINCIA': 'CÓRDOBA',
-    'UTMx': 343476,
-    'UTMy': 4195292
-  },
-  {
-    'num': 53,
-    'ESTACION': 'POBLADO',
-    'MUNICIPIO': 'ESPIEL',
-    'PROVINCIA': 'CÓRDOBA',
-    'UTMx': 331073,
-    'UTMy': 4219567
-  },
-  {
-    'num': 54,
-    'ESTACION': 'OBEJO',
-    'MUNICIPIO': 'OBEJO',
-    'PROVINCIA': 'CÓRDOBA',
-    'UTMx': 342092,
-    'UTMy': 4222045
-  },
-  {
-    'num': 55,
-    'ESTACION': 'VILLAHARTA',
-    'MUNICIPIO': 'VILLAHARTA',
-    'PROVINCIA': 'CÓRDOBA',
-    'UTMx': 333143,
-    'UTMy': 4222831
-  },
-  {
-    'num': 56,
-    'ESTACION': 'CIUDAD DEPORTIVA',
-    'MUNICIPIO': 'ARMILLA',
-    'PROVINCIA': 'GRANADA',
-    'UTMx': 444999,
-    'UTMy': 4110090
-  },
-  {
-    'num': 57,
-    'ESTACION': 'PALACIO DE CONGRESOS',
-    'MUNICIPIO': 'GRANADA',
-    'PROVINCIA': 'GRANADA',
-    'UTMx': 446721,
-    'UTMy': 4113421
-  },
-  {
-    'num': 58,
-    'ESTACION': 'GRANADA-NORTE',
-    'MUNICIPIO': 'GRANADA',
-    'PROVINCIA': 'GRANADA',
-    'UTMx': 445628,
-    'UTMy': 4116803
-  },
-  {
-    'num': 59,
-    'ESTACION': 'MOTRIL',
-    'MUNICIPIO': 'MOTRIL',
-    'PROVINCIA': 'GRANADA',
-    'UTMx': 453818,
-    'UTMy': 4066501
-  },
-  {
-    'num': 60,
-    'ESTACION': 'MATALASCA�AS',
-    'MUNICIPIO': 'ALMONTE',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 182328,
-    'UTMy': 4102622
-  },
-  {
-    'num': 61,
-    'ESTACION': 'ROMERALEJO',
-    'MUNICIPIO': 'HUELVA',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 152450,
-    'UTMy': 4131724
-  },
-  {
-    'num': 62,
-    'ESTACION': 'CAMPUS EL CARMEN',
-    'MUNICIPIO': 'HUELVA',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 151975,
-    'UTMy': 4132214
-  },
-  {
-    'num': 63,
-    'ESTACION': 'LA ORDEN',
-    'MUNICIPIO': 'HUELVA',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 150819,
-    'UTMy': 4133169
-  },
-  {
-    'num': 64,
-    'ESTACION': 'LOS ROSALES',
-    'MUNICIPIO': 'HUELVA',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 151848,
-    'UTMy': 4130960
-  },
-  {
-    'num': 65,
-    'ESTACION': 'MARISMAS DEL TITAN',
-    'MUNICIPIO': 'HUELVA',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 150329,
-    'UTMy': 4130181
-  },
-  {
-    'num': 66,
-    'ESTACION': 'POZO DULCE',
-    'MUNICIPIO': 'HUELVA',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 150958,
-    'UTMy': 4130241
-  },
-  {
-    'num': 67,
-    'ESTACION': 'T.M.PUNTA DEL SEBO',
-    'MUNICIPIO': 'HUELVA',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 149593,
-    'UTMy': 4127880
-  },
-  {
-    'num': 68,
-    'ESTACION': 'T.M.TARTESSOS',
-    'MUNICIPIO': 'HUELVA',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 157625,
-    'UTMy': 4135871
-  },
-  {
-    'num': 69,
-    'ESTACION': 'EL ARENOSILLO',
-    'MUNICIPIO': 'MOGUER',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 168146,
-    'UTMy': 4112948
-  },
-  {
-    'num': 70,
-    'ESTACION': 'MOGUER',
-    'MUNICIPIO': 'MOGUER',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 160074,
-    'UTMy': 4133002
-  },
-  {
-    'num': 71,
-    'ESTACION': 'MAZAGON',
-    'MUNICIPIO': 'MOGUER',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 161755,
-    'UTMy': 4116505
-  },
-  {
-    'num': 72,
-    'ESTACION': 'NIEBLA',
-    'MUNICIPIO': 'NIEBLA',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 174188,
-    'UTMy': 4140988
-  },
-  {
-    'num': 73,
-    'ESTACION': 'TORREARENILLA',
-    'MUNICIPIO': 'PALOS DE LA FRONTERA',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 153385,
-    'UTMy': 4123132
-  },
-  {
-    'num': 74,
-    'ESTACION': 'LA RABIDA',
-    'MUNICIPIO': 'PALOS DE LA FRONTERA',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 152031,
-    'UTMy': 4124237
-  },
-  {
-    'num': 75,
-    'ESTACION': 'PALOS',
-    'MUNICIPIO': 'PALOS DE LA FRONTERA',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 154934,
-    'UTMy': 4126284
-  },
-  {
-    'num': 76,
-    'ESTACION': 'T.M.CEPSA RÁBIDA',
-    'MUNICIPIO': 'PALOS DE LA FRONTERA',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 152532,
-    'UTMy': 4122512
-  },
-  {
-    'num': 77,
-    'ESTACION': 'PUNTA UMBRIA',
-    'MUNICIPIO': 'PUNTA UMBRÍA',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 148070,
-    'UTMy': 4122836
-  },
-  {
-    'num': 78,
-    'ESTACION': 'SAN JUAN DEL PUERTO',
-    'MUNICIPIO': 'SAN JUAN DEL PUERTO',
-    'PROVINCIA': 'HUELVA',
-    'UTMx': 159270,
-    'UTMy': 4136797
-  },
-  {
-    'num': 79,
-    'ESTACION': 'BAILEN',
-    'MUNICIPIO': 'BAILÉN',
-    'PROVINCIA': 'JAÉN',
-    'UTMx': 431261,
-    'UTMy': 4216416
-  },
-  {
-    'num': 80,
-    'ESTACION': 'RONDA DEL VALLE',
-    'MUNICIPIO': 'JAÉN',
-    'PROVINCIA': 'JAÉN',
-    'UTMx': 431177,
-    'UTMy': 4181976
-  },
-  {
-    'num': 81,
-    'ESTACION': 'LAS FUENTEZUELAS',
-    'MUNICIPIO': 'JAÉN',
-    'PROVINCIA': 'JAÉN',
-    'UTMx': 428647,
-    'UTMy': 4182208
-  },
-  {
-    'num': 82,
-    'ESTACION': 'VILLANUEVA DEL ARZOBISPO',
-    'MUNICIPIO': 'VILLANUEVA DEL ARZOBISPO',
-    'PROVINCIA': 'JAÉN',
-    'UTMx': 499105,
-    'UTMy': 4224614
-  },
-  {
-    'num': 83,
-    'ESTACION': 'CAMPILLOS',
-    'MUNICIPIO': 'CAMPILLOS',
-    'PROVINCIA': 'MÁLAGA',
-    'UTMx': 335765,
-    'UTMy': 4092280
-  },
-  {
-    'num': 84,
-    'ESTACION': 'AVENIDA JUAN XXIII',
-    'MUNICIPIO': 'MÁLAGA',
-    'PROVINCIA': 'MÁLAGA',
-    'UTMx': 370966,
-    'UTMy': 4063575
-  },
-  {
-    'num': 85,
-    'ESTACION': 'EL ATABAL',
-    'MUNICIPIO': 'MÁLAGA',
-    'PROVINCIA': 'MÁLAGA',
-    'UTMx': 369138,
-    'UTMy': 4065873
-  },
-  {
-    'num': 86,
-    'ESTACION': 'CARRANQUE',
-    'MUNICIPIO': 'MÁLAGA',
-    'PROVINCIA': 'MÁLAGA',
-    'UTMx': 370732,
-    'UTMy': 4064748
-  },
-  {
-    'num': 87,
-    'ESTACION': 'CAMPANILLAS',
-    'MUNICIPIO': 'MÁLAGA',
-    'PROVINCIA': 'MÁLAGA',
-    'UTMx': 360614,
-    'UTMy': 4065819
-  },
-  {
-    'num': 88,
-    'ESTACION': 'MARBELLA ARCO',
-    'MUNICIPIO': 'MARBELLA',
-    'PROVINCIA': 'MÁLAGA',
-    'UTMx': 333023,
-    'UTMy': 4042015
-  },
-  {
-    'num': 89,
-    'ESTACION': 'ALCALA DE GUADAIRA',
-    'MUNICIPIO': 'ALCALÁ DE GUADAIRA',
-    'PROVINCIA': 'SEVILLA',
-    'UTMx': 248974,
-    'UTMy': 4136631
-  },
-  {
-    'num': 90,
-    'ESTACION': 'DOS HERMANAS',
-    'MUNICIPIO': 'DOS HERMANAS',
-    'PROVINCIA': 'SEVILLA',
-    'UTMx': 241677,
-    'UTMy': 4130413
-  },
-  {
-    'num': 91,
-    'ESTACION': 'COBRE LAS CRUCES',
-    'MUNICIPIO': 'GUILLENA',
-    'PROVINCIA': 'SEVILLA',
-    'UTMx': 231798,
-    'UTMy': 4160779
-  },
-  {
-    'num': 92,
-    'ESTACION': 'ALJARAFE',
-    'MUNICIPIO': 'MAIRENA DEL ALJARAFE',
-    'PROVINCIA': 'SEVILLA',
-    'UTMx': 230473,
-    'UTMy': 4137017
-  },
-  {
-    'num': 93,
-    'ESTACION': 'SIERRA NORTE',
-    'MUNICIPIO': 'SAN NICOLÁS DEL PUERTO',
-    'PROVINCIA': 'SEVILLA',
-    'UTMx': 265817,
-    'UTMy': 4208544
-  },
-  {
-    'num': 94,
-    'ESTACION': 'BERMEJALES',
-    'MUNICIPIO': 'SEVILLA',
-    'PROVINCIA': 'SEVILLA',
-    'UTMx': 236063,
-    'UTMy': 4137554
-  },
-  {
-    'num': 95,
-    'ESTACION': 'CENTRO',
-    'MUNICIPIO': 'SEVILLA',
-    'PROVINCIA': 'SEVILLA',
-    'UTMx': 235156,
-    'UTMy': 4142125
-  },
-  {
-    'num': 96,
-    'ESTACION': 'SANTA CLARA',
-    'MUNICIPIO': 'SEVILLA',
-    'PROVINCIA': 'SEVILLA',
-    'UTMx': 238720,
-    'UTMy': 4143149
-  },
-  {
-    'num': 97,
-    'ESTACION': 'TORNEO',
-    'MUNICIPIO': 'SEVILLA',
-    'PROVINCIA': 'SEVILLA',
-    'UTMx': 234151,
-    'UTMy': 4142873
-  },
-  {
-    'num': 98,
-    'ESTACION': 'PRINCIPES',
-    'MUNICIPIO': 'SEVILLA',
-    'PROVINCIA': 'SEVILLA',
-    'UTMx': 233863,
-    'UTMy': 4140741
-  },
-  {
-    'num': 99,
-    'ESTACION': 'SAN JERONIMO',
-    'MUNICIPIO': 'SEVILLA',
-    'PROVINCIA': 'SEVILLA',
-    'UTMx': 236286,
-    'UTMy': 4146731
-  }
+   {
+      "name":"ALCALA DE GUADAIRA",
+      "coordinates":[
+         -5.83372829297275,
+         37.3424616097331
+      ]
+   },
+   {
+      "name":"ALGAR",
+      "coordinates":[
+         -5.66140257575124,
+         36.6496349442286
+      ]
+   },
+   {
+      "name":"ALGECIRAS EPS",
+      "coordinates":[
+         -5.45342334882692,
+         36.1362319718131
+      ]
+   },
+   {
+      "name":"ALJARAFE",
+      "coordinates":[
+         -6.04245888664765,
+         37.3407514842065
+      ]
+   },
+   {
+      "name":"ARCOS",
+      "coordinates":[
+         -5.74372265610218,
+         36.7397505566317
+      ]
+   },
+   {
+      "name":"ASOMADILLA",
+      "coordinates":[
+         -4.77957179596027,
+         37.9027418784996
+      ]
+   },
+   {
+      "name":"AVDA. AL-NASIR",
+      "coordinates":[
+         -4.78012347442897,
+         37.8925950570079
+      ]
+   },
+   {
+      "name":"Avda. MARCONI",
+      "coordinates":[
+         -6.26857238885376,
+         36.5060156494428
+      ]
+   },
+   {
+      "name":"AVENIDA JUAN XXIII",
+      "coordinates":[
+         -4.44468102271592,
+         36.7090982156429
+      ]
+   },
+   {
+      "name":"BAILEN",
+      "coordinates":[
+         -3.78391252324497,
+         38.0929300304407
+      ]
+   },
+   {
+      "name":"BEDAR",
+      "coordinates":[
+         -1.98540237557918,
+         37.1934252225575
+      ]
+   },
+   {
+      "name":"BENAHADUX",
+      "coordinates":[
+         -2.46321804058202,
+         36.9230982118208
+      ]
+   },
+   {
+      "name":"BERMEJALES",
+      "coordinates":[
+         -5.97962812390116,
+         37.3471907952484
+      ]
+   },
+   {
+      "name":"CAMPAMENTO",
+      "coordinates":[
+         -5.37696950280927,
+         36.1794341287161
+      ]
+   },
+   {
+      "name":"CAMPANILLAS",
+      "coordinates":[
+         -4.56095497889189,
+         36.7278572726192
+      ]
+   },
+   {
+      "name":"CAMPILLOS",
+      "coordinates":[
+         -4.84483380018459,
+         36.9622967816779
+      ]
+   },
+   {
+      "name":"CAMPOHERMOSO",
+      "coordinates":[
+         -2.1281923855126,
+         36.9338489226264
+      ]
+   },
+   {
+      "name":"CAMPUS EL CARMEN",
+      "coordinates":[
+         -6.9246203280391,
+         37.2714800687201
+      ]
+   },
+   {
+      "name":"CARBONERAS",
+      "coordinates":[
+         -1.89201015457705,
+         36.99944940914
+      ]
+   },
+   {
+      "name":"CARRANQUE",
+      "coordinates":[
+         -4.44749849600678,
+         36.7196374482505
+      ]
+   },
+   {
+      "name":"CARTUJA",
+      "coordinates":[
+         -6.11449433455086,
+         36.6608628569445
+      ]
+   },
+   {
+      "name":"CENTRO",
+      "coordinates":[
+         -5.99148934024501,
+         37.3880786742703
+      ]
+   },
+   {
+      "name":"CIUDAD DEPORTIVA",
+      "coordinates":[
+         -3.61925275813457,
+         37.1355591543718
+      ]
+   },
+   {
+      "name":"COBRE LAS CRUCES",
+      "coordinates":[
+         -6.03616087321919,
+         37.5550190832439
+      ]
+   },
+   {
+      "name":"CORTIJILLOS",
+      "coordinates":[
+         -5.43575712940947,
+         36.1904826974206
+      ]
+   },
+   {
+      "name":"DOS HERMANAS",
+      "coordinates":[
+         -5.91384191767095,
+         37.2844845561649
+      ]
+   },
+   {
+      "name":"E. DE HOSTELERIA",
+      "coordinates":[
+         -5.38370311214421,
+         36.2038793698316
+      ]
+   },
+   {
+      "name":"E1: COLEGIO LOS BARRIOS",
+      "coordinates":[
+         -5.4889301640838,
+         36.1856207988945
+      ]
+   },
+   {
+      "name":"E2: ALCORNOCALES",
+      "coordinates":[
+         -5.66349609291426,
+         36.2338647321404
+      ]
+   },
+   {
+      "name":"E3: COLEGIO CARTEYA",
+      "coordinates":[
+         -5.39138163797878,
+         36.2087915508404
+      ]
+   },
+   {
+      "name":"E4: RINCONCILLO",
+      "coordinates":[
+         -5.44254780031943,
+         36.1617454419319
+      ]
+   },
+   {
+      "name":"E5: PALMONES",
+      "coordinates":[
+         -5.43276720391821,
+         36.1747073666682
+      ]
+   },
+   {
+      "name":"E6: ESTACION DE FFCC S. ROQUE",
+      "coordinates":[
+         -5.43026395248102,
+         36.2120457543514
+      ]
+   },
+   {
+      "name":"E7: EL ZABAL",
+      "coordinates":[
+         -5.34193933241622,
+         36.1731485469259
+      ]
+   },
+   {
+      "name":"ECONOMATO",
+      "coordinates":[
+         -5.38081007423352,
+         36.1862078723027
+      ]
+   },
+   {
+      "name":"EL ARENOSILLO",
+      "coordinates":[
+         -6.73407119375383,
+         37.104086617877
+      ]
+   },
+   {
+      "name":"EL ATABAL",
+      "coordinates":[
+         -4.46553495908059,
+         36.7295574570493
+      ]
+   },
+   {
+      "name":"EL BOTICARIO",
+      "coordinates":[
+         -2.39049953963171,
+         36.8649557241293
+      ]
+   },
+   {
+      "name":"EL EJIDO",
+      "coordinates":[
+         -2.81096707675371,
+         36.7697216580892
+      ]
+   },
+   {
+      "name":"FERNAN PEREZ",
+      "coordinates":[
+         -2.04672655909552,
+         36.8951018950274
+      ]
+   },
+   {
+      "name":"GRANADA-NORTE",
+      "coordinates":[
+         -3.61265949521279,
+         37.1961046421122
+      ]
+   },
+   {
+      "name":"GUADARRANQUE",
+      "coordinates":[
+         -5.41140475105146,
+         36.1820980093152
+      ]
+   },
+   {
+      "name":"JEDULA",
+      "coordinates":[
+         -5.92108975982459,
+         36.7416987666838
+      ]
+   },
+   {
+      "name":"JEREZ-CHAPIN",
+      "coordinates":[
+         -6.11724529470848,
+         36.6885539329182
+      ]
+   },
+   {
+      "name":"LA JOYA",
+      "coordinates":[
+         -1.96148344269345,
+         36.9500045721069
+      ]
+   },
+   {
+      "name":"LA LINEA",
+      "coordinates":[
+         -5.34835402177554,
+         36.1593765791326
+      ]
+   },
+   {
+      "name":"LA ORDEN",
+      "coordinates":[
+         -6.93807633408643,
+         37.2796354461791
+      ]
+   },
+   {
+      "name":"LA RABIDA",
+      "coordinates":[
+         -6.92026798998562,
+         37.1997646111733
+      ]
+   },
+   {
+      "name":"LAS FUENTEZUELAS",
+      "coordinates":[
+         -3.81032829398102,
+         37.784441925924
+      ]
+   },
+   {
+      "name":"LEPANTO",
+      "coordinates":[
+         -4.76233810602946,
+         37.8926104151968
+      ]
+   },
+   {
+      "name":"LOS BARRIOS",
+      "coordinates":[
+         -5.4808245009931,
+         36.1753880490663
+      ]
+   },
+   {
+      "name":"LOS ROSALES",
+      "coordinates":[
+         -6.92546310245881,
+         37.2601556171702
+      ]
+   },
+   {
+      "name":"MADREVIEJA",
+      "coordinates":[
+         -5.40470531906544,
+         36.2044234180227
+      ]
+   },
+   {
+      "name":"MARBELLA ARCO",
+      "coordinates":[
+         -4.86463053355266,
+         36.5089258171877
+      ]
+   },
+   {
+      "name":"MARISMAS DEL TITAN",
+      "coordinates":[
+         -6.94218747450492,
+         37.2525815986743
+      ]
+   },
+   {
+      "name":"MATALASCA\ufffdAS",
+      "coordinates":[
+         -6.57042044961113,
+         37.0161019123845
+      ]
+   },
+   {
+      "name":"MAZAGON",
+      "coordinates":[
+         -6.80744460735161,
+         37.1337943069137
+      ]
+   },
+   {
+      "name":"MEDITERRANEO",
+      "coordinates":[
+         -2.44671996011431,
+         36.8413332017997
+      ]
+   },
+   {
+      "name":"MOGUER",
+      "coordinates":[
+         -6.83383805614224,
+         37.2815581829801
+      ]
+   },
+   {
+      "name":"MOJACAR",
+      "coordinates":[
+         -1.84220963780445,
+         37.1387963724069
+      ]
+   },
+   {
+      "name":"MOTRIL",
+      "coordinates":[
+         -3.51730142150679,
+         36.7431184253911
+      ]
+   },
+   {
+      "name":"NIEBLA",
+      "coordinates":[
+         -6.67865166738376,
+         37.3590481112293
+      ]
+   },
+   {
+      "name":"OBEJO",
+      "coordinates":[
+         -4.80172573969212,
+         38.1324576496765
+      ]
+   },
+   {
+      "name":"PALACIO DE CONGRESOS",
+      "coordinates":[
+         -3.60010307027148,
+         37.1656834988294
+      ]
+   },
+   {
+      "name":"PALOMARES",
+      "coordinates":[
+         -1.78173062088384,
+         37.2549700427613
+      ]
+   },
+   {
+      "name":"PALOS",
+      "coordinates":[
+         -6.88857735350462,
+         37.2192510920051
+      ]
+   },
+   {
+      "name":"PARQUE JOYERO",
+      "coordinates":[
+         -4.81582531653285,
+         37.8752242576767
+      ]
+   },
+   {
+      "name":"POBLADO",
+      "coordinates":[
+         -4.92680188287867,
+         38.1081415917842
+      ]
+   },
+   {
+      "name":"POZO DULCE",
+      "coordinates":[
+         -6.93513952108221,
+         37.2533569113105
+      ]
+   },
+   {
+      "name":"PRADO REY",
+      "coordinates":[
+         -5.53162771941761,
+         36.7944908582217
+      ]
+   },
+   {
+      "name":"PRINCIPES",
+      "coordinates":[
+         -6.00557811805626,
+         37.3752504882633
+      ]
+   },
+   {
+      "name":"PUENTE MAYORGA",
+      "coordinates":[
+         -5.38250511898404,
+         36.1801352274113
+      ]
+   },
+   {
+      "name":"PUNTA UMBRIA",
+      "coordinates":[
+         -6.96413653775016,
+         37.1856818840077
+      ]
+   },
+   {
+      "name":"PZA. DEL CASTILLO",
+      "coordinates":[
+         -1.89535275953373,
+         36.9967853912117
+      ]
+   },
+   {
+      "name":"RANILLA",
+      "coordinates":[
+         -5.95961774892733,
+         37.3842498795264
+      ]
+   },
+   {
+      "name":"RIO SAN PEDRO",
+      "coordinates":[
+         -6.22516988622941,
+         36.5228231904886
+      ]
+   },
+   {
+      "name":"RODALQUILAR",
+      "coordinates":[
+         -2.03818849078265,
+         36.8474557850741
+      ]
+   },
+   {
+      "name":"ROMERALEJO",
+      "coordinates":[
+         -6.91904653221028,
+         37.267250908198
+      ]
+   },
+   {
+      "name":"RONDA DEL VALLE",
+      "coordinates":[
+         -3.78157654854438,
+         37.782545140183
+      ]
+   },
+   {
+      "name":"SAN FERNANDO",
+      "coordinates":[
+         -6.2030661919351,
+         36.4605944072293
+      ]
+   },
+   {
+      "name":"SAN JERONIMO",
+      "coordinates":[
+         -5.98038500280656,
+         37.4298620732358
+      ]
+   },
+   {
+      "name":"SAN JUAN DEL PUERTO",
+      "coordinates":[
+         -6.84462674008048,
+         37.315395192284
+      ]
+   },
+   {
+      "name":"SANTA CLARA",
+      "coordinates":[
+         -5.95164383477082,
+         37.3983077540955
+      ]
+   },
+   {
+      "name":"SIERRA NORTE",
+      "coordinates":[
+         -5.66687331825753,
+         37.9943454185363
+      ]
+   },
+   {
+      "name":"T. M. CEPSA (10 MTS)",
+      "coordinates":[
+         -5.40034364562947,
+         36.193794290428
+      ]
+   },
+   {
+      "name":"T. M. CEPSA (60 MTS)",
+      "coordinates":[
+         -5.40034364562947,
+         36.193794290428
+      ]
+   },
+   {
+      "name":"T.M. CEPSA LA RABIDA (35 MTS)",
+      "coordinates":[
+         -6.91383364682582,
+         37.1844381350459
+      ]
+   },
+   {
+      "name":"T.M. CTLA (10 MTS)",
+      "coordinates":[
+         -1.90496740467068,
+         36.9783236955729
+      ]
+   },
+   {
+      "name":"T.M. CTLA (30 MTS)",
+      "coordinates":[
+         -1.90496740467068,
+         36.9783236955729
+      ]
+   },
+   {
+      "name":"T.M. CTLA (60 MTS)",
+      "coordinates":[
+         -1.90496740467068,
+         36.9783236955729
+      ]
+   },
+   {
+      "name":"T.M. CTLA (SUP)",
+      "coordinates":[
+         -1.90496740467068,
+         36.9783236955729
+      ]
+   },
+   {
+      "name":"T.M. VILLARICOS",
+      "coordinates":[
+         -1.76528457027006,
+         37.2587655899421
+      ]
+   },
+   {
+      "name":"T.M.ARCOS",
+      "coordinates":[
+         -5.81416511148127,
+         36.6692366172567
+      ]
+   },
+   {
+      "name":"T.M.PUNTA DEL SEBO (35 MTS)",
+      "coordinates":[
+         -6.94938562236194,
+         37.2316132586951
+      ]
+   },
+   {
+      "name":"T.M.TARTESSOS (51 MTS)",
+      "coordinates":[
+         -6.86272292084739,
+         37.3064631304473
+      ]
+   },
+   {
+      "name":"TM-CTLB(15MTS)",
+      "coordinates":[
+         -5.41675649777288,
+         36.1811427849335
+      ]
+   },
+   {
+      "name":"TORNEO",
+      "coordinates":[
+         -6.00309570311933,
+         37.3945241280366
+      ]
+   },
+   {
+      "name":"TORREARENILLA",
+      "coordinates":[
+         -6.90453342985562,
+         37.1903307092292
+      ]
+   },
+   {
+      "name":"VILLAHARTA",
+      "coordinates":[
+         -4.90396696375797,
+         38.1379275583166
+      ]
+   },
+   {
+      "name":"VILLANUEVA DEL ARZOBISPO",
+      "coordinates":[
+         -3.00514909268167,
+         38.1750276172737
+      ]
+   },
+   {
+      "name":"VILLARICOS",
+      "coordinates":[
+         -1.77082602873914,
+         37.2522344024592
+      ]
+   }
 ];
