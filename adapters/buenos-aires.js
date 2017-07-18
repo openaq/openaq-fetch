@@ -9,7 +9,7 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'buenos aires';
 export function fetchData (source, callback) {
-  // list of requests used to get data
+  // take options from form to make a list of requests used to get data
   const tasks = generateTasks(source);
 
   parallel(tasks, (err, response) => {
