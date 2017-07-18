@@ -41,6 +41,7 @@ export function fetchData (source, callback) {
         if (err) {
           return callback(null, err);
         }
+        results = _.flattenDeep(results);
         return callback(null, results);
       }
     );
@@ -176,7 +177,7 @@ const makeMeasurements = (stationData, stationLoc) => {
           averagingPeriod: {
             unit: 'hours',
             // averaging period gathered from source.url
-            value: stationData[0][index] === 'S02' ? 24 : 1
+            value: stationData[0][index] === 'SO2' ? 24 : 1
           }
         };
       }
