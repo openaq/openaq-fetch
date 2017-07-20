@@ -1,16 +1,14 @@
 [
     {
-        "url": null,
-        "adapter": "eea",
+        "url": "http://discomap.eea.europa.eu/map/fme/latest/DE_<pollutant>.csv",
+        "adapter": "eea-direct",
         "name": "EEA Germany",
         "city": "",
         "country": "DE",
         "description": "German data from UTD service",
         "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
         "contacts": [
-            "olaf.veerman@gmail.com",
             "info@openaq.org"
-        ],
-        "active": true
+        ]
     }
 ]
