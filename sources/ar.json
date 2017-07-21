@@ -8,6 +8,7 @@
         "sourceURL": "http://www.buenosaires.gob.ar/agenciaambiental",
         "contacts": [
             "info@openaq.org"
-        ]
+        ],
+        "active": true
     }
 ]
