@@ -21,8 +21,7 @@ export function fetchData (source, callback) {
         if (err || res.statusCode !== 200) {
           cb('Could not gather current metadata, will generate records without coordinates.', null);
         }
-        const data = getCoordinates(body, source.country);
-        cb(null, data);
+        cb(null, getCoordinates(body, source.country));
       });
     },
     (data, cb) => {
@@ -33,8 +32,7 @@ export function fetchData (source, callback) {
           if (err) {
             cb(null, []);
           }
-          const finMeasurements = [].concat.apply([], res);
-          cb(null, finMeasurements);
+          cb(null, [].concat.apply([], res));
         });
     }], (err, res) => {
     if (err) {
@@ -45,18 +43,26 @@ export function fetchData (source, callback) {
 }
 // get the metadata, then reduce it.
 const getCoordinates = (metadata, country) => {
-  metadata = Papa.parse(metadata).data.slice(1, -1).filter((record) => {
-    return record[0] === country;
-  }).map((validRecord) => {
-    return {
-      stationId: validRecord[5],
-      coordinates: {
-        latitude: validRecord[14],
-        longitude: validRecord[15]
+  (done) => {
+    Papa.parse(metadata, {
+      step: (record, parser) => {
+        record.filter((record) => {
+          return record[0] === country;
+        }).map((record) => {
+          return {
+            stationId: record[5],
+            coordinates: {
+              latitude: record[14],
+              longitude: record[15]
+            }
+          };
+        });
+      },
+      success: (records, parser) => {
+        done(null, uniqBy(records, 'stationId'));
       }
-    };
-  });
-  return uniqBy(metadata, 'stationId');
+    });
+  };
 };
 
 // after that, do async parallel where we make all the data.
@@ -71,53 +77,52 @@ const makeRequests = (source, coordinates) => {
         if (err || res.statusCode !== 200) {
           return done(null, []);
         }
-        const measurements = formatData(body, coordinates, source);
-        return done(null, measurements);
+        done(null, formatData(body, coordinates, source));
       });
     };
   });
 };
 
 const formatData = (data, coordinates, source) => {
-  // coordinates match AirQualityStationEolCode from meta with station_code data[11] and meta[6]
-  // parametner is data[data.length -1]
-  // value is data[20]
-  // time is data[16]
-  // averaging period is data[16-17]
-  // attribution is EEA
-  data = Papa.parse(data).data;
-  data = data.map((record) => {
-    return {
-      parameter: record[5],
-      date: record[16],
-      coordinates: makeCoordinates(coordinates, record[11]),
-      value: record[20],
-      unit: record[record.length - 1],
-      attribution: [{
-        name: 'EEA',
-        url: source.sourceUrl
-      }],
-      averagingPeriod: {
-        unit: 'hours',
-        value: makeAvgPeriod(record.slice(15, 17))
+  (cb) => {
+    Papa.parse(data, {
+      step: (record, parser) => {
+        record = record.data;
+        return {
+          parameter: record[5],
+          date: record[16],
+          coordinates: makeCoordinates(coordinates, record[11]),
+          value: record[record.length - 1] === 'mg/m3' ? record[19] * 1000 : record[19],
+          unit: record[record.length - 1] === 'mg/m3' ? 'ug/m3' : record[record.length - 1],
+          attribution: [{
+            name: 'EEA',
+            url: source.sourceUrl
+          }],
+          averagingPeriod: {
+            unit: 'hours',
+            value: makeAvgPeriod(record.slice(15, 17))
+          }
+        };
+      },
+      complete: (records, parser) => {
+        cb(null, records);
       }
-    };
-  });
-  console.log(data);
-  return data;
+    });
+  };
 };
 
 const makeCoordinates = (coordinatesList, stationId) => {
   return coordinatesList.filter((coordinates) => {
     return coordinates.stationId === stationId;
-  }).map((validCoordinates) => {
+  }).map((station) => {
     return {
-      latitude: validCoordinates.latitude,
-      longitude: validCoordinates.longitude
+      latitude: station.coordinates.latitude,
+      longitude: station.coordinates.longitude
     };
   })[0];
 };
 
 const makeAvgPeriod = (delta) => {
-  return moment(delta[0]).diff(delta[1], 'hours').toString();
+  // TODO: make timestaps 'not depreciated' in moment
+  return moment(delta[1]).diff(delta[0], 'hours').toString();
 };
