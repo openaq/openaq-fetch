@@ -7,7 +7,7 @@ import cheerio from 'cheerio';
 import { parallel } from 'async';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-export const name = 'buenos aires';
+export const name = 'Buenos Aires';
 export function fetchData (source, callback) {
   request.get(source.url, (err, res, body) => {
     if (err || res.statusCode !== 200) {
