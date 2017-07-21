@@ -1,14 +1,15 @@
 'use strict';
 
+import { acceptableParameters } from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import cheerio from 'cheerio';
-import _ from 'lodash';
+import { chunk, flattenDeep, includes } from 'lodash';
 import { default as moment } from 'moment-timezone';
-import async from 'async';
+import { parallel } from 'async';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'andalucia';
+exports.name = 'Andalucia';
 
 export function fetchData (source, callback) {
   let baseUrl = source.url;
@@ -20,14 +21,20 @@ export function fetchData (source, callback) {
     // get provinces from form on source.url.
     // use them to make taskObjs with name/id.
     // this is helpful for descriptive error logs and using the coordinates csv
-    let $ = cheerio.load(body);
     let tasks = [];
-    $('select[name=PROVINCIA]').children().filter((i, el) => {
-      tasks.push({
-        provinceName: $(el).text(),
-        provinceID: $(el)['0'].attribs.value
+    // try/catch making task list. if the html used to make tasks is not reachable
+    // break the adapter
+    try {
+      let $ = cheerio.load(body);
+      $('select[name=PROVINCIA]').children().filter((i, el) => {
+        tasks.push({
+          provinceName: $(el).text(),
+          provinceID: $(el)['0'].attribs.value
+        });
       });
-    });
+    } catch (e) {
+      return callback ({message: 'Unkown adapter error.'});
+    }
     const now = moment();
     // generate list of tasks
     tasks = tasks.map((task) => {
@@ -35,13 +42,13 @@ export function fetchData (source, callback) {
       return generateTasks(url, task, now);
     });
     // execute in parallel
-    async.parallel(
+    parallel(
       tasks,
       (err, results) => {
         if (err) {
           return callback(null, err);
         }
-        results = _.flattenDeep(results);
+        results = flattenDeep(results);
         return callback(null, results);
       }
     );
@@ -51,17 +58,13 @@ export function fetchData (source, callback) {
 const generateTasks = (url, task, now) => {
   return (done) => {
     // Try getting data from today and yesterday
-      // in both cases, if unsuccessful, return blank list
-      // when successful, return list of parsed data.
-    async.parallel([
+    // in both cases, if unsuccessful, return blank list
+    // when successful, return list of parsed data.
+    parallel([
       (cb) => {
         request.get(
           url, (err, res, body) => {
             if (err || res.statusCode !== 200) {
-              console.log(
-                'Records for ' + moment().format('DD-MM-YY') +
-                ' not reached.'
-              );
               return cb(null, []);
             }
             let $ = cheerio.load(body);
@@ -75,10 +78,6 @@ const generateTasks = (url, task, now) => {
         request.get(
           url, (err, res, body) => {
             if (err || res.statusCode !== 200) {
-              console.log(
-                'Records for ' + moment().add(-1, 'days').format('DD-MM-YY') +
-                'not reached.'
-              );
               return cb(null, []);
             }
             let $ = cheerio.load(body);
@@ -107,7 +106,7 @@ const formatData = ($, stations) => {
   });
   // data is held two consecutive tables
   // (one with station name, other actual data)
-  let stationData = _.chunk(tables, 2);
+  let stationData = chunk(tables, 2);
   // return a list of measurement objects for each table.
   return stationData.map((table) => {
     const station = $(table[0]['0'].children[2]).text().split('Estacion')[1].trim();
@@ -143,7 +142,7 @@ const makeTable = (cheerioTable, $) => {
 const makeMeasurements = (stationData, stationLoc) => {
   // get index of data sources we can record
   const pollutantIndexes = stationData[0].filter((cell) => {
-    return _.includes(['SO2', 'NO2'], cell);
+    return includes(acceptableParameters.slice(3, 5), cell.toLowerCase());
   }).map((validCell) => {
     return stationData[0].indexOf(validCell);
   });
@@ -152,7 +151,7 @@ const makeMeasurements = (stationData, stationLoc) => {
   // filter rows for only the date,SO2, and NO2 rows
   stationData = stationData.map((row) => {
     return row.filter((cell, index) => {
-      if (_.includes(pollutantIndexes, index)) {
+      if (includes(pollutantIndexes, index)) {
         return cell;
       }
     });
@@ -189,25 +188,7 @@ const makeMeasurements = (stationData, stationLoc) => {
 };
 
 const makeDate = (date) => {
-  // format is reported as MM/DD/YY-HH:MM.
-  // to andle this, it isso it's split on -'.
-  // then the base date is formatted so it is valid for moment.
-  // then the two sides are joined back together on a ' '.
-  const baseDate = date.split('-')[0]
-    .split('/')
-    .reverse()
-    .map((element, index) => {
-      if (index === 0) {
-        return '20' + element;
-      } else {
-        return element;
-      }
-    }).join('-');
-  date = moment.tz(
-    baseDate + ' ' + date.split('-')[1],
-    'YYYY/MM/DD HH:mm:ss',
-    'Europe/Gibraltar'
-  );
+  date = moment.tz(date, 'DD/MM/YY-hh:mm', 'Europe/Gibraltar');
   return {
     utc: date.toDate(),
     local: date.format()
