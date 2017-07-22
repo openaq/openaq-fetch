@@ -141,8 +141,8 @@ const getData = function (url, city, source) {
               latitude: metaData[stationID].latitude
             };
           } catch (e) {
-            //m.location = `Location-ID-${stationID}`;
-          };
+            // m.location = `Location-ID-${stationID}`;
+          }
           measurements.push(m);
         });
       });
@@ -155,10 +155,10 @@ const getUnit = function (parameter) {
   // unit mapping described in
   // http://www.arpalazio.net/main/aria/sci/annoincorso/LegendaDatiChimici.pdf
   switch (parameter) {
-  case 'co':
-    return 'mg/m3';
-  default:
-    return 'μg/m3';
+    case 'co':
+      return 'mg/m3';
+    default:
+      return 'μg/m3';
   }
 };
 
@@ -166,21 +166,21 @@ const getUnit = function (parameter) {
 const metaData = {
   '2': { name: 'Preneste', latitude: 41.886018, longitude: 12.541614 },
   '3': { name: 'Francia', latitude: 41.947447, longitude: 12.469588 },
-  '5': 
+  '5':
   { name: 'Magna Grecia',
     latitude: 41.883064,
     longitude: 12.508939 },
   '8': { name: 'Cinecitta', latitude: 41.85772, longitude: 12.568665 },
-  '10': 
+  '10':
   { name: 'Colleferro-Oberdan',
     latitude: 41.73084,
     longitude: 13.00435 },
-  '11': 
+  '11':
   { name: 'Colleferro-Europa',
     latitude: 41.72501,
     longitude: 13.009575 },
   '14': { name: 'Allumiere', latitude: 42.157741, longitude: 11.908744 },
-  '15': 
+  '15':
   { name: 'Civitavecchia',
     latitude: 42.091629,
     longitude: 11.802466 },
@@ -196,7 +196,7 @@ const metaData = {
   '36': { name: 'Fontechiari', latitude: 41.67, longitude: 13.674472 },
   '37': { name: 'Leonessa', latitude: 42.572593, longitude: 12.961982 },
   '39': { name: 'Villa Ada', latitude: 41.932874, longitude: 12.506971 },
-  '40': 
+  '40':
   { name: 'Castel di Guido',
     latitude: 41.889438,
     longitude: 12.2663 },
@@ -205,7 +205,7 @@ const metaData = {
   '47': { name: 'Fermi', latitude: 41.864194, longitude: 12.469531 },
   '48': { name: 'Bufalotta', latitude: 41.947649, longitude: 12.533682 },
   '49': { name: 'Cipro', latitude: 41.906358, longitude: 12.447596 },
-  '51': 
+  '51':
   { name: 'Latina-Scalo',
     latitude: 41.531431,
     longitude: 12.946064 },
@@ -213,35 +213,35 @@ const metaData = {
   '55': { name: 'Tiburtina', latitude: 41.910257, longitude: 12.54887 },
   '56': { name: 'Arenula', latitude: 41.89402, longitude: 12.475368 },
   '57': { name: 'Malagrotta', latitude: 41.874894, longitude: 12.345598 },
-  '59': 
+  '59':
   { name: 'Acquapendente',
     latitude: 42.736649,
     longitude: 11.876578 },
   '60': { name: 'Civ. Porto', latitude: 42.097053, longitude: 11.788354 },
   '61': { name: 'Gaeta', latitude: 41.223074, longitude: 13.570481 },
   '62': { name: 'Frosinone Scalo', latitude: 41.62, longitude: 13.33081 },
-  '63': 
+  '63':
   { name: 'Viale De Chirico',
     latitude: 41.451131,
     longitude: 12.891731 },
-  '71': 
+  '71':
   { name: 'Frosinone Mazzini',
     latitude: 41.639666,
     longitude: 13.348913 },
-  '83': 
+  '83':
   { name: 'Civ. Villa Albani',
     latitude: 42.099363,
     longitude: 11.798061 },
-  '84': 
+  '84':
   { name: 'Civ. Via Morandi',
     latitude: 42.086803,
     longitude: 11.806498 },
-  '85': 
+  '85':
   { name: 'Civ. Via Roma',
     latitude: 42.094147,
     longitude: 11.795509 },
-  '90': 
+  '90':
   { name: 'Civita Castellana',
     latitude: 42.3018,
     longitude: 12.4132 }
-}
+};
