@@ -22,8 +22,8 @@ request(metadataURL, (err, response, body) => {
   parse(body, {columns: true}).forEach((rowObject) => {
     results[rowObject.ID] = {
       name: rowObject.NOME,
-      latitude: rowObject.LAT,
-      longitude: rowObject.LON
+      latitude: Number(rowObject.LAT),
+      longitude: Number(rowObject.LON)
     };
   });
   console.log(results);
