@@ -83,7 +83,6 @@ const getData = function (url, city, source) {
 
     request(url, (err, res, body) => {
       if (err || res.statusCode !== 200) {
-        console.log(url);
         return done(null, []);
       }
       // remove whitespace for clean parsing
@@ -158,7 +157,7 @@ const getUnit = function (parameter) {
     case 'co':
       return 'mg/m3';
     default:
-      return 'μg/m3';
+      return 'µg/m3';
   }
 };
 
@@ -240,8 +239,35 @@ const metaData = {
   { name: 'Civ. Via Roma',
     latitude: 42.094147,
     longitude: 11.795509 },
+  '86':
+   { name: 'Fiumicino Porto',
+     latitude: 41.774849,
+     longitude: 12.223413 },
+  '87':
+   { name: 'Fiumicino Villa Guglielmi',
+     latitude: 41.768189,
+     longitude: 12.237048 },
   '90':
-  { name: 'Civita Castellana',
-    latitude: 42.3018,
-    longitude: 12.4132 }
+   { name: 'Civita Castellana',
+     latitude: 42.3018,
+     longitude: 12.4132 },
+  '101': { name: 'Aurelia', latitude: 42.137344, longitude: 11.793163 },
+  '102': { name: 'S.Agostino', latitude: 42.159947, longitude: 11.742631 },
+  '103': { name: 'Fiumaretta', latitude: 42.102158, longitude: 11.784358 },
+  '104': { name: 'Faro', latitude: 42.098903, longitude: 11.817692 },
+  '105':
+   { name: 'Campo dell\'Oro',
+     latitude: 42.081825,
+     longitude: 11.809336 },
+  '106': { name: 'S.Gordiano', latitude: 42.073608, longitude: 11.815916 },
+  '107':
+   { name: 'Allumiere - v.Aldo Moro',
+     latitude: 42.160972,
+     longitude: 11.900022 },
+  '108': { name: 'Tolfa', latitude: 42.152227, longitude: 11.93583 },
+  '110': { name: 'Tarquinia', latitude: 42.240389, longitude: 11.766344 },
+  '111':
+   { name: 'Monte Romano',
+     latitude: 42.268561,
+     longitude: 11.910914 }
 };
