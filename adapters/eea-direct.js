@@ -1,74 +1,75 @@
 'use strict';
+import { acceptableParameters, convertUnits } from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
-import cheerio from 'cheerio';
-import lodash from 'lodash';
 import async from 'async';
 import Papa from 'babyparse';
-import uniqBy from 'lodash.uniqBy'
+import uniqBy from 'lodash.uniqBy';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
-const _ = lodash;
 export const name = 'eea-direct';
 
-export function fetchData (source, callback) {
-  // make requests for parallel
-  async.waterfall([
-    (cb) => {
-      request.get({
-        url: 'http://discomap.eea.europa.eu/map/fme/metadata/PanEuropean_metadata.csv'
-      }, (err, res, body) => {
-        if (err || res.statusCode !== 200) {
-          cb('Could not gather current metadata, will generate records without coordinates.', null);
-        }
-        cb(null, getCoordinates(body, source.country));
-      });
-    },
-    (data, cb) => {
-      const requestTasks = makeRequests(source, data);
-      async.parallel(
-        requestTasks,
-        (err, res) => {
-          if (err) {
-            cb(null, []);
-          }
-          cb(null, [].concat.apply([], res));
-        });
-    }], (err, res) => {
-    if (err) {
-      return callback(null, []);
-    }
-    return callback(null, {name: 'unused', measurements: res});
-  });
-}
-// get the metadata, then reduce it.
-const getCoordinates = (metadata, country) => {
-  (done) => {
-    Papa.parse(metadata, {
-      step: (record, parser) => {
-        record.filter((record) => {
-          return record[0] === country;
-        }).map((record) => {
-          return {
-            stationId: record[5],
-            coordinates: {
-              latitude: record[14],
-              longitude: record[15]
-            }
-          };
-        });
-      },
-      success: (records, parser) => {
-        done(null, uniqBy(records, 'stationId'));
+export function fetchData (source, cb) {
+  const metadataRequest = makeMetadataRequest(source);
+  const requestTasks = makeTaskRequests(source);
+  async.parallel(
+    [metadataRequest, requestTasks],
+    (err, res) => {
+      if (err) {
+       return cb(null, []);
       }
+      try {
+        formatData(res, source, cb);
+      } catch (e) {
+        cb({message: 'Error parsing the data'}, null);
+      }
+    });
+}
+
+// makes request used to get then format metadata for station coordinates
+const makeMetadataRequest = (source) => {
+  return (cb) => {
+    request.get({
+      url: 'http://discomap.eea.europa.eu/map/fme/metadata/PanEuropean_metadata.csv'
+    }, (err, res, body) => {
+      if (err || res.statusCode !== 200) {
+        return cb('Could not gather current metadata, will generate records without coordinates.', []);
+      }
+      const data = Papa.parse(body).data;
+      getCoordinates(data, source.country, cb);
     });
   };
 };
 
-// after that, do async parallel where we make all the data.
-const makeRequests = (source, coordinates) => {
-  // const pollutantRequests = ['CO', 'NO2', 'O3', 'PM2.5', 'PM10', 'SO2'].map((pollutant) => {
-  return ['CO', 'NO2'].map((pollutant) => {
+// reduce metadata to list of objects with coordinates for
+const getCoordinates = (metadata, country, callback) => {
+  // filter for only country of interest's records
+  async.filter(metadata, (record, truth) => {
+    truth(record[0] === country);
+  }, (countryMetadata) => {
+    // map filtered records to be a list of objs w stationId/coordinates
+    async.map(countryMetadata, (record, done) => {
+      const station = {
+        stationId: record[5],
+        coordinates: {
+          latitude: record[14],
+          longitude: record[15]
+        },
+      };
+      done(null, station);
+    }, (err, mappedRecords) => {
+      if (err) {
+        return callback(null, []);
+      }
+      callback(null, uniqBy(mappedRecords, 'stationId'));
+    });
+  });
+};
+
+// makes requests to get country's pollutant data.
+const makeTaskRequests = (source) => {
+  const pollutantRequests = acceptableParameters.map((pollutant) => {
+    pollutant = pollutant.toUpperCase();
     return (done) => {
       const url = source.url.replace('<pollutant>', pollutant);
       request.get({
@@ -77,38 +78,52 @@ const makeRequests = (source, coordinates) => {
         if (err || res.statusCode !== 200) {
           return done(null, []);
         }
-        done(null, formatData(body, coordinates, source));
+        done(null, Papa.parse(body).data.slice(1, -1));
       });
     };
   });
+  return (done) => {
+    async.parallel(
+      pollutantRequests,
+      (err, response) => {
+        if (err) {
+          done(null, []);
+        }
+        done(null, [].concat.apply([], response));
+      }
+    );
+  };
 };
 
-const formatData = (data, coordinates, source) => {
-  (cb) => {
-    Papa.parse(data, {
-      step: (record, parser) => {
-        record = record.data;
-        return {
-          parameter: record[5],
-          date: record[16],
-          coordinates: makeCoordinates(coordinates, record[11]),
-          value: record[record.length - 1] === 'mg/m3' ? record[19] * 1000 : record[19],
-          unit: record[record.length - 1] === 'mg/m3' ? 'ug/m3' : record[record.length - 1],
-          attribution: [{
-            name: 'EEA',
-            url: source.sourceUrl
-          }],
-          averagingPeriod: {
-            unit: 'hours',
-            value: makeAvgPeriod(record.slice(15, 17))
-          }
-        };
-      },
-      complete: (records, parser) => {
-        cb(null, records);
+// formats data to match openAQ standard
+const formatData = (data, source, cb) => {
+  const coordinates = data[0];
+  const records = data[1];
+  async.map(records, (record, cb) => {
+    const timeZone = record[4].split('/aq/timezone/')[1];
+    let measurement = {
+      parameter: record[5],
+      date: makeDate(record[16], timeZone),
+      coordinates: makeCoordinates(coordinates, record[11]),
+      value: record[19],
+      unit: record[record.length - 1],
+      attribution: [{
+        name: 'EEA',
+        url: source.sourceUrl
+      }],
+      averagingPeriod: {
+        unit: 'hours',
+        value: makeAvgPeriod(record.slice(15, 17)).toString()
       }
-    });
-  };
+    };
+    // apply unit conversion to generated record
+    cb(null, convertUnits([measurement])[0]);
+  }, (err, mappedRecords) => {
+    if (err) {
+      return cb(null, []);
+    }
+    cb(null, mappedRecords);
+  });
 };
 
 const makeCoordinates = (coordinatesList, stationId) => {
@@ -116,13 +131,47 @@ const makeCoordinates = (coordinatesList, stationId) => {
     return coordinates.stationId === stationId;
   }).map((station) => {
     return {
-      latitude: station.coordinates.latitude,
-      longitude: station.coordinates.longitude
+      latitude: parseFloat(station.coordinates.latitude),
+      longitude: parseFloat(station.coordinates.longitude)
     };
   })[0];
 };
 
 const makeAvgPeriod = (delta) => {
-  // TODO: make timestaps 'not depreciated' in moment
-  return moment(delta[1]).diff(delta[0], 'hours').toString();
+  const latestTime = moment.tz(delta[1], 'YYYY-MM-DD hh:mm:ss', 'Europe/Berlin');
+  const earliestTime = moment.tz(delta[0], 'YYYY-MM-DD hh:mm:ss', 'Europe/Berlin');
+  return moment(latestTime).diff(earliestTime, 'hours');
+};
+
+const makeDate = (date, timeZone) => {
+  switch (timeZone) {
+    case 'UTC+01':
+      timeZone = 'Europe/Lisbon';
+      break;
+    case 'UTC+02':
+      timeZone = 'Europe/Madrid';
+      break;
+    case 'UTC+03':
+      timeZone = 'Europe/Helsinki';
+      break;
+    case 'UTC+04':
+      timeZone = 'Asia/Tbilisi';
+      break;
+    case 'UTC-04':
+      timeZone = 'America/New_York';
+      break;
+    case 'UTC-03':
+      timeZone = 'Atlantic/Bermuda';
+      break;
+    case 'UTC':
+      timeZone = 'Atlantic/Azores';
+      break;
+    default:
+      break;
+  }
+  date = moment.tz(date, 'YYYY-MM-DD hh:mm:ss', timeZone);
+  return {
+    utc: date.toDate(),
+    local: date.format()
+  };
 };

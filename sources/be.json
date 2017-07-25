@@ -1,7 +1,8 @@
+
 [
     {
-        "url": null,
-        "adapter": "eea",
+        "url": "http://discomap.eea.europa.eu/map/fme/latest/BE_<pollutant>.csv",
+        "adapter": "eea-direct",
         "name": "EEA Belgium",
         "city": "",
         "country": "BE",

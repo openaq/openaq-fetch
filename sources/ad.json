@@ -1,7 +1,8 @@
+
 [
     {
-        "url": null,
-        "adapter": "eea",
+        "url": "http://discomap.eea.europa.eu/map/fme/latest/AD_<pollutant>.csv",
+        "adapter": "eea-direct",
         "name": "EEA Andora",
         "city": "",
         "country": "AD",
