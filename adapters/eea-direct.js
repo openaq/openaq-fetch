@@ -3,8 +3,8 @@ import { acceptableParameters, convertUnits } from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
-import async from 'async';
-import Papa from 'babyparse';
+import { parallel, map, filter } from 'async';
+import { parse } from 'babyparse';
 import uniqBy from 'lodash.uniqBy';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 export const name = 'eea-direct';
@@ -12,11 +12,11 @@ export const name = 'eea-direct';
 export function fetchData (source, cb) {
   const metadataRequest = makeMetadataRequest(source);
   const requestTasks = makeTaskRequests(source);
-  async.parallel(
+  parallel(
     [metadataRequest, requestTasks],
     (err, res) => {
       if (err) {
-       return cb(null, []);
+        return cb(null, []);
       }
       try {
         formatData(res, source, cb);
@@ -35,7 +35,7 @@ const makeMetadataRequest = (source) => {
       if (err || res.statusCode !== 200) {
         return cb('Could not gather current metadata, will generate records without coordinates.', []);
       }
-      const data = Papa.parse(body).data;
+      const data = parse(body).data;
       getCoordinates(data, source.country, cb);
     });
   };
@@ -44,11 +44,11 @@ const makeMetadataRequest = (source) => {
 // reduce metadata to list of objects with coordinates for
 const getCoordinates = (metadata, country, callback) => {
   // filter for only country of interest's records
-  async.filter(metadata, (record, truth) => {
+  filter(metadata, (record, truth) => {
     truth(record[0] === country);
   }, (countryMetadata) => {
     // map filtered records to be a list of objs w stationId/coordinates
-    async.map(countryMetadata, (record, done) => {
+    map(countryMetadata, (record, done) => {
       const station = {
         stationId: record[5],
         coordinates: {
@@ -78,12 +78,12 @@ const makeTaskRequests = (source) => {
         if (err || res.statusCode !== 200) {
           return done(null, []);
         }
-        done(null, Papa.parse(body).data.slice(1, -1));
+        done(null, parse(body).data.slice(1, -1));
       });
     };
   });
   return (done) => {
-    async.parallel(
+    parallel(
       pollutantRequests,
       (err, response) => {
         if (err) {
@@ -99,7 +99,7 @@ const makeTaskRequests = (source) => {
 const formatData = (data, source, cb) => {
   const coordinates = data[0];
   const records = data[1];
-  async.map(records, (record, cb) => {
+  map(records, (record, cb) => {
     let measurement = {
       parameter: record[5],
       date: makeDate(record[16]),
