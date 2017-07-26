@@ -52,9 +52,9 @@ const getCoordinates = (metadata, country, callback) => {
       const station = {
         stationId: record[5],
         coordinates: {
-          latitude: record[14],
-          longitude: record[15]
-        },
+          latitude: record[15],
+          longitude: record[14]
+        }
       };
       done(null, station);
     }, (err, mappedRecords) => {
@@ -100,10 +100,9 @@ const formatData = (data, source, cb) => {
   const coordinates = data[0];
   const records = data[1];
   async.map(records, (record, cb) => {
-    const timeZone = record[4].split('/aq/timezone/')[1];
     let measurement = {
       parameter: record[5],
-      date: makeDate(record[16], timeZone),
+      date: makeDate(record[16]),
       coordinates: makeCoordinates(coordinates, record[11]),
       value: record[19],
       unit: record[record.length - 1],
@@ -143,24 +142,25 @@ const makeAvgPeriod = (delta) => {
   return moment(latestTime).diff(earliestTime, 'hours');
 };
 
-const makeDate = (date, timeZone) => {
+const makeDate = (date) => {
+  let timeZone = date.slice(date.length - 6, date.length);
   switch (timeZone) {
-    case 'UTC+01':
+    case '+01:00':
       timeZone = 'Europe/Lisbon';
       break;
-    case 'UTC+02':
+    case '+02:00':
       timeZone = 'Europe/Madrid';
       break;
-    case 'UTC+03':
+    case '+03:00':
       timeZone = 'Europe/Helsinki';
       break;
-    case 'UTC+04':
+    case '+04:00':
       timeZone = 'Asia/Tbilisi';
       break;
-    case 'UTC-04':
+    case '-04:00':
       timeZone = 'America/New_York';
       break;
-    case 'UTC-03':
+    case '-03:00':
       timeZone = 'Atlantic/Bermuda';
       break;
     case 'UTC':
