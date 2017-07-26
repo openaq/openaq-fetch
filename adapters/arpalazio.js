@@ -8,15 +8,20 @@ import cheerio from 'cheerio';
 import { parallel } from 'async';
 import { acceptableParameters, convertUnits } from '../lib/utils';
 import { default as parse } from 'csv-parse/lib/sync';
-import { zip, flattenDeep } from 'lodash';
+import { difference, flattenDeep, zip } from 'lodash';
 
 exports.name = 'arpalazio';
 
 const baseUrl = 'http://www.arpalazio.net/main/aria/sci/annoincorso/';
 const provinceQueryPath = 'chimici/chimici.php';
+const hourlyAvgParam = 0;
+const dailyAvgParam = 3;
+const hourlyAvgPeriod = {unit: 'hours', value: 1};
+const dailyAvgPeriod = {unit: 'hours', value: 24};
+const dailyParameters = ['pm25', 'pm10'];
+const hourlyParameters = difference(acceptableParameters, dailyParameters);
 
 exports.fetchData = function (source, cb) {
-  let datiOrari = 0;
   request(source.url, (err, res, body) => {
     if (err || res.statusCode !== 200) {
       cb(err || res);
@@ -33,8 +38,10 @@ exports.fetchData = function (source, cb) {
 
     let tasks = [];
     provinces.forEach(function (province) {
-      const provinceURL = `${baseUrl}${provinceQueryPath}?provincia=${province.id}&dati=${datiOrari}`;
-      tasks.push(handleProvince(provinceURL, province.name, source));
+      const provinceHourlyURL = `${baseUrl}${provinceQueryPath}?provincia=${province.id}&dati=${hourlyAvgParam}`;
+      const provinceDailyURL = `${baseUrl}${provinceQueryPath}?provincia=${province.id}&dati=${dailyAvgParam}`;
+      tasks.push(handleProvince(province.name, provinceHourlyURL, hourlyAvgPeriod, source));
+      tasks.push(handleProvince(province.name, provinceDailyURL, dailyAvgPeriod, source));
     });
 
     parallel(tasks, (err, results) => {
@@ -49,7 +56,7 @@ exports.fetchData = function (source, cb) {
   });
 };
 
-const handleProvince = function (url, name, source) {
+const handleProvince = function (name, url, averagingPeriod, source) {
   return function (done) {
     request(url, (err, res, body) => {
       if (err || res.statusCode !== 200) {
@@ -59,14 +66,15 @@ const handleProvince = function (url, name, source) {
       const $ = cheerio.load(body);
       let pollutantURLs = $('a').map(function (i, el) {
         const pollutant = $(this).text().toLowerCase().replace('.', '');
-        if (acceptableParameters.indexOf(pollutant) >= 0) {
+        const currentParameters = getParameters(averagingPeriod);
+        if (currentParameters.indexOf(pollutant) >= 0) {
           const href = $(this).attr('href');
           return `${baseUrl}${href}`;
         }
       }).get();
 
       let tasks = [];
-      pollutantURLs.forEach((url) => tasks.push(getData(url, name, source)));
+      pollutantURLs.forEach((url) => tasks.push(getData(name, url, averagingPeriod, source)));
       parallel(tasks, (err, results) => {
         return done(err, results);
       });
@@ -74,9 +82,20 @@ const handleProvince = function (url, name, source) {
   };
 };
 
-const getData = function (url, city, source) {
+const getParameters = function (averagingPeriod) {
+  switch (averagingPeriod.value) {
+    case 1:
+      return hourlyParameters;
+    case 24:
+      return dailyParameters;
+    default:
+      return [];
+  }
+};
+
+const getData = function (cityName, url, averagingPeriod, source) {
   return function (done) {
-    const match = url.match(/[\w]{2}_([\w\.]{2,})_([\d]{4}).txt/);
+    const match = url.match(/[\w]{2}_([\w\.]{2,})_([\d]{4})(?:_gg)?.txt/);
     const parameter = match[1].toLowerCase().replace('.', '');
     const year = match[2];
     const unit = getUnit(parameter);
@@ -105,7 +124,13 @@ const getData = function (url, city, source) {
 
       let measurements = [];
       records.forEach(function (row) {
-        const date = moment.tz(`${year} ${row[0]} ${row[1]}`, 'YYYY DDD HH', 'Europe/Rome');
+        let date;
+        if (averagingPeriod.value === 1) {
+          date = moment.tz(`${year} ${row[0]} ${row[1]}`, 'YYYY DDD HH', 'Europe/Rome');
+        } else {
+          date = moment.tz(`${year} ${row[1]}`, 'YYYY DDD', 'Europe/Rome');
+        }
+
         const fullDate = {
           utc: date.toDate(),
           local: date.format()
@@ -114,8 +139,8 @@ const getData = function (url, city, source) {
 
         let base = {
           date: fullDate,
-          city: city,
-          averagingPeriod: {unit: 'hours', value: 1},
+          city: cityName,
+          averagingPeriod: averagingPeriod,
           attribution: [{
             name: source.name,
             url: source.sourceURL
