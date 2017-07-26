@@ -4,6 +4,7 @@
         "adapter": "buenos-aires",
         "name": "Buenos Aires",
         "country": "AR",
+        "city": "Buenos Aires",
         "description": "Air quality data for Buenos Aires",
         "sourceURL": "http://www.buenosaires.gob.ar/agenciaambiental",
         "contacts": [

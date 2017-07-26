@@ -6,135 +6,96 @@ import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import { parallel } from 'async';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+import { flattenDeep } from 'lodash';
+import { acceptableParameters, convertUnits } from '../lib/utils';
 
-export const name = 'Buenos Aires';
+export const name = 'buenos-aires';
 export function fetchData (source, callback) {
   request.get(source.url, (err, res, body) => {
     if (err || res.statusCode !== 200) {
       return callback({message: 'Failed to load entry point url'}, null);
     }
-    const tasks = generateTasks(body, source);
-    parallel(
-      tasks,
-      (err, response) => {
-        // each error in tasks' nested requests returns a []
-        // so these nested errors  plus an error from async parallel are
-        // handled together
-        if (err || response === []) {
-          return callback({message: 'Failure to parse data.'});
-        }
-        return callback(null, {name: 'unused', measurements: [].concat.apply([], response)});
-      }
-    );
-  });
-}
 
-// makes a list of parallel requests.
-const generateTasks = (body, source) => {
-  let $ = cheerio.load(body);
-  // list of objects with station name, location, and links for each pollutant.
-  // later these links are mapped to functions with nested requests.
-  let stationRequests = [];
-  // objects are manipulated to generate the eventual list of requests
-  // within each stationLinks element
-  const pollutantsObj = {};
-  $('.linea_corta')
-    .find('.select-box')
-    .find('select')
-    .each((i, el) => {
-      // name is either 'estacion' or 'contaminante'.
-      // since a list of links per station is desired,
-      // when name is estacion, the an element is made for stationLinks
-      // when name is contaminante, the pollutantsObj is made
-      const name = $(el)['0'].attribs.name;
-      $(el).children().each((index, child) => {
-        const value = $(child)['0'].attribs.value;
-        // ignore the placeholder option
-        if (value !== '') {
-          // text holds either station name or contaminante name
-          const text = $(child).text();
-          if (name.toLowerCase() === 'estacion') {
-            // make stationObj for stationLinks, then push it to stationLinks
-            const stationObj = {};
-            if (text !== 'PALERMO') {
-              stationObj[text] = addCoordinatesNumber(text, value);
-              stationRequests.push(stationObj);
-            }
-          } else {
-            // make pollutantsObj.
-            const pollutantObj = {};
-            pollutantObj[text] = { link: value };
-            Object.assign(pollutantsObj, pollutantObj);
-          }
-        }
+    let tasks = [];
+    let $ = cheerio.load(body);
+
+    const stations = $('#estacion option').filter(function (i, el) {
+      // skip non working station
+      return $(this).text() !== 'PALERMO';
+    }).filter(function (i, el) {
+      return $(this).attr('value') !== '';
+    }).map(function (i, el) {
+      return {
+        id: $(this).attr('value'),
+        name: $(this).text()
+      }
+    }).get();
+    
+    const parameters = $('#contaminante option').filter(function (i, el) {
+      return $(this).attr('value') !== '';
+    }).filter(function (i, el) {
+      return acceptableParameters.indexOf($(this).text().toLowerCase()) !== -1;
+    }).map(function (i, el) {
+      return {
+        id: $(this).attr('value'),
+        name: $(this).text()
+      }
+    }).get();
+
+    const today = moment.tz('America/Argentina/Buenos_Aires');
+    stations.forEach((station) => {
+      parameters.forEach((parameter) => {
+        const url = makeStationURL(source.url, station, parameter, today);
+        tasks.push(handleStation(url, station.name, parameter.name, today));
       });
     });
-  // return a list of parallel functions, each of which pollutant data
-  // for its given station
-  return stationRequests.map((station) => {
-    // get station coordinates and number to build request and measurement
-    const coordintaes = [
-      station[Object.keys(station)]['latitude'],
-      station[Object.keys(station)]['longitude']
-    ];
-    const number = station[Object.keys(station)]['number'];
-    // generate requests for each link. These requests callback measurements.
-    const requests = makeRequests(pollutantsObj, coordintaes, number, source.url);
-    // return them. This will make the 'tasks' a list of parallel functions.
-    return (callback) => {
-      parallel(
-        requests,
-        (err, response) => {
-          if (err) {
-            return callback(null, []);
-          }
-          // merge each measurement list.
-          const measurements = [].concat.apply([], response);
-          callback(null, measurements);
-        }
-      );
-    };
+    
+    parallel(tasks, (err, results) => {
+      if (err) {
+        return callback(err, []);
+      }
+
+      results = flattenDeep(results);
+      results = convertUnits(results);
+       
+      return callback(null, {name: 'unused', measurements: results});
+    });
   });
 };
 
-// makes parallel requests within list generated by generateTasks
-const makeRequests = (pollutantsObj, coordinates, number, source) => {
-  const day = moment().format('DD');
-  const month = moment().format('MM');
-  const year = moment().format('YY');
-  return Object.keys(pollutantsObj).map((key) => {
-    return (callback) => {
-      request.get({
-        url: source + 'contaminante=' + pollutantsObj[key].link + '&estacion=' + number + '&fecha_dia=' + day + '&fecha_mes=' + month + '&fecha_anio=' + year + '&menu_id=34234&buscar=Buscar'
-      }, (err, res, body) => {
-        if (err || res.statusCode !== 200) {
-          return callback(null, []);
-        }
-        const data = formatData(body, coordinates);
-        callback(null, data);
-      });
-    };
-  });
+const makeStationURL = (sourceUrl, station, parameter, date) => {
+  const url = `${sourceUrl}contaminante=${parameter.id}&estacion=${station.id}&fecha_dia=${date.format('D')}&fecha_mes=${date.format('M')}&fecha_anio=${date.format('Y')}&menu_id=34234&buscar=Buscar`;
+  return url;
+};
+
+const handleStation = (url, station, parameter, today) => {
+  return (done) => {
+    request(url, (err, response, body) => {
+      if (err || response.statusCode !== 200) {
+        return done(null, []);
+      }
+
+      const results = formatData(body, station, parameter, today);
+      return done(null, results);
+    });
+  };
 };
 
 // makes coordinates and number (a unique id) used in requests
-const addCoordinatesNumber = (station, value) => {
+const getCoordinates = (station) => {
   switch (station) {
     case 'CENTENARIO':
       return {
-        number: value,
         longitude: -34.60638,
         latitude: -58.43194
       };
     case 'CORDOBA':
       return {
-        number: value,
         longitude: -34.60441667,
         latitude: -58.39165
       };
     case 'LA BOCA':
       return {
-        number: value,
         longitude: -34.62527,
         latitude: -58.36555
       };
@@ -143,9 +104,8 @@ const addCoordinatesNumber = (station, value) => {
   }
 };
 
-// these set measurement attributes
-const setUnits = (contaminante) => {
-  switch (contaminante) {
+const getUnit = (parameter) => {
+  switch (parameter) {
     case 'CO':
       return 'ppm';
     case 'NO2':
@@ -156,8 +116,8 @@ const setUnits = (contaminante) => {
       break;
   }
 };
-const setPeriod = (estacion) => {
-  switch (estacion) {
+const getAveragingPeriod = (parameter) => {
+  switch (parameter) {
     case 'CO':
       return {unit: 'hours', value: 8};
     case 'NO2':
@@ -169,40 +129,31 @@ const setPeriod = (estacion) => {
   }
 };
 
-// makes measurement from request
-const formatData = (html, coordinates) => {
-  const $ = cheerio.load(html);
-  let aqObj;
-  let aqData = $('#contenido').find('td[valign="bottom"]').children();
-  if (aqData.length > 0) {
-    aqData = aqData.slice(-1)[0].attribs.title;
-    aqData = aqData.split(' - ');
-    let time = aqData[1].replace(' hs.', '');
-    time = moment().startOf('day').add(aqData[1], 'h');
-    time = moment.tz(
-      aqData[1],
-      'DD/MM/YYYY HH:mm:ss',
-      'America/Argentina/Buenos_Aires'
-    );
-    const contaminante = $('#contaminante').html().split('selected>')[1].split('<')[0];
-    aqObj = {
-      parameter: contaminante === 'PM10' ? 'pm10' : contaminante,
-      date: {
-        utc: time.toDate(),
-        local: time.format()
-      },
-      coordinates: {
-        latitude: coordinates[0],
-        longitude: coordinates[1]
-      },
-      value: aqData[0],
-      unit: setUnits(contaminante),
-      attribution: {
+const formatData = (body, station, parameter, date) => {
+  const $ = cheerio.load(body);
+  let measurements = [];
+  
+  $('#grafico table td[valign=bottom] img').each(function (i, el) {
+    const title = $(this).attr('title');
+    const match = title.match(/([\d\.]*) - ([\d]*) hs/);
+    const value = match[1];
+    const hours = match[2];
+    // handle the date
+    // prev day 1300h -> to today 1200h
+    let m = {
+      location: station,
+      value: Number(value),
+      unit: getUnit(parameter),
+      parameter: parameter.toLowerCase(),
+      averagingPeriod: getAveragingPeriod(parameter),
+      date: { utc: date.toDate(), local: date.format() }, // FIXME
+      coordinates: getCoordinates(station),
+      attribution: [{
         name: 'Buenos Aires Ciudad, Agencia de Protección Ambiental',
         url: 'http://www.buenosaires.gob.ar/agenciaambiental/monitoreoambiental/calidadaire'
-      },
-      averagingPeriod: setPeriod(contaminante)
+      }]
     };
-  }
-  return aqObj;
+    measurements.push(m);
+  });
+  return measurements;
 };
