@@ -10,6 +10,8 @@ import { flattenDeep } from 'lodash';
 import { acceptableParameters, convertUnits } from '../lib/utils';
 
 export const name = 'buenos-aires';
+const timezone = 'America/Argentina/Buenos_Aires';
+
 export function fetchData (source, callback) {
   request.get(source.url, (err, res, body) => {
     if (err || res.statusCode !== 200) {
@@ -28,9 +30,9 @@ export function fetchData (source, callback) {
       return {
         id: $(this).attr('value'),
         name: $(this).text()
-      }
+      };
     }).get();
-    
+
     const parameters = $('#contaminante option').filter(function (i, el) {
       return $(this).attr('value') !== '';
     }).filter(function (i, el) {
@@ -39,17 +41,21 @@ export function fetchData (source, callback) {
       return {
         id: $(this).attr('value'),
         name: $(this).text()
-      }
+      };
     }).get();
 
-    const today = moment.tz('America/Argentina/Buenos_Aires');
+    const today = moment.tz(timezone)
+          .hours(0)
+          .minutes(0)
+          .seconds(0)
+          .milliseconds(0);
     stations.forEach((station) => {
       parameters.forEach((parameter) => {
-        const url = makeStationURL(source.url, station, parameter, today);
+        const url = makeStationQuery(source.url, station, parameter, today);
         tasks.push(handleStation(url, station.name, parameter.name, today));
       });
     });
-    
+
     parallel(tasks, (err, results) => {
       if (err) {
         return callback(err, []);
@@ -57,13 +63,13 @@ export function fetchData (source, callback) {
 
       results = flattenDeep(results);
       results = convertUnits(results);
-       
+
       return callback(null, {name: 'unused', measurements: results});
     });
   });
-};
+}
 
-const makeStationURL = (sourceUrl, station, parameter, date) => {
+const makeStationQuery = (sourceUrl, station, parameter, date) => {
   const url = `${sourceUrl}contaminante=${parameter.id}&estacion=${station.id}&fecha_dia=${date.format('D')}&fecha_mes=${date.format('M')}&fecha_anio=${date.format('Y')}&menu_id=34234&buscar=Buscar`;
   return url;
 };
@@ -81,7 +87,52 @@ const handleStation = (url, station, parameter, today) => {
   };
 };
 
-// makes coordinates and number (a unique id) used in requests
+const formatData = (body, station, parameter, today) => {
+  const $ = cheerio.load(body);
+  let measurements = [];
+
+  const averagingPeriod = getAveragingPeriod(parameter);
+  const unit = getUnit(parameter);
+  const coordinates = getCoordinates(station);
+  parameter = parameter.toLowerCase();
+
+  $('#grafico table td[valign=bottom] img').each(function (i, el) {
+    const title = $(this).attr('title');
+    const match = title.match(/([\d\.]*) - ([\d]*) hs/);
+    const value = Number(match[1]);
+    const hours = Number(match[2]);
+    const date = getDate(today, hours);
+
+    let m = {
+      location: station,
+      value: value,
+      unit: unit,
+      parameter: parameter,
+      averagingPeriod: averagingPeriod,
+      date: date,
+      coordinates: coordinates,
+      attribution: [{
+        name: 'Buenos Aires Ciudad, Agencia de Protección Ambiental',
+        url: 'http://www.buenosaires.gob.ar/agenciaambiental/monitoreoambiental'
+      }]
+    };
+    measurements.push(m);
+  });
+  return measurements;
+};
+
+const getDate = (today, hours) => {
+  let date = moment.tz(today, timezone);
+  if (hours >= 13 && hours <= 23) {
+    date.subtract(1, 'days');
+  }
+  date = date.hours(hours);
+  return {
+    utc: date.toDate(),
+    local: date.format()
+  };
+};
+
 const getCoordinates = (station) => {
   switch (station) {
     case 'CENTENARIO':
@@ -127,33 +178,4 @@ const getAveragingPeriod = (parameter) => {
     default:
       break;
   }
-};
-
-const formatData = (body, station, parameter, date) => {
-  const $ = cheerio.load(body);
-  let measurements = [];
-  
-  $('#grafico table td[valign=bottom] img').each(function (i, el) {
-    const title = $(this).attr('title');
-    const match = title.match(/([\d\.]*) - ([\d]*) hs/);
-    const value = match[1];
-    const hours = match[2];
-    // handle the date
-    // prev day 1300h -> to today 1200h
-    let m = {
-      location: station,
-      value: Number(value),
-      unit: getUnit(parameter),
-      parameter: parameter.toLowerCase(),
-      averagingPeriod: getAveragingPeriod(parameter),
-      date: { utc: date.toDate(), local: date.format() }, // FIXME
-      coordinates: getCoordinates(station),
-      attribution: [{
-        name: 'Buenos Aires Ciudad, Agencia de Protección Ambiental',
-        url: 'http://www.buenosaires.gob.ar/agenciaambiental/monitoreoambiental/calidadaire'
-      }]
-    };
-    measurements.push(m);
-  });
-  return measurements;
 };
