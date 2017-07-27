@@ -180,4 +180,21 @@ describe('Testing helper functions', function () {
       done();
     });
   });
+
+  describe('convertUnits', function () {
+    it('should convert units', function (done) {
+      let measurements = [
+        {
+          parameter: 'pm10', // Good
+          unit: 'pphm',
+          value: 'asd',
+          date: new Date()
+        },
+        undefined
+      ];
+      expect(utils.convertUnits(measurements).length).to.equal(2);
+      expect(utils.convertUnits(measurements)[0].unit).to.equal('ppm');
+      done();
+    });
+  });
 });

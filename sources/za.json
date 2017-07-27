@@ -1,0 +1,16 @@
+[
+  {
+    "url": "http://live.rbcaa.org.za/",
+    "adapter": "envista_za",
+    "name": "Richards Bay",
+    "city": "Richards Bay",
+    "country": "ZA",
+    "description": "",
+    "resolution": "15 min",
+    "sourceURL": "http://live.rbcaa.org.za/",
+    "contacts": [
+      "info@openaq.org"
+    ],
+    "active": true
+  }
+]
