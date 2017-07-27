@@ -4,7 +4,7 @@ import { acceptableParameters } from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import cheerio from 'cheerio';
-import { chunk, flattenDeep, includes } from 'lodash';
+import { chunk, flattenDeep, includes, find } from 'lodash';
 import { default as moment } from 'moment-timezone';
 import { parallel } from 'async';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
@@ -97,11 +97,21 @@ const generateTasks = (url, task, now) => {
 
 const formatData = ($, stations) => {
   const tables = [];
-  // the tables we want don't have cellpadding 5.
+  const stationNames = stations.map((station) => { return station.name; });
+  // each station data sits in consecutive tables
+  // the first table has the station name, the second the actual aq data.
+  // the below logic checks to see if a table has a station name
+  // and if it does, pushes it and the consecutive table to tables
   $('table').each((i, el) => {
-    const table = $(el)['0'];
-    if (table.attribs.cellpadding !== '5') {
-      tables.push($(el));
+    const stationMatch = find(stationNames, (stationName) => {
+      const tableText = $(el).text();
+      return tableText.match(stationName);
+    });
+    if (stationMatch) {
+      const stationTop = $($('table')[i]);
+      const stationBottom = $($('table')[i + 1]);
+      tables.push(stationTop);
+      tables.push(stationBottom);
     }
   });
   // data is held two consecutive tables
