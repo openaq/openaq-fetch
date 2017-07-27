@@ -11,7 +11,7 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 exports.name = 'Andalucia';
 
-export function fetchData(source, callback) {
+export function fetchData (source, callback) {
   let baseUrl = source.url;
   // see if site is available. if so, build tasks, then run them in parallel
   request(baseUrl, (err, res, body) => {
@@ -32,7 +32,7 @@ export function fetchData(source, callback) {
         });
       });
     } catch (e) {
-      return callback ({message: 'Unkown adapter error.'});
+      return callback({message: 'Unkown adapter error.'});
     }
     const now = moment();
     // generate list of tasks
