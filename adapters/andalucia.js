@@ -11,7 +11,7 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 exports.name = 'Andalucia';
 
-export function fetchData (source, callback) {
+export function fetchData(source, callback) {
   let baseUrl = source.url;
   // see if site is available. if so, build tasks, then run them in parallel
   request(baseUrl, (err, res, body) => {
@@ -22,8 +22,7 @@ export function fetchData (source, callback) {
     // use them to make taskObjs with name/id.
     // this is helpful for descriptive error logs and using the coordinates csv
     let tasks = [];
-    // try/catch making task list. if the html used to make tasks is not reachable
-    // break the adapter
+    // try/catch making task list. if the html used to make tasks is not reachable, end adapter.
     try {
       let $ = cheerio.load(body);
       $('select[name=PROVINCIA]').children().filter((i, el) => {
