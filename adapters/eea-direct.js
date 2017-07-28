@@ -52,8 +52,8 @@ const getCoordinates = (metadata, country, callback) => {
       const station = {
         stationId: record[5],
         coordinates: {
-          latitude: record[15],
-          longitude: record[14]
+          latitude: parseFloat(record[15]),
+          longitude: parseFloat(record[14])
         }
       };
       done(null, station);
@@ -114,7 +114,7 @@ const formatData = (data, source, cb) => {
       }],
       averagingPeriod: {
         unit: 'hours',
-        value: makeAvgPeriod(record.slice(15, 17))
+        value: 1
       }
     };
     // apply unit conversion to generated record
@@ -128,20 +128,9 @@ const formatData = (data, source, cb) => {
 };
 
 const makeCoordinates = (coordinatesList, stationId) => {
-  return coordinatesList.filter((coordinates) => {
+  return coordinatesList.find((coordinates) => {
     return coordinates.stationId === stationId;
-  }).map((station) => {
-    return {
-      latitude: parseFloat(station.coordinates.latitude),
-      longitude: parseFloat(station.coordinates.longitude)
-    };
-  })[0];
-};
-
-const makeAvgPeriod = (delta) => {
-  const latestTime = moment.tz(delta[1], 'YYYY-MM-DD hh:mm:ss', 'Europe/Berlin');
-  const earliestTime = moment.tz(delta[0], 'YYYY-MM-DD hh:mm:ss', 'Europe/Berlin');
-  return moment(latestTime).diff(earliestTime, 'hours');
+  }).coordinates;
 };
 
 const makeDate = (date, timeZone) => {
