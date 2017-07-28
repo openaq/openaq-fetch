@@ -11,6 +11,7 @@ import { default as parse } from 'csv-parse/lib/sync';
 import { difference, flattenDeep, zip } from 'lodash';
 
 exports.name = 'arpalazio';
+const timezone = 'Europe/Rome';
 
 const baseUrl = 'http://www.arpalazio.net/main/aria/sci/annoincorso/';
 const provinceQueryPath = 'chimici/chimici.php';
@@ -123,12 +124,15 @@ const getData = function (cityName, url, averagingPeriod, source) {
       });
 
       let measurements = [];
-      records.forEach(function (row) {
+
+      const fewDaysAgo = moment.tz(timezone).subtract(4, 'days');
+      const recentRecords = records.filter((row) => Number(row[headers.indexOf('jd')]) >= Number(fewDaysAgo.format('DDD')));
+      recentRecords.forEach(function (row) {
         let date;
         if (averagingPeriod.value === 1) {
-          date = moment.tz(`${year} ${row[0]} ${row[1]}`, 'YYYY DDD HH', 'Europe/Rome');
+          date = moment.tz(`${year} ${row[0]} ${row[1]}`, 'YYYY DDD HH', timezone);
         } else {
-          date = moment.tz(`${year} ${row[1]}`, 'YYYY DDD', 'Europe/Rome');
+          date = moment.tz(`${year} ${row[1]}`, 'YYYY DDD', timezone);
         }
 
         const fullDate = {
