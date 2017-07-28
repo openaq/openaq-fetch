@@ -4,7 +4,7 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import { parallel, map, filter } from 'async';
-import { parse } from 'babyparse';
+import { default as parse } from 'csv-parse/lib/sync';
 import uniqBy from 'lodash.uniqby';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 export const name = 'eea-direct';
@@ -35,7 +35,7 @@ const makeMetadataRequest = (source) => {
       if (err || res.statusCode !== 200) {
         return cb('Could not gather current metadata, will generate records without coordinates.', []);
       }
-      const data = parse(body).data;
+      const data = parse(body, {delimiter: '\t'});
       getCoordinates(data, source.country, cb);
     });
   };
@@ -78,7 +78,7 @@ const makeTaskRequests = (source) => {
         if (err || res.statusCode !== 200) {
           return done(null, []);
         }
-        done(null, parse(body).data.slice(1, -1));
+        done(null, parse(body).slice(1, -1));
       });
     };
   });
