@@ -1,0 +1,15 @@
+[
+  {
+    "url": "http://www.arpalazio.net/main/aria/sci/annoincorso/chimici.php",
+    "adapter": "arpalazio",
+    "name": "ARPALAZIO",
+    "country": "IT",
+    "region": "Lazio",
+    "description": "Air quality data from Lazio region, Italy",
+    "sourceURL": "http://www.arpalazio.net/",
+    "contacts": [
+      "info@openaq.org"
+    ],
+    "active": true
+  }
+]
