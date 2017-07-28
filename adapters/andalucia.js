@@ -1,6 +1,6 @@
 'use strict';
 
-import { acceptableParameters } from '../lib/utils';
+import { acceptableParameters, removeUnwantedParameters } from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import cheerio from 'cheerio';
@@ -9,7 +9,7 @@ import { default as moment } from 'moment-timezone';
 import { parallel } from 'async';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'Andalucia';
+exports.name = 'andalucia';
 
 export function fetchData (source, callback) {
   let baseUrl = source.url;
@@ -48,7 +48,7 @@ export function fetchData (source, callback) {
           return callback(null, err);
         }
         results = flattenDeep(results);
-        return callback(null, results);
+        return callback(null, {name: 'unused', measurements: results});
       }
     );
   });
@@ -121,7 +121,7 @@ const formatData = ($, stations) => {
     const station = $(table[0]['0'].children[2]).text().split('Estacion')[1].trim();
     const stationLoc = mapStationCoords(station);
     table = makeTable(table[1]['0'], $);
-    return makeMeasurements(table, stationLoc);
+    return makeMeasurements(table, stationLoc, station);
   });
 };
 
@@ -130,10 +130,10 @@ const mapStationCoords = (station) => {
     return stationObj['name'] === station;
   }).map((stationObj) => {
     return {
-      longitude: stationObj['coordinates'][0],
-      latitude: stationObj['coordinates'][1]
+      latitude: stationObj['coordinates'][1],
+      longitude: stationObj['coordinates'][0]
     };
-  });
+  })[0];
 };
 
 const makeTable = (cheerioTable, $) => {
@@ -148,7 +148,7 @@ const makeTable = (cheerioTable, $) => {
   });
 };
 
-const makeMeasurements = (stationData, stationLoc) => {
+const makeMeasurements = (stationData, stationLoc, stationName) => {
   // get index of data sources we can record
   const pollutantIndexes = stationData[0].filter((cell) => {
     return includes(acceptableParameters.slice(3, 5), cell.toLowerCase());
@@ -169,25 +169,30 @@ const makeMeasurements = (stationData, stationLoc) => {
   stationData = stationData.slice(1, -1).map((row, index) => {
     return row.map((cell, index) => {
       if (index !== 0) {
-        return {
-          parameter: stationData[0][index],
-          date: makeDate(row[0]),
-          coordinates: stationLoc,
-          value: cell,
-          unit: 'µg/m³',
-          attribution: [{
-            name: 'Ministry of Environment and Spatial Planning',
-            url: 'http://www.juntadeandalucia.es/medioambiente/site/portalweb'
-          }],
-          averagingPeriod: {
-            unit: 'hours',
-            // averaging period gathered from source.url
-            value: stationData[0][index] === 'SO2' ? 24 : 1
-          }
-        };
+        // ignore blank spaces
+        if (/\S/.test(cell)) {
+          console.log(cell);
+          return {
+            city: stationName.replace(/\w\S*/g, (t) => { return t.charAt(0).toUpperCase() + t.substr(1).toLowerCase(); }),
+            parameter: stationData[0][index].toLowerCase(),
+            date: makeDate(row[0]),
+            coordinates: stationLoc,
+            value: parseInt(cell),
+            unit: 'µg/m³',
+            attribution: [{
+              name: 'Ministry of Environment and Spatial Planning',
+              url: 'http://www.juntadeandalucia.es/medioambiente/site/portalweb'
+            }],
+            averagingPeriod: {
+              unit: 'hours',
+              // averaging period gathered from source.url
+              value: stationData[0][index] === 'SO2' ? 24 : 1
+            }
+          };
+        }
       }
     }).filter((cell) => {
-      if (cell !== undefined) {
+      if (cell !== 'undefined') {
         return cell;
       }
     });
