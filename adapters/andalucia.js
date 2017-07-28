@@ -1,6 +1,6 @@
 'use strict';
 
-import { acceptableParameters, removeUnwantedParameters } from '../lib/utils';
+import { acceptableParameters } from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import cheerio from 'cheerio';
