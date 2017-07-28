@@ -118,10 +118,11 @@ const formatData = ($, stations) => {
   let stationData = chunk(tables, 2);
   // return a list of measurement objects for each table.
   return stationData.map((table) => {
+    const city = $(table[0]['0'].children[1]).text().split('Municipio')[1].trim();
     const station = $(table[0]['0'].children[2]).text().split('Estacion')[1].trim();
     const stationLoc = mapStationCoords(station);
     table = makeTable(table[1]['0'], $);
-    return makeMeasurements(table, stationLoc, station);
+    return makeMeasurements(table, stationLoc, station, city);
   });
 };
 
@@ -148,7 +149,7 @@ const makeTable = (cheerioTable, $) => {
   });
 };
 
-const makeMeasurements = (stationData, stationLoc, stationName) => {
+const makeMeasurements = (stationData, stationLoc, stationName, cityName) => {
   // get index of data sources we can record
   const pollutantIndexes = stationData[0].filter((cell) => {
     return includes(acceptableParameters.slice(3, 5), cell.toLowerCase());
@@ -171,9 +172,9 @@ const makeMeasurements = (stationData, stationLoc, stationName) => {
       if (index !== 0) {
         // ignore blank spaces
         if (/\S/.test(cell)) {
-          console.log(cell);
           return {
-            city: stationName.replace(/\w\S*/g, (t) => { return t.charAt(0).toUpperCase() + t.substr(1).toLowerCase(); }),
+            location: stationName.replace(/\w\S*/g, (t) => { return t.charAt(0).toUpperCase() + t.substr(1).toLowerCase(); }),
+            city: cityName.replace(/\w\S*/g, (t) => { return t.charAt(0).toUpperCase() + t.substr(1).toLowerCase(); }),
             parameter: stationData[0][index].toLowerCase(),
             date: makeDate(row[0]),
             coordinates: stationLoc,
