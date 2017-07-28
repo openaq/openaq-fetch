@@ -137,18 +137,18 @@ const getCoordinates = (station) => {
   switch (station) {
     case 'CENTENARIO':
       return {
-        longitude: -34.60638,
-        latitude: -58.43194
+        longitude: -58.43194,
+        latitude: -34.60638
       };
     case 'CORDOBA':
       return {
-        longitude: -34.60441667,
-        latitude: -58.39165
+        longitude: -58.39165,
+        latitude: -34.60441667
       };
     case 'LA BOCA':
       return {
-        longitude: -34.62527,
-        latitude: -58.36555
+        longitude: -58.36555,
+        latitude: -34.62527
       };
     default:
       break;
