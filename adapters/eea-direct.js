@@ -5,7 +5,7 @@ import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import { parallel, map, filter } from 'async';
 import { parse } from 'babyparse';
-import uniqBy from 'lodash.uniqBy';
+import uniqBy from 'lodash.uniqby';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 export const name = 'eea-direct';
 
@@ -101,10 +101,12 @@ const formatData = (data, source, cb) => {
   const records = data[1];
   map(records, (record, cb) => {
     let measurement = {
-      parameter: record[5],
-      date: makeDate(record[16]),
+      location: record[13],
+      city: record[2] ? record[2].replace(/\w\S*/g, (t) => { return t.charAt(0).toUpperCase() + t.substr(1).toLowerCase(); }) : 'unused',
+      parameter: record[5].toLowerCase(),
+      date: makeDate(record[16], record[4]),
       coordinates: makeCoordinates(coordinates, record[11]),
-      value: record[19],
+      value: parseInt(record[19]),
       unit: record[record.length - 1],
       attribution: [{
         name: 'EEA',
@@ -112,7 +114,7 @@ const formatData = (data, source, cb) => {
       }],
       averagingPeriod: {
         unit: 'hours',
-        value: makeAvgPeriod(record.slice(15, 17)).toString()
+        value: makeAvgPeriod(record.slice(15, 17))
       }
     };
     // apply unit conversion to generated record
@@ -121,7 +123,7 @@ const formatData = (data, source, cb) => {
     if (err) {
       return cb(null, []);
     }
-    cb(null, mappedRecords);
+    cb(null, {name: 'unused', measurements: mappedRecords});
   });
 };
 
@@ -142,34 +144,49 @@ const makeAvgPeriod = (delta) => {
   return moment(latestTime).diff(earliestTime, 'hours');
 };
 
-const makeDate = (date) => {
-  let timeZone = date.slice(date.length - 6, date.length);
+const makeDate = (date, timeZone) => {
+  timeZone = timeZone.split('timezone/')[1];
+  date = date.split('+')[0];
   switch (timeZone) {
-    case '+01:00':
-      timeZone = 'Europe/Lisbon';
-      break;
-    case '+02:00':
-      timeZone = 'Europe/Madrid';
-      break;
-    case '+03:00':
-      timeZone = 'Europe/Helsinki';
-      break;
-    case '+04:00':
-      timeZone = 'Asia/Tbilisi';
-      break;
-    case '-04:00':
-      timeZone = 'America/New_York';
-      break;
-    case '-03:00':
-      timeZone = 'Atlantic/Bermuda';
-      break;
     case 'UTC':
       timeZone = 'Atlantic/Azores';
+      date = date + '+00:00';
+      break;
+    case 'UTC+01':
+      timeZone = 'Europe/Lisbon';
+      date = date + '+01:00';
+      break;
+    case 'UTC+02':
+      timeZone = 'Europe/Madrid';
+      date = date + '+02:00';
+      break;
+    case 'UTC+03':
+      timeZone = 'Europe/Helsinki';
+      date = date + '+03:00';
+      break;
+    case 'UTC+04':
+      timeZone = 'Asia/Tbilisi';
+      date = date + '+04:00';
+      break;
+    case 'UTC-04':
+      timeZone = 'America/New_York';
+      date = date + '-04:00';
+      break;
+    case 'UTC-03':
+      timeZone = 'Atlantic/Bermuda';
+      date = date + '-03:00';
       break;
     default:
       break;
   }
   date = moment.tz(date, 'YYYY-MM-DD hh:mm:ss', timeZone);
+  if ('UTC') {
+    return {
+      utc: date.toDate(),
+      // need to manually add back the UTC offset per rules for formatting local.
+      local: date.format().split('Z')[0] + '+00:00'
+    };
+  }
   return {
     utc: date.toDate(),
     local: date.format()
