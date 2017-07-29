@@ -2,16 +2,15 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import proj4 from 'proj4';
+import epsg from 'proj4js-defs';
+import { convertUnits, acceptableParameters } from '../lib/utils';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 // Load all the EPSG definitions
-import epsg from 'proj4js-defs';
 epsg(proj4);
-
-import { convertUnits, acceptableParameters } from '../lib/utils';
 
 export const name = 'eea';
 

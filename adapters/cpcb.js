@@ -2,12 +2,12 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import cheerio from 'cheerio';
 import { default as moment } from 'moment-timezone';
 import { filter, flattenDeep, isFinite } from 'lodash';
 import { parallel } from 'async';
 import { acceptableParameters, convertUnits } from '../lib/utils';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'cpcb';
 

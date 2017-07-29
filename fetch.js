@@ -20,8 +20,8 @@ var argv = require('yargs')
   .alias('h', 'help')
   .argv;
 
+import { assign, filter, pick, chain, find } from 'lodash'; // eslint-disable-line import/first
 var async = require('async');
-import { assign, filter, pick, chain, find } from 'lodash';
 var knex = require('knex');
 let knexConfig = require('./knexfile');
 var utils = require('./lib/utils');
@@ -31,8 +31,8 @@ var log = require('./lib/logger');
 var adapters = require('./adapters');
 var sources = require('./sources');
 
-const apiURL = process.env.API_URL || 'http://localhost:3004/v1/webhooks';  // The url to ping on completion
-const webhookKey = process.env.WEBHOOK_KEY || '123';  // Secret key to auth with API
+const apiURL = process.env.API_URL || 'http://localhost:3004/v1/webhooks'; // The url to ping on completion
+const webhookKey = process.env.WEBHOOK_KEY || '123'; // Secret key to auth with API
 const processTimeout = process.env.PROCESS_TIMEOUT || 10 * 60 * 1000; // Kill the process after a certain time in case it hangs
 let pg;
 let st;
@@ -179,8 +179,8 @@ var getAndSaveData = function (source) {
 
         // Remove extra fields
         var wanted = ['date', 'parameter', 'location', 'value', 'unit', 'city',
-                      'attribution', 'averagingPeriod', 'coordinates',
-                      'country', 'sourceName', 'sourceType', 'mobile'];
+          'attribution', 'averagingPeriod', 'coordinates',
+          'country', 'sourceName', 'sourceType', 'mobile'];
         return pick(m, wanted);
       });
 
@@ -388,11 +388,11 @@ if (argv.dryrun) {
 
   // Run any needed migrations and away we go
   pg.migrate.latest(knexConfig)
-  .then(() => {
-    log.info('Database migrations are handled, ready to roll!');
-    runTasks();
-  })
-  .catch((e) => {
-    log.error(e);
-  });
+    .then(() => {
+      log.info('Database migrations are handled, ready to roll!');
+      runTasks();
+    })
+    .catch((e) => {
+      log.error(e);
+    });
 }
