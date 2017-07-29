@@ -2,12 +2,12 @@
 
 import { default as baseRequest } from 'request';
 import { REQUEST_TIMEOUT } from '../lib/constants';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import cheerio from 'cheerio';
 import { default as moment } from 'moment-timezone';
 import { flattenDeep, isFinite } from 'lodash';
 import { parallel } from 'async';
 import { acceptableParameters, convertUnits } from '../lib/utils';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'envista_za';
 
@@ -172,7 +172,7 @@ const formatData = function (data, cb) {
   }).each(function (i, el) {
     let dateM = rFullDate.exec($(this).attr('value'));
     let dateProp = getDate(dateM[0]);
-    let rParamUnit = /(\w*)\[ ([\w\d\/]*)\]/i;
+    let rParamUnit = /(\w*)\[ ([\w\d/]*)\]/i;
     $(this).find('name').filter(function (i, el) {
       let match = rParamUnit.exec($(this).text());
       if (!match) { return false; }

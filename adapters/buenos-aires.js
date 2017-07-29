@@ -5,9 +5,9 @@ import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import { parallel } from 'async';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import { flattenDeep } from 'lodash';
 import { acceptableParameters, convertUnits } from '../lib/utils';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'buenos-aires';
 const timezone = 'America/Argentina/Buenos_Aires';
@@ -45,10 +45,10 @@ export function fetchData (source, callback) {
     }).get();
 
     const today = moment.tz(timezone)
-          .hours(0)
-          .minutes(0)
-          .seconds(0)
-          .milliseconds(0);
+      .hours(0)
+      .minutes(0)
+      .seconds(0)
+      .milliseconds(0);
     stations.forEach((station) => {
       parameters.forEach((parameter) => {
         const url = makeStationQuery(source.url, station, parameter, today);
@@ -98,7 +98,7 @@ const formatData = (body, station, parameter, today) => {
 
   $('#grafico table td[valign=bottom] img').each(function (i, el) {
     const title = $(this).attr('title');
-    const match = title.match(/([\d\.]*) - ([\d]*) hs/);
+    const match = title.match(/([\d.]*) - ([\d]*) hs/);
     const value = Number(match[1]);
     const hours = Number(match[2]);
     const date = getDate(today, hours);
