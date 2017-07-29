@@ -141,7 +141,7 @@ var formatData = function (data) {
 
           // Check if there is a value being reported and if the pollutant
           // is available in the indexParams
-          var i = _.findIndex(indexParams, 'col', colCounter);
+          var i = _.findIndex(indexParams, { 'col': colCounter });
           if ($(this).text() && i !== -1) {
             var p = indexParams[i];
 
