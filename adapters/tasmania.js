@@ -2,13 +2,12 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import { flatten, cloneDeep } from 'lodash';
 import { default as moment } from 'moment-timezone';
 import { convertUnits } from '../lib/utils';
-
 // note: this is the 'synchronous' version (lost hours to this!)
 import { default as parse } from 'csv-parse/lib/sync';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 exports.name = 'tasmania';
 

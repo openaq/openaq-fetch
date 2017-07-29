@@ -2,13 +2,13 @@
 
 import { default as baseRequest } from 'request';
 import { REQUEST_TIMEOUT } from '../lib/constants';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import cheerio from 'cheerio';
 import { default as moment } from 'moment-timezone';
-var Iconv = require('iconv').Iconv;
 import { flattenDeep, isFinite } from 'lodash';
 import { parallel } from 'async';
 import { acceptableParameters, convertUnits } from '../lib/utils';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+var Iconv = require('iconv').Iconv;
 
 export const name = 'moscow';
 
@@ -53,7 +53,7 @@ const handleStation = function (link) {
         return done(null, []);
       }
 
-      data = new Buffer(data, 'binary');
+      data = Buffer.from(data, 'binary');
       var iconv = new Iconv('windows-1251', 'utf-8');
       data = iconv.convert(data).toString();
 
