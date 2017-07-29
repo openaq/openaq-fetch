@@ -8,8 +8,8 @@
   node run-scripts.js ./data_scripts/arpalazio.js
 */
 
-const request = require('request');
 import {default as parse} from 'csv-parse/lib/sync';
+const request = require('request');
 
 const metadataURL = 'https://raw.githubusercontent.com/jobonaf/calicantus/master/data/sites-info/metadata.ARPA-Lazio.csv';
 
