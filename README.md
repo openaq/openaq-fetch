@@ -34,6 +34,19 @@ For production deployment, you will need to have certain environment variables s
 | EEA_TOKEN | API token for EEA API | not set |
 | EEA_GLOBAL_TIMEOUT | How long to check for EEA async results before quitting in seconds | 360 |
 | EEA_ASYNC_RECHECK | How long to wait to recheck for EEA async results in seconds | 60 |
+| PUSH_TO_S3 | Does the process push the measurements to an AWS S3 Bucket | not set |
+
+### Pushing to AWS S3
+
+If you want to push results to an S3 bucket as well for further processing, the environment variable `PUSH_TO_S3` should be set to the value `true`. Additionally, you have to set the following environment variables:
+
+| Name | Description | Default |
+|---|---|---|
+| AWS_BUCKET_NAME | AWS Bucket to store the results | not set |
+| AWS_ACCESS_KEY_ID | AWS Credentials key ID | not set |
+| AWS_SECRET_ACCESS_KEY | AWS Credentials secret key | not set |
+
+The measurements will be stored using the structure `bucket_name/fetches/yyyy-mm-dd/unixtime.csv` for each fetch.
 
 ## Tests
 To confirm that everything is working as expected, you can run the tests with
