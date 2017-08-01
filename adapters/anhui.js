@@ -39,8 +39,16 @@ export const fetchData = function (source, cb) {
   });
 };
 
+/**
+ * A city name in pinyin romanization or Chinese characters and a station name in chinese characters, get the coordinates of the station
+ * To deal with a homonym, Taizhoushi resolves to 泰州 while Taizhou resolves to 台州, 
+ * even though 台州 and 泰州 have the same pinyin romanization
+ * @param {object} city A city name in pinyin romanization or Chinese characters
+ * @param {object} station A station name in Chinese characters
+ * @return {object} if the location is known, an object with 'latitude' and 'longitude' properties, otherwise undefined
+ */
 var getCoordinates = function (city, station) {
-  switch(city) {
+  switch (city) {
     case 'Hefei':
       city = '合肥';
       break;
@@ -124,12 +132,18 @@ var formatData = function (data, source) {
   var $ = cheerio.load(data);
 
   // parse date-time
+  // get the title of first table (which is the table of government/research sources - the second table is private sources)
+  // which contains the date-time of the measurement in chinese date time format (year年month月day号 hour时)
+  // the regex matches the chinese date time
   let time = $('.hj_inside').find('.data_wrap').first().find('.data_title').text().match(/\d+/g);
+  // reassemble into western date time
   time = time[1] + '/' + time[2] + '/' + time[0] + ' ' + time[3] + ':00:00';
   time = getDate(time);
 
+  // get each row in the first table (which is the table of government/research sources - the second table is private sources)
   $('.hj_inside').find('.data_wrap').first().find('.data_mod').find('.data_table').children().each(function (i, elem) {
     let entries = $(elem).children();
+    // this regex removes whitespace and endline/return chars
     let stationName = entries[0].children[0].data.replace(/\s+\s|\\r|\\n/g, '');
     let values = {};
     values.no2 = entries[1];
@@ -167,5 +181,5 @@ var formatData = function (data, source) {
   return {
     name: 'unused',
     measurements: measurements
-  };  
+  };
 };
