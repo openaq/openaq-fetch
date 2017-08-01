@@ -2,13 +2,13 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import { parallel } from 'async';
 import { acceptableParameters, convertUnits } from '../lib/utils';
 import { default as parse } from 'csv-parse/lib/sync';
 import { difference, flattenDeep, zip } from 'lodash';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 exports.name = 'arpalazio';
 const timezone = 'Europe/Rome';
@@ -30,12 +30,12 @@ exports.fetchData = function (source, cb) {
 
     const $ = cheerio.load(body);
     let provinces = $('#provincia option')
-        .filter(function (i, el) {
-          return Number($(this).attr('value')) >= 0;
-        })
-        .map(function (i, el) {
-          return { id: $(this).attr('value'), name: $(this).text() };
-        }).get();
+      .filter(function (i, el) {
+        return Number($(this).attr('value')) >= 0;
+      })
+      .map(function (i, el) {
+        return { id: $(this).attr('value'), name: $(this).text() };
+      }).get();
 
     let tasks = [];
     provinces.forEach(function (province) {
@@ -96,7 +96,7 @@ const getParameters = function (averagingPeriod) {
 
 const getData = function (cityName, url, averagingPeriod, source) {
   return function (done) {
-    const match = url.match(/[\w]{2}_([\w\.]{2,})_([\d]{4})(?:_gg)?.txt/);
+    const match = url.match(/[\w]{2}_([\w.]{2,})_([\d]{4})(?:_gg)?.txt/);
     const parameter = match[1].toLowerCase().replace('.', '');
     const year = match[2];
     const unit = getUnit(parameter);

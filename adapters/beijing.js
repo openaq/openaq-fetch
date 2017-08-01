@@ -6,10 +6,10 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
-import _ from 'lodash';
+import { cloneDeep } from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'beijing';
 
@@ -79,7 +79,7 @@ var formatData = function (data, source) {
   // Loop over each item and save the object
   $('item').each(function (i, elem) {
     // Clone base object
-    var obj = _.cloneDeep(baseObj);
+    var obj = cloneDeep(baseObj);
 
     obj.value = Number($(elem).children('Conc').text());
     obj.date = getDate($(elem).children('ReadingDateTime').text());

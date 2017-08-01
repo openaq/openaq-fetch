@@ -1,8 +1,8 @@
 'use strict';
 
-var request = require('request');
 import cheerio from 'cheerio';
 import { parallelLimit } from 'async';
+var request = require('request');
 
 function handleLink (url) {
   return function (done) {
