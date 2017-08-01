@@ -29,12 +29,8 @@ export function fetchData (source, cb) {
     let cityLinks = body.match(/DynamicTable.aspx\?G_ID=(\d*)/g);
     while (cityLinks.length > 0) {
       let link = source.url + cityLinks.pop();
-      tasks.push(handleCity(source.url, link));
+      tasks.push(handleCity(source, link));
     }
-
-    //debug
-    tasks = tasks.reverse();
-    tasks = tasks.slice(0, 1);
 
     parallel(tasks, (err, results) => {
       if (err) {
@@ -49,7 +45,7 @@ export function fetchData (source, cb) {
   });
 }
 
-const handleCity = function (sourceUrl, link) {
+const handleCity = function (source, link) {
   return function (done) {
     request(link, (err, res, body) => {
       if (err || res.statusCode !== 200) {
@@ -60,15 +56,10 @@ const handleCity = function (sourceUrl, link) {
       let stationIds = body.match(/StationInfo[5]?.aspx\?ST_ID=(\d*)/g);
       console.log(stationIds.length);
       while (stationIds.length > 0) {
-        let link = sourceUrl + stationIds.pop();
+        let link = source.url + stationIds.pop();
         link = link.replace(/StationInfo[5]?/, 'StationReportFast');
-        //console.log(link);
-        tasks.push(handleStation(sourceUrl, link));
+        tasks.push(handleStation(source, link));
       }
-
-      //debug
-      tasks = tasks.reverse();
-      tasks = tasks.slice(0, 3);
 
       parallel(tasks, (err, results) => {
         return done(err, results);
@@ -77,7 +68,8 @@ const handleCity = function (sourceUrl, link) {
   };
 };
 
-const handleStation = function (sourceUrl, link) {
+// station query page
+const handleStation = function (source, link) {
   return function (done) {
     request(link, (err, res, body) => {
       if (err || res.statusCode !== 200) {
@@ -114,7 +106,7 @@ const handleStation = function (sourceUrl, link) {
       form['btnGenerateReport'] = 'הצג+דוח';
 
       const j = request.jar();
-      const tasks = [queryStation(sourceUrl, link, form, j)];
+      const tasks = [queryStation(source, link, form, j)];
       parallel(tasks, (err, results) => {
         return done(err, results);
       });
@@ -122,14 +114,14 @@ const handleStation = function (sourceUrl, link) {
   };
 };
 
-const queryStation = function (sourceUrl, link, qform, jar) {
+// do station query
+const queryStation = function (source, link, qform, jar) {
   return function (done) {
     request.post({
       url: link,
       form: qform,
       followAllRedirects: true
     }, (err, res, body) => {
-      console.log(res.request.req._header);
       if (err || res.statusCode !== 200) {
         return done(null, []);
       }
@@ -145,11 +137,18 @@ const queryStation = function (sourceUrl, link, qform, jar) {
       form['ddlExport'] = 'XML';
       form['lblCurrentPage'] = '1';
 
-      let exportLink = $('#form1').attr('action');
-      //temp measure
-      exportLink = exportLink.replace('./NewGrid', 'NewGrid');
-      exportLink = sourceUrl + exportLink;
-      const tasks = [exportStationXML(exportLink, form)];
+      let exportLink;
+      try {
+        exportLink = $('#form1').attr('action');
+        //temp measure
+        exportLink = exportLink.replace('./NewGrid', 'NewGrid');
+      } catch (err) {
+        console.log(`Error on getting export link at ${link}`);
+        return done(null, []);
+      }
+
+      exportLink = source.url + exportLink;
+      const tasks = [exportStationXML(source, exportLink, form)];
       parallel(tasks, (err, results) => {
         return done(err, results);
       });
@@ -157,7 +156,8 @@ const queryStation = function (sourceUrl, link, qform, jar) {
   };
 };
 
-const exportStationXML = function (link, form) {
+// do export from query result
+const exportStationXML = function (source, link, form) {
   return function (done) {
     request.post({
       url: link,
@@ -166,23 +166,29 @@ const exportStationXML = function (link, form) {
       if (err || res.statusCode !== 200) {
         return done(null, []);
       }
-      formatData(body, (measurements) => {
+      formatData(source, body, link, (measurements) => {
         return done(null, measurements);
       });
     });
   };
 };
 
-const formatData = function (data, cb) {
+const formatData = function (source, data, link, cb) {
   const $ = cheerio.load(data, { xmlMode: true });
-
-  const location = $('data').eq(0).attr('value').split(':')[1].trim();
+  let location;
+  try {
+    location = $('data').eq(0).attr('value').split('-')[0].trim();
+    console.log(location);
+  } catch (err) {
+    console.log(`Error occured when exporting from: ${link}`);
+    return cb([]);
+  }
   let base = {
     location: location,
     averagingPeriod: {unit: 'hours', value: 0.25},
     attribution: [{
-      name: 'Richards Bay Clean Air Association',
-      url: 'http://rbcaa.org.za/'
+      name: 'Israeli Attribution FIXME',
+      url: source.url
     }]
   };
   base = Object.assign(base, coordinates[location]);
@@ -193,7 +199,7 @@ const formatData = function (data, cb) {
     return rFullDate.test($(this).attr('value'));
   }).each(function (i, el) {
     let dateM = rFullDate.exec($(this).attr('value'));
-    let dateProp = getDate(dateM[0]);
+    let dateProp = getDate(dateM[0], source.timezone);
     let rParamUnit = /(\w*)\[ ([\w\d\/]*)\]/i;
     $(this).find('name').filter(function (i, el) {
       let match = rParamUnit.exec($(this).text());
@@ -214,8 +220,8 @@ const formatData = function (data, cb) {
   return cb(measurements);
 };
 
-const getDate = function (s) {
-  const date = moment.tz(s, 'DD/MM/YYYY HH:mm', 'Africa/Johannesburg');
+const getDate = function (s, timezone) {
+  const date = moment.tz(s, 'DD/MM/YYYY HH:mm', timezone);
   return {utc: date.toDate(), local: date.format()};
 };
 

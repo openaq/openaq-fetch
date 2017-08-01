@@ -1,0 +1,17 @@
+[
+    {
+        "url": "http://www.svivaaqm.net/",
+        "adapter": "envista_za",
+        "name": "Israel",
+        "country": "IL",
+        "city": "FIXME",
+        "description": "",
+        "resolution": "15 min",
+        "sourceURL": "http://www.svivaaqm.net/",
+        "timezone": "Asia/Jerusalem",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
