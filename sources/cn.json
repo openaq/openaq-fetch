@@ -79,7 +79,233 @@
         "resolution": "1 hr",
         "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340100",
         "contacts": [
-            "elilitwack+openaq@gmail.com"
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340600",
+        "adapter": "anhui",
+        "name": "Huaibei",
+        "city": "Huaibei",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340600",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341600",
+        "adapter": "anhui",
+        "name": "Bozhou",
+        "city": "Bozhou",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341600",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341300",
+        "adapter": "anhui",
+        "name": "Suzhou",
+        "city": "Suzhou",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341300",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340300",
+        "adapter": "anhui",
+        "name": "Bengbu",
+        "city": "Bengbu",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340300",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341200",
+        "adapter": "anhui",
+        "name": "Fuyang",
+        "city": "Fuyang",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341200",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340400",
+        "adapter": "anhui",
+        "name": "Huainan",
+        "city": "Huainan",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340400",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341100",
+        "adapter": "anhui",
+        "name": "Chuzhou",
+        "city": "Chuzhou",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341100",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341500",
+        "adapter": "anhui",
+        "name": "Lu'an",
+        "city": "Lu'an",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341500",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340500",
+        "adapter": "anhui",
+        "name": "Ma'anshan",
+        "city": "Ma'anshan",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340500",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340200",
+        "adapter": "anhui",
+        "name": "Wuhu",
+        "city": "Wuhu",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340200",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341800",
+        "adapter": "anhui",
+        "name": "Xuancheng",
+        "city": "Xuancheng",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341800",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340700",
+        "adapter": "anhui",
+        "name": "Tongling",
+        "city": "Tongling",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340700",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341700",
+        "adapter": "anhui",
+        "name": "Chizhou",
+        "city": "Chizhou",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341700",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340800",
+        "adapter": "anhui",
+        "name": "Anqing",
+        "city": "Anqing",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340800",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341000",
+        "adapter": "anhui",
+        "name": "Huangshan",
+        "city": "Huangshan",
+        "country": "CN",
+        "description": "Data from the Envoirnmental Protection Department of Anhui Province",
+        "resolution": "1 hr",
+        "sourceURL": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341000",
+        "contacts": [
+            "elilitwack+openaq@gmail.com",
+            "info@openaq.org"
         ],
         "active": true
     }

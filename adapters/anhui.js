@@ -40,8 +40,55 @@ export const fetchData = function (source, cb) {
 };
 
 var getCoordinates = function (city, station) {
-  if (city === 'Hefei') {
-    city = '合肥';
+  switch(city) {
+    case 'Hefei':
+      city = '合肥';
+      break;
+    case 'Huaibei':
+      city = '淮北';
+      break;
+    case 'Bozhou':
+      city = '亳州';
+      break;
+    case 'Suzhou':
+      city = '宿州';
+      break;
+    case 'Bengbu':
+      city = '蚌埠';
+      break;
+    case 'Fuyang':
+      city = '阜阳';
+      break;
+    case 'Huainan':
+      city = '淮南';
+      break;
+    case 'Chuzhou':
+      city = '滁州';
+      break;
+    case "Liu'an":
+      city = '六安';
+      break;
+    case "Ma'anshan":
+      city = '马鞍山';
+      break;
+    case 'Wuhu':
+      city = '芜湖';
+      break;
+    case 'Xuancheng':
+      city = '宣城';
+      break;
+    case 'Tongling':
+      city = '铜陵';
+      break;
+    case 'Chizhou':
+      city = '池州';
+      break;
+    case 'Anqing':
+      city = '安庆';
+      break;
+    case 'Huangshan':
+      city = '黄山';
+      break;
   }
   let cords = require('../data_scripts/china-locations.json')[city + station];
   if (cords) {
@@ -103,7 +150,7 @@ var formatData = function (data, source) {
           unit: 'µg/m³',
           averagingPeriod: {'value': 1, 'unit': 'hours'},
           date: time,
-          value: values[key],
+          value: parseFloat(values[key]),
           attribution: [{
             name: 'Envoirnmental Protection Department of Anhui Province',
             url: source.sourceURL
@@ -117,5 +164,8 @@ var formatData = function (data, source) {
       }
     }
   });
-  return measurements;
+  return {
+    name: 'unused',
+    measurements: measurements
+  };  
 };
