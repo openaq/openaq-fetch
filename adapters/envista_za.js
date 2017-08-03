@@ -12,11 +12,10 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT, jar: true, heade
 import cheerio from 'cheerio';
 import { default as moment } from 'moment-timezone';
 import { flattenDeep, isFinite } from 'lodash';
-import { parallel } from 'async';
+import { parallel, parallelLimit, retry } from 'async';
 import { acceptableParameters, convertUnits } from '../lib/utils';
 
 export const name = 'envista_za';
-
 
 export function fetchData (source, cb) {
   let menuSiteUrl = source.url + 'MenuSite.aspx';
@@ -61,7 +60,7 @@ const handleCity = function (source, link) {
         tasks.push(handleStation(source, link));
       }
 
-      parallel(tasks, (err, results) => {
+      parallelLimit(tasks, 3, (err, results) => {
         return done(err, results);
       });
     });
@@ -106,9 +105,12 @@ const handleStation = function (source, link) {
       form['btnGenerateReport'] = 'הצג+דוח';
 
       const j = request.jar();
-      const tasks = [queryStation(source, link, form, j)];
-      parallel(tasks, (err, results) => {
-        return done(err, results);
+      retry({times: 5, interval: 3000}, queryStation(source, link, form, j), (err, results) => {
+        if (err) {
+          console.log(err);
+          return done(null, []);
+        }
+        return done(null, results);
       });
     });
   };
@@ -138,18 +140,19 @@ const queryStation = function (source, link, qform, jar) {
       form['lblCurrentPage'] = '1';
 
       let exportLink;
-      try {
-        exportLink = $('#form1').attr('action');
-        //temp measure
-        exportLink = exportLink.replace('./NewGrid', 'NewGrid');
-      } catch (err) {
-        console.log(`Error on getting export link at ${link}`);
-        return done(null, []);
+      exportLink = $('#form1').attr('action');
+      if (!exportLink || (exportLink && exportLink.indexOf('Error.aspx') > -1)) {
+        console.log(`Error on station query! (${link})`);
+        return done(`Error on station query! (${link})`, []);
       }
+      //temp measure
+      exportLink = exportLink.replace('./NewGrid', 'NewGrid');
 
       exportLink = source.url + exportLink;
-      const tasks = [exportStationXML(source, exportLink, form)];
-      parallel(tasks, (err, results) => {
+      retry({times: 5, interval: 3000}, exportStationXML(source, exportLink, form), (err, results) => {
+        if (err) {
+          console.log(err);
+        }
         return done(err, results);
       });
     });
@@ -166,9 +169,14 @@ const exportStationXML = function (source, link, form) {
       if (err || res.statusCode !== 200) {
         return done(null, []);
       }
-      formatData(source, body, link, (measurements) => {
-        return done(null, measurements);
-      });
+      try {
+        formatData(source, body, link, (measurements) => {
+          return done(null, measurements);
+        });
+      } catch (err) {
+        console.log(`Error occured while formatting data from ${link}`);
+        return done(`Error in exportStationXML (${link})`, []);
+      }
     });
   };
 };
@@ -176,13 +184,9 @@ const exportStationXML = function (source, link, form) {
 const formatData = function (source, data, link, cb) {
   const $ = cheerio.load(data, { xmlMode: true });
   let location;
-  try {
-    location = $('data').eq(0).attr('value').split('-')[0].trim();
-    console.log(location);
-  } catch (err) {
-    console.log(`Error occured when exporting from: ${link}`);
-    return cb([]);
-  }
+  location = $('data').eq(0).attr('value').split('-')[0].trim();
+  console.log(location);
+
   let base = {
     location: location,
     averagingPeriod: {unit: 'hours', value: 0.25},
