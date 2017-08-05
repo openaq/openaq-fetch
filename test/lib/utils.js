@@ -1,4 +1,5 @@
 /* global describe, it */
+/* eslint no-unused-expressions: 0 */
 'use strict';
 
 var expect = require('chai').expect;
@@ -88,19 +89,19 @@ describe('Testing helper functions', function () {
             date: new Date()
           },
           {
-            parameter: 'pm25',  // Bad unit
+            parameter: 'pm25', // Bad unit
             unit: 'µg/m3',
             value: 20,
             date: new Date()
           },
           {
-            parameter: 'pm25',  // Date too far in past
+            parameter: 'pm25', // Date too far in past
             unit: 'µg/m3',
             value: 20,
             date: new Date(new Date().setDate(new Date().getDate() - 5))
           },
           {
-            parameter: 'pm25',  // mobile not boolean
+            parameter: 'pm25', // mobile not boolean
             unit: 'µg/m3',
             value: 20,
             mobile: 'foo',
@@ -110,7 +111,7 @@ describe('Testing helper functions', function () {
             }
           },
           {
-            parameter: 'pm25',  // sourceType not valid
+            parameter: 'pm25', // sourceType not valid
             unit: 'µg/m3',
             value: 20,
             sourceType: 'foo',
@@ -177,6 +178,23 @@ describe('Testing helper functions', function () {
         }
       ];
       expect(utils.removeUnwantedParameters(measurements).length).to.equal(2);
+      done();
+    });
+  });
+
+  describe('convertUnits', function () {
+    it('should convert units', function (done) {
+      let measurements = [
+        {
+          parameter: 'pm10', // Good
+          unit: 'pphm',
+          value: 'asd',
+          date: new Date()
+        },
+        undefined
+      ];
+      expect(utils.convertUnits(measurements).length).to.equal(2);
+      expect(utils.convertUnits(measurements)[0].unit).to.equal('ppm');
       done();
     });
   });

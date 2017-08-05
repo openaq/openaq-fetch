@@ -144,7 +144,7 @@ const formatData = (stations, measurements) => {
     omit(m, ['day', 'hour', 'timezoneOffset']);
 
     // Station
-    const station = find(stations, 'aqsid', m.aqsid);
+    const station = find(stations, { aqsid: m.aqsid });
     merge(m, station);
     omit(m, 'aqsid');
 

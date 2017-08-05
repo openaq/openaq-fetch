@@ -136,10 +136,10 @@ log.info('Connected to database.');
 
 // Run any needed migrations and away we go
 pg.migrate.latest(knexConfig)
-.then(() => {
-  log.info('Database migrations are handled, ready to roll!');
-  fs.createReadStream(inputFile).pipe(stream.input);
-})
-.catch((e) => {
-  log.error(e);
-});
+  .then(() => {
+    log.info('Database migrations are handled, ready to roll!');
+    fs.createReadStream(inputFile).pipe(stream.input);
+  })
+  .catch((e) => {
+    log.error(e);
+  });

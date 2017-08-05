@@ -2,19 +2,19 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import { default as moment } from 'moment-timezone';
 import { parallel } from 'async';
 import cheerio from 'cheerio';
 import { isFinite } from 'lodash';
 import { convertUnits, toTitleCase } from '../lib/utils';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'peruclima';
 
 export function fetchData (source, cb) {
   // This is the list of individual station ids
   const stations = ['112194', '112192', '112193', '112208', '112233', '112267',
-                    '112266', '111286', '112265', '111287'];
+    '112266', '111286', '112265', '111287'];
 
   let tasks = [];
   stations.forEach((s) => {

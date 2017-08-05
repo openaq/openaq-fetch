@@ -6,11 +6,11 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT, jar: true}); // Allowing cookies
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import { parallel } from 'async';
 import { convertUnits, acceptableParameters } from '../lib/utils';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT, jar: true}); // Allowing cookies
 
 exports.name = 'turkey';
 
