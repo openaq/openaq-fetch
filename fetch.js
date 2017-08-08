@@ -26,6 +26,7 @@ let knexConfig = require('./knexfile');
 var utils = require('./lib/utils');
 var request = require('request');
 var log = require('./lib/logger');
+var moment = require('moment');
 
 var adapters = require('./adapters');
 var sources = require('./sources');
@@ -114,43 +115,6 @@ let buildSQLObject = function (m) {
   }
 
   return obj;
-};
-
-/**
- * Build a CSV row from a measurement
- * Header: location, value, unit, parameter, country, city, sourceName, date_utc, date_local, sourceType, mobile, latitude, longitude
- * @param {object} m measurement object
- * @return {string} a string representing one row in a CSV
- */
-let buildCSVObject = function (m) {
-  let row = [
-    m.location,
-    m.value,
-    m.unit,
-    m.parameter,
-    m.country,
-    m.city,
-    m.sourceName,
-    new Date(m.date.utc).toISOString(),
-    m.date.local,
-    m.sourceType,
-    m.mobile
-  ];
-  let latitude = '';
-  let longitude = '';
-
-  // Handle geo
-  if (m.coordinates) {
-    latitude = m.coordinates.latitude || '';
-    longitude = m.coordinates.longitude || '';
-  }
-  row.push(latitude);
-  row.push(longitude);
-
-  // Add double quotes to each field
-  let quotedRow = row.map(item => `"${item}"`);
-
-  return quotedRow.join(',');
 };
 
 /**
@@ -244,7 +208,12 @@ var getAndSaveData = function (source) {
         }
       });
       if (argv.dryrun) {
-        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded, argv.dryrun);
+        let results = data.measurements.map(data => {
+          return {
+            data: data
+          };
+        });
+        let msg = generateResultsMessage(results, source, failures, fetchStarted, fetchEnded, argv.dryrun);
         done(null, msg);
       } else {
         // We're running each insert task individually so we can catch any
@@ -326,27 +295,6 @@ const saveFetches = function (timeStarted, timeEnded, itemsInserted, err, result
 };
 
 /**
- * Create a key using the current datetime
- * @param {Date} d javascript Date() object
- * @return {string} string in format yyyy-mm-dd/unixtime
- */
-const getDateKey = function (d) {
-  var dd = d.getDate();
-  var mm = d.getMonth() + 1;
-  var yyyy = d.getFullYear();
-
-  if (dd < 10) {
-    dd = '0' + dd;
-  }
-
-  if (mm < 10) {
-    mm = '0' + mm;
-  }
-
-  return `${yyyy}-${mm}-${dd}/${d.getTime()}`;
-};
-
-/**
  * Saves inserted records to S3
  * ${param} records Array of measurements
  *
@@ -365,14 +313,13 @@ const saveToS3 = function (records) {
 
     let s3 = new AWS.S3();
 
-    // Format into CSV
-    let rows = records.map(buildCSVObject).join('\n');
+    // Create a line delimited JSON
+    let rows = records.map(record => JSON.stringify(record)).join('\n');
 
-    // Write to an S3 bucket with the key fetches/realtime/yyyy-mm-dd/unixtime.csv
-    let date = new Date();
+    // Write to an S3 bucket with the key fetches/realtime/yyyy-mm-dd/unixtime.ndjson
     s3.putObject({
       Bucket: process.env['AWS_BUCKET_NAME'],
-      Key: `fetches/realtime/${getDateKey(date)}.csv`,
+      Key: `fetches/realtime/${moment().format('YYYY-MM-DD/X')}.ndjson`,
       Body: rows
     }, done);
   };
@@ -449,7 +396,6 @@ var runTasks = function () {
     // Send out the webhook to openaq-api since we're all done
     if (argv.dryrun) {
       log.info('Dryrun completed, have a good day!');
-      console.log(itemsInserted.map(buildCSVObject));
       process.exit(0);
     } else {
       // Run functions post fetches
