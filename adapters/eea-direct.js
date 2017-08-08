@@ -6,8 +6,11 @@ import { default as moment } from 'moment-timezone';
 import { parallel, map, filter } from 'async';
 import { default as parse } from 'csv-parse/lib/sync';
 import uniqBy from 'lodash.uniqby';
+import { intersection } from 'lodash';
+import geocoder from 'geocoder';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 export const name = 'eea-direct';
+
 
 export function fetchData (source, cb) {
   const metadataRequest = makeMetadataRequest(source);
@@ -100,30 +103,61 @@ const formatData = (data, source, cb) => {
   const coordinates = data[0];
   const records = data[1];
   map(records, (record, cb) => {
-    let measurement = {
-      location: record[13],
-      city: record[2] ? record[2].replace(/\w\S*/g, (t) => { return t.charAt(0).toUpperCase() + t.substr(1).toLowerCase(); }) : 'unused',
-      parameter: record[5].toLowerCase(),
-      date: makeDate(record[16], record[4]),
-      coordinates: makeCoordinates(coordinates, record[11]),
-      value: parseInt(record[19]),
-      unit: record[record.length - 1],
-      attribution: [{
-        name: 'EEA',
-        url: source.sourceUrl
-      }],
-      averagingPeriod: {
-        unit: 'hours',
-        value: 1
+    const crds = makeCoordinates(coordinates, record[11]);
+    parallel([
+      (done) => {
+        let measurement = {
+          location: '',
+          city: '',
+          parameter: record[5].toLowerCase(),
+          date: makeDate(record[16], record[4]),
+          coordinates: crds,
+          value: parseInt(record[19]),
+          unit: record[record.length - 1],
+          attribution: [{
+            name: 'EEA',
+            url: source.sourceUrl
+          }],
+          averagingPeriod: {
+            unit: 'hours',
+            value: 1
+          }
+        };
+        // apply unit conversion to generated record
+        done(null, convertUnits([measurement])[0]);
+      },
+      (done) => {
+        geocoder.reverseGeocode(crds.latitude, crds.longitude, (err, data) => {
+          if (err) {
+            return done(null, null);
+          }
+          let city = data.results.filter((geocodeObj) => {
+            if (geocodeObj.types) {
+              // strings in first list denote city in gc response
+              const hasCorrectType = intersection(['administrative_area_level_1', 'locality'], geocodeObj.types);
+              return hasCorrectType.length > 0;
+            }
+          });
+          if (city.length > 0) {
+            const longCityName = city[0].address_components[0].long_name;
+            return done(null, longCityName);
+          }
+        });
       }
-    };
-    // apply unit conversion to generated record
-    cb(null, convertUnits([measurement])[0]);
-  }, (err, mappedRecords) => {
+    ], cb
+    );
+  }, (err, records) => {
     if (err) {
       return cb(null, []);
     }
-    cb(null, {name: 'unused', measurements: mappedRecords});
+    const measurements = records.map((record) => {
+      const measurement = record[0];
+      if (record[1] !== null) {
+        measurement['city'] = record[1];
+      }
+      return measurement;
+    });
+    cb(null, {name: 'unused', measurements: measurements});
   });
 };
 
