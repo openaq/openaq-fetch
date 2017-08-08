@@ -2,11 +2,11 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import { removeUnwantedParameters, convertUnits } from '../lib/utils';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'nsw';
 
@@ -141,7 +141,7 @@ var formatData = function (data) {
 
           // Check if there is a value being reported and if the pollutant
           // is available in the indexParams
-          var i = _.findIndex(indexParams, 'col', colCounter);
+          var i = _.findIndex(indexParams, { 'col': colCounter });
           if ($(this).text() && i !== -1) {
             var p = indexParams[i];
 

@@ -1,4 +1,4 @@
-#Contributing guidelines
+# Contributing guidelines
 
 There are many ways to contribute to a project, below are some examples:
 
