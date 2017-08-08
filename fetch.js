@@ -11,6 +11,7 @@
 var argv = require('yargs')
   .usage('Usage: $0 --dryrun --source \'Beijing US Embassy\'')
   .boolean('dryrun')
+  .describe('dryrun', 'Run the fetch process but do not attempt to save to the database and instead print to console, useful for testing.')
   .alias('d', 'dryrun')
   .describe('source', 'Run the fetch process with only the defined source using source name.')
   .alias('s', 'source')

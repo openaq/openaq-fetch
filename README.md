@@ -46,7 +46,7 @@ If you want to push results to an S3 bucket as well for further processing, the 
 | AWS_ACCESS_KEY_ID | AWS Credentials key ID | not set |
 | AWS_SECRET_ACCESS_KEY | AWS Credentials secret key | not set |
 
-The measurements will be stored using the structure `bucket_name/fetches/yyyy-mm-dd/unixtime.csv` for each fetch.
+The measurements will be stored using the structure `bucket_name/fetches/yyyy-mm-dd/unixtime.ndjson` for each fetch.
 
 ## Tests
 To confirm that everything is working as expected, you can run the tests with
