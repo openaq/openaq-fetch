@@ -3,7 +3,7 @@
 const headers = {
   'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0',
   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-  'Content-Type': 'text/html; charset=utf-8',
+  'Content-Type': 'text/html; charset=utf-8'
 };
 
 import { default as baseRequest } from 'request';
@@ -50,14 +50,14 @@ export function fetchData (source, cb) {
 
 const request = function (source) {
   switch (source.country) {
-    case "ZA":
+    case 'ZA':
       return requestDefault;
-    case "IL":
+    case 'IL':
       return requestJarAndHeaders;
     default:
       return requestDefault;
-    }
-}
+  }
+};
 
 const handleCity = function (source, link) {
   return function (done) {
@@ -119,7 +119,7 @@ const queryStation = function (source, link, qform, jar, regionName) {
       form: qform,
       followAllRedirects: true
     };
-    if (source.country === "ZA") {
+    if (source.country === 'ZA') {
       requestOptions.jar = jar;
     }
     request(source).post(requestOptions, (err, res, body) => {
@@ -137,8 +137,8 @@ const queryStation = function (source, link, qform, jar, regionName) {
         return done(`Error on station query! (${link})`, []);
       }
 
-      if (source.country === "IL") {
-        //temp measure
+      if (source.country === 'IL') {
+        // temp measure
         exportLink = exportLink.replace('./NewGrid', 'NewGrid');
       }
 
@@ -179,9 +179,9 @@ const formatData = function (source, data, link, regionName, cb) {
   const $ = cheerio.load(data, { xmlMode: true });
   let location;
   location = $('data').eq(0).attr('value');
-  if (source.country === "IL") {
+  if (source.country === 'IL') {
     location = location.split('-')[0].trim();
-  } else if (source.country === "ZA") {
+  } else if (source.country === 'ZA') {
     location = location.split(':')[1].trim();
   }
   console.log(location);
@@ -291,19 +291,19 @@ const getStationForm = function (source, $) {
   form['ddlAvgType'] = 'AVG';
   form['ddlTimeBase'] = 15;
 
-  if (source.country === "IL") {
+  if (source.country === 'IL') {
     form['BasicDatePicker1$textBox'] = $('#BasicDatePicker1_TextBox').attr('value');
     form['BasicDatePicker2$textBox'] = $('#BasicDatePicker2_TextBox').attr('value');
     form['__VIEWSTATEGENERATOR'] = $('#__VIEWSTATEGENERATOR').attr('value');
     form['btnGenerateReport'] = 'הצג+דוח';
-  } else if (source.country === "ZA") {
+  } else if (source.country === 'ZA') {
     form['BasicDatePicker1$textBox'] = $('#BasicDatePicker1_textBox').attr('value');
     form['BasicDatePicker2$textBox'] = $('#BasicDatePicker2_textBox').attr('value');
     form['btnGenerateReport'] = 'GenerateReport';
   }
 
   return form;
-}
+};
 
 const getExportForm = function (source, $) {
   // replicate the export form
@@ -313,11 +313,10 @@ const getExportForm = function (source, $) {
   form['__VIEWSTATE'] = $('#__VIEWSTATE').attr('value');
   form['__EVENTVALIDATION'] = $('#__EVENTVALIDATION').attr('value');
 
-  if (source.country === "ZA") {
+  if (source.country === 'ZA') {
     form['__EVENTTARGET'] = '';
     form['EnvitechGrid1$XMLExport'] = 'XML';
-    //form['EnvitechGrid1$_tSearch'] = 'Search+Here';
-  } else if (source.country === "IL") {
+  } else if (source.country === 'IL') {
     form['__EVENTTARGET'] = 'lnkExport';
     form['__VIEWSTATEGENERATOR'] = $('#__VIEWSTATEGENERATOR').attr('value');
     form['ddlExport'] = 'XML';
@@ -325,4 +324,4 @@ const getExportForm = function (source, $) {
   }
 
   return form;
-}
+};
