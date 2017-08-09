@@ -4,11 +4,11 @@
         "adapter": "envista_za",
         "name": "Israel",
         "country": "IL",
-        "city": "FIXME",
         "description": "",
         "resolution": "15 min",
         "sourceURL": "http://www.svivaaqm.net/",
         "timezone": "Asia/Jerusalem",
+        "organization": "Israel Ministry of Environmental Protection",
         "contacts": [
             "info@openaq.org"
         ],
