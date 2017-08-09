@@ -16,7 +16,7 @@ import { flattenDeep, isFinite } from 'lodash';
 import { parallel, parallelLimit, retry } from 'async';
 import { acceptableParameters, convertUnits } from '../lib/utils';
 
-export const name = 'envista_za';
+export const name = 'envista';
 
 export function fetchData (source, cb) {
   let menuSiteUrl = source.url + 'MenuSite.aspx';
