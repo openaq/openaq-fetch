@@ -40,6 +40,12 @@ To confirm that everything is working as expected, you can run the tests with
 
 `npm test`
 
+To test an individual adapter, you can use something like:
+
+`node index.js --dryrun --source 'Beijing US Embassy'`
+
+For a more detailed description of the command line options available, use: `node index.js --help`
+
 ## Deployment
 Deployment is handled automatically via Travis on the `master` branch and is deployed to Amazon's ECS.
 

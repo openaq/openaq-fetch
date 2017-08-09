@@ -2,11 +2,11 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import { cloneDeep } from 'lodash';
 import { acceptableParameters } from '../lib/utils';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'fhmzbih';
 
@@ -100,8 +100,6 @@ var formatData = function (data) {
           latitude: 43.661,
           longitude: 18.977
         };
-      default:
-        return;
     }
   };
 

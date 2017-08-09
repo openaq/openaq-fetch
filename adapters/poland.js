@@ -2,12 +2,12 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT, jar: true}); // Turning on cookie saving
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import { series } from 'async';
 import { acceptableParameters } from '../lib/utils';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT, jar: true}); // Turning on cookie saving
 
 exports.name = 'poland';
 
@@ -15,7 +15,7 @@ exports.fetchData = function (source, cb) {
   // This is the list of individual station ids from
   // http://sojp.wios.warszawa.pl/?page=hourly-report&data=04-10-2015&site_id=69&csq_id=1414&dane=w1
   var stations = ['69', '19', '203', '14', '202', '17', '71', '16', '15', '195', '11', '194',
-                  '172', '12', '13', '18'];
+    '172', '12', '13', '18'];
 
   // There is some cookie checking going on within the site, so load the main
   // page first to get the cookie and then load the sites.
