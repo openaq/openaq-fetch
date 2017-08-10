@@ -34,11 +34,11 @@ For production deployment, you will need to have certain environment variables s
 | EEA_TOKEN | API token for EEA API | not set |
 | EEA_GLOBAL_TIMEOUT | How long to check for EEA async results before quitting in seconds | 360 |
 | EEA_ASYNC_RECHECK | How long to wait to recheck for EEA async results in seconds | 60 |
-| PUSH_TO_S3 | Does the process push the measurements to an AWS S3 Bucket | not set |
+| SAVE_TO_S3 | Does the process save the measurements to an AWS S3 Bucket | not set |
 
 ### Pushing to AWS S3
 
-If you want to push results to an S3 bucket as well for further processing, the environment variable `PUSH_TO_S3` should be set to the value `true`. Additionally, you have to set the following environment variables:
+If you want to push results to an S3 bucket as well for further processing, the environment variable `SAVE_TO_S3` should be set to the value `true`. Additionally, you have to set the following environment variables (or be running in a process with a suitable IAM role):
 
 | Name | Description | Default |
 |---|---|---|

@@ -320,7 +320,7 @@ const saveToS3 = function (records) {
     // Write to an S3 bucket with the key fetches/realtime/yyyy-mm-dd/unixtime.ndjson
     s3.putObject({
       Bucket: process.env['AWS_BUCKET_NAME'],
-      Key: `fetches/realtime/${moment().format('YYYY-MM-DD/X')}.ndjson`,
+      Key: `realtime/${moment().format('YYYY-MM-DD/X')}.ndjson`,
       Body: rows
     }, done);
   };
