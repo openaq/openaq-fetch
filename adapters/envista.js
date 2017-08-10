@@ -1,20 +1,23 @@
 'use strict';
 
-const headers = {
-  'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0',
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-  'Content-Type': 'text/html; charset=utf-8'
-};
-
 import { default as baseRequest } from 'request';
 import { REQUEST_TIMEOUT } from '../lib/constants';
-const requestDefault = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
-const requestJarAndHeaders = baseRequest.defaults({timeout: REQUEST_TIMEOUT, jar: true, headers: headers});
 import cheerio from 'cheerio';
 import { default as moment } from 'moment-timezone';
 import { flattenDeep, isFinite } from 'lodash';
 import { parallel, parallelLimit, retry } from 'async';
 import { acceptableParameters, convertUnits } from '../lib/utils';
+
+const requestDefault = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+const requestJarAndHeaders = baseRequest.defaults({
+  timeout: REQUEST_TIMEOUT,
+  jar: true,
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Content-Type': 'text/html; charset=utf-8'
+  }
+});
 
 export const name = 'envista';
 
@@ -101,14 +104,12 @@ const handleStation = function (source, link, regionName, stationID) {
       const form = getStationForm(source, $);
 
       const j = request(source).jar();
-      retry({times: 5, interval: 3000},
-            queryStation(source, link, form, j, regionName, stationID),
-            (err, results) => {
-              if (err) {
-                return done(null, []);
-              }
-              return done(null, results);
-            });
+      retry({times: 5, interval: 3000}, queryStation(source, link, form, j, regionName, stationID), (err, results) => {
+        if (err) {
+          return done(null, []);
+        }
+        return done(null, results);
+      });
     });
   };
 };
@@ -144,11 +145,9 @@ const queryStation = function (source, link, qform, jar, regionName, stationID) 
       }
 
       exportLink = source.url + exportLink;
-      retry({times: 5, interval: 3000},
-            exportStationXML(source, exportLink, form, regionName, stationID),
-            (err, results) => {
-              return done(err, results);
-            });
+      retry({times: 5, interval: 3000}, exportStationXML(source, exportLink, form, regionName, stationID), (err, results) => {
+        return done(err, results);
+      });
     });
   };
 };
@@ -205,7 +204,7 @@ const formatData = function (source, data, link, regionName, stationID, cb) {
   }).each(function (i, el) {
     let dateM = rFullDate.exec($(this).attr('value'));
     let dateProp = getDate(dateM[0], source.timezone);
-    let rParamUnit = /(\w*)\[ ([\w\d\/]*)\]/i;
+    let rParamUnit = /(\w*)\[ ([\w\d/]*)\]/i;
     $(this).find('name').filter(function (i, el) {
       let match = rParamUnit.exec($(this).text());
       if (!match) { return false; }
