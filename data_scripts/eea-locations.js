@@ -3,35 +3,78 @@
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as parse } from 'csv-parse/lib/sync';
-import { map, mapSeries } from 'async';
-import { flatten } from 'lodash';
-import { writeFile } from 'fs';
+import { filter, map, mapSeries, parallel } from 'async';
+import { flatten, includes } from 'lodash';
+import { readFile, writeFile } from 'fs';
 import uniqBy from 'lodash.uniqby';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 const apiKey = 'mapzen-7Cgn6Fw';
-const getCities = (cb) => {
-  request.get({
-    url: 'http://discomap.eea.europa.eu/map/fme/metadata/PanEuropean_metadata.csv'
-  }, (err, res, body) => {
-    if (err || res.statusCode !== 200) {
-      return cb(null);
-    }
-    const data = parse(body, {delimiter: '\t'});
-    getStations(data, (err, stations) => {
-      if (err) {
-        return cb(null);
-      }
-      reverseGeocodeStations(stations, (err, stations) => {
-        if (err) {
-          return cb(null, []);
+
+const getCities = (source, cb) => {
+  // get metadata records and station ids from current eea-country-locations file
+  parallel([
+    (done) => {
+      request.get({
+        url: 'http://discomap.eea.europa.eu/map/fme/metadata/PanEuropean_metadata.csv'
+      }, (err, res, body) => {
+        if (err || res.statusCode !== 200) {
+          return (null);
         }
-        cb(null, stations);
+        // grab rows for select country
+        const data = parse(body, {delimiter: '\t'}).filter((row) => {
+          return row[0] === source.country;
+        });
+        done(null, data);
+      });
+    },
+    (done) => {
+      readFile(source.locations, (err, data) => {
+        if (err) {
+          done(null, []);
+        }
+        map(JSON.parse(data.toString()), (station, cb) => {
+          cb(null, station.stationId);
+        }, (err, stationIDs) => {
+          if (err) {
+            done(null, []);
+          }
+          done(null, stationIDs, source.location);
+        });
+      });
+    }
+  ], (err, stationData) => {
+    if (err) {
+      cb(null, null);
+    }
+    // filter metadata to only records that don't exist in our current records.
+    filter(stationData[0], (record, done) => {
+      done(null, includes(stationData[1], record[5]));
+    }, (err, newStations) => {
+      // do nothing if there is nothing new
+      if (err || newStations.length === 0) {
+        console.log('no new stations');
+        cb(null, null);
+      }
+      // make new station json
+      getStations(newStations, (err, stations) => {
+        if (err) {
+          return (null);
+        }
+        // add city bounds, city names, and regions
+        reverseGeocodeStations(stations, (err, stations) => {
+          if (err) {
+            return cb(null, []);
+          }
+          // callback a combo of old and new stations
+          cb(null, stations.concat.apply(stationData[1]));
+        });
       });
     });
   });
 };
 
 const getStations = (countryMetadata, cb) => {
+  // transform station rows into objects
   map(countryMetadata, (record, done) => {
     const station = {
       stationId: record[5],
@@ -50,6 +93,7 @@ const getStations = (countryMetadata, cb) => {
 };
 
 const reverseGeocodeStations = (stations, cb) => {
+  // reverse geocode each record made in getStations
   mapSeries(stations, (s, done) => {
     const lat = s.coordinates.latitude;
     const lon = s.coordinates.longitude;
@@ -62,10 +106,14 @@ const reverseGeocodeStations = (stations, cb) => {
           return done(null, []);
         }
         geoJSON = JSON.parse(geoJSON);
+        // init the new props as just the stationId.
+        // this way if nothing was returned from pelias the stationId
+        // needed for the login in the eea-direct adapter still exists
+        // and the adapter won't break
         let geocodeProps = s.stationId;
         if (geoJSON.features[0]) {
           geocodeProps = getNewVals(geoJSON.features[0]);
-          geocodeProps = Object.assign(geocodeProps, {stationId: s['stationId']});
+          geocodeProps = Object.assign(geocodeProps, s);
         }
         return done(null, [geocodeProps]);
       });
@@ -78,17 +126,22 @@ const reverseGeocodeStations = (stations, cb) => {
   });
 };
 
-getCities((err, res) => {
+getCities((err, stations, stationFile) => {
   if (err) {
     console.log('err');
   }
-  writeFile('data_scripts/eea-stations.json', JSON.stringify(res), (err) => {
-    if (err) { console.log('could not write file'); }
-    console.log('done');
+  writeFile(stationFile, stations, (err) => {
+    if (err) {
+      console.log(err);
+    }
+    console.log('New stations added');
   });
 });
 
 const getNewVals = (geoJSON) => {
+  // these if statements first try to pull the most specific equivalent
+  // for city or location. If that doesn not exist, the next most generalized
+  // is selected
   let location, region, bounds;
   const properties = geoJSON.properties;
   // get location

@@ -5,12 +5,12 @@ import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import { parallel, map, filter } from 'async';
 import { default as parse } from 'csv-parse/lib/sync';
+import { readFile, writeFile } from 'fs';
 import uniqBy from 'lodash.uniqby';
-import { intersection } from 'lodash';
-import geocoder from 'geocoder';
+import { bboxPolygon, inside, point } from 'turf';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
-export const name = 'eea-direct';
 
+export const name = 'eea-direct';
 
 export function fetchData (source, cb) {
   const metadataRequest = makeMetadataRequest(source);
@@ -102,16 +102,14 @@ const makeTaskRequests = (source) => {
 const formatData = (data, source, cb) => {
   const coordinates = data[0];
   const records = data[1];
-  map(records, (record, cb) => {
-    const crds = makeCoordinates(coordinates, record[11]);
-    parallel([
-      (done) => {
+  const toGeocode = [];
+  parallel([
+    (done) => {
+      map(records, (record, cb) => {
         let measurement = {
-          location: '',
-          city: '',
+          coordinates: makeCoordinates(coordinates, record[11]),
           parameter: record[5].toLowerCase(),
           date: makeDate(record[16], record[4]),
-          coordinates: crds,
           value: parseInt(record[19]),
           unit: record[record.length - 1],
           attribution: [{
@@ -124,41 +122,96 @@ const formatData = (data, source, cb) => {
           }
         };
         // apply unit conversion to generated record
-        done(null, convertUnits([measurement])[0]);
-      },
-      (done) => {
-        geocoder.reverseGeocode(crds.latitude, crds.longitude, (err, data) => {
+        cb(null, convertUnits([measurement])[0]);
+      }, (err, mappedRecords) => {
+        if (err) {
+          return done(null, []);
+        }
+        done(null, mappedRecords);
+      });
+    },
+    (done) => {
+      // read in location file, try to combine locations with coordinates
+      // by matching stationId or a spatial join, then return successful combos
+      // TODO: change this to fetch upon implementing new repo
+      readFile(source.locations, (err, locations) => {
+        locations = JSON.parse(locations.toString());
+        map(coordinates, (crds, cb) => {
           if (err) {
-            return done(null, null);
+            return cb(null, crds);
           }
-          let city = data.results.filter((geocodeObj) => {
-            if (geocodeObj.types) {
-              // strings in first list denote city in gc response
-              const hasCorrectType = intersection(['administrative_area_level_1', 'locality'], geocodeObj.types);
-              return hasCorrectType.length > 0;
+          let geocodedProps = locations.find((location) => {
+            // an object with city, region, bounds, and stationId
+            // or just a stationId if reverse geocoding was unsuccessful
+            if (location.stationId) {
+              return location.stationId === crds.stationId;
+            } else {
+              return location === crds.stationId;
             }
           });
-          if (city.length > 0) {
-            const longCityName = city[0].address_components[0].long_name;
-            return done(null, longCityName);
+          // if new station, denoted by no matching id,
+          // try to spatial join
+          if (!(geocodedProps)) {
+            geocodedProps = locations.find((location) => {
+              if (location.stationId) {
+                const bbox = bboxPolygon(location.bounds);
+                const stationPoint = point(
+                  crds.longitude,
+                  crds.latitude
+                );
+                return inside(stationPoint, bbox);
+              }
+            });
           }
+          // if nothing joined, send to que do geocoding and update the
+          // country's location file.
+          if (!(geocodedProps)) {
+            toGeocode.push(crds);
+          }
+          if (geocodedProps) {
+            geocodedProps = typeof geocodedProps === 'string' ? crds : Object.assign(geocodedProps, crds);
+            cb(null, geocodedProps);
+          }
+        }, (err, updatedCoordinates) => {
+          if (err) {
+            return done(null, coordinates);
+          }
+          done(null, updatedCoordinates);
         });
-      }
-    ], cb
-    );
-  }, (err, records) => {
-    if (err) {
-      return cb(null, []);
+      });
     }
-    const measurements = records.map((record) => {
-      const measurement = record[0];
-      if (record[1] !== null) {
-        measurement['city'] = record[1];
+  ], (err, mappedData) => {
+    if (err) {
+      return cb(err, []);
+    }
+    let measurements = mappedData[0];
+    const coordinates = mappedData[1];
+    // map coordinates and location names to measurements
+    map(measurements, (measurement, done) => {
+      const station = matchStation(coordinates, measurement['coordinates']);
+      measurement['location'] = station ? station.location : 'unused';
+      measurement['city'] = station ? station.city : 'unused';
+      done(null, measurement);
+    }, (err, finalMeasurements) => {
+      // if there locations to geocode, add to file that tells
+      // eea locations adapter it needs to add new locations to the
+      // current country's locations file
+      if (toGeocode.length > 0) {
+        populateToGeocode(toGeocode, source.locations);
       }
-      return measurement;
+      if (err) {
+        return cb(null, {name: 'unused', measurements: measurements});
+      }
+      cb(null, {name: 'unused', measurements: finalMeasurements});
     });
-    cb(null, {name: 'unused', measurements: measurements});
   });
+};
+
+const matchStation = (coordinates, measurementCoords) => {
+  const station = coordinates.find((crds) => {
+    return crds.coordinates === measurementCoords;
+  });
+  return station;
 };
 
 const makeCoordinates = (coordinatesList, stationId) => {
@@ -214,4 +267,11 @@ const makeDate = (date, timeZone) => {
     utc: date.toDate(),
     local: date.format()
   };
+};
+
+const populateToGeocode = (toGeocode, locations) => {
+  const toGeocodeLocs = locations.replace('locations', 'locations-to-add');
+  writeFile(toGeocodeLocs, toGeocode, (err) => {
+    if (err) {}
+  });
 };
