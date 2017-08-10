@@ -1,5 +1,6 @@
 {
     "family": "openaq-fetch",
+    "taskRoleArn": "arn:aws:iam::470049585876:role/uploadsS3",
     "containerDefinitions": [
         {
             "name": "openaq-fetch",

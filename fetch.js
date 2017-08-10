@@ -20,13 +20,14 @@ var argv = require('yargs')
   .alias('h', 'help')
   .argv;
 
-import { assign, filter, pick, chain, find } from 'lodash'; // eslint-disable-line import/first
+import { assign, filter, pick, chain, find, has } from 'lodash'; // eslint-disable-line import/first
 var async = require('async');
 var knex = require('knex');
 let knexConfig = require('./knexfile');
 var utils = require('./lib/utils');
 var request = require('request');
 var log = require('./lib/logger');
+var moment = require('moment');
 
 var adapters = require('./adapters');
 var sources = require('./sources');
@@ -127,9 +128,10 @@ var getAndSaveData = function (source) {
   // Generates a formatted message based on fetch results
   let generateResultsMessage = function (newResults, source, failures, fetchStarted, fetchEnded, isDryrun = false) {
     return {
-      message: `${isDryrun ? '[Dry Run] ' : ''}New measurements inserted for ${source.name}: ${newResults}`,
+      message: `${isDryrun ? '[Dry Run] ' : ''}New measurements inserted for ${source.name}: ${newResults.length}`,
       failures: failures,
-      count: newResults,
+      count: newResults.length,
+      results: newResults,
       duration: (fetchEnded - fetchStarted) / 1000,
       sourceName: source.name
     };
@@ -139,7 +141,7 @@ var getAndSaveData = function (source) {
     // Get the appropriate adapter
     var adapter = findAdapter(source.adapter);
     if (!adapter) {
-      const msg = generateResultsMessage(0, source, {'Could not find adapter.': 1}, 0, 0, argv.dryrun);
+      const msg = generateResultsMessage([], source, {'Could not find adapter.': 1}, 0, 0, argv.dryrun);
       return done(null, msg);
     }
 
@@ -151,7 +153,7 @@ var getAndSaveData = function (source) {
         const errDict = {};
         const key = err.message || 'Unknown adapter error';
         errDict[key] = 1;
-        const msg = generateResultsMessage(0, source, errDict, fetchStarted, fetchEnded, argv.dryrun);
+        const msg = generateResultsMessage([], source, errDict, fetchStarted, fetchEnded, argv.dryrun);
         return done(null, msg);
       }
 
@@ -160,7 +162,7 @@ var getAndSaveData = function (source) {
 
       // If the data format is invalid
       if (!isValid) {
-        const msg = generateResultsMessage(0, source, reasons, fetchStarted, fetchEnded, argv.dryrun);
+        const msg = generateResultsMessage([], source, reasons, fetchStarted, fetchEnded, argv.dryrun);
         return done(null, msg);
       }
 
@@ -190,7 +192,7 @@ var getAndSaveData = function (source) {
 
       // If we have no measurements to insert, we can exit now
       if (data.measurements && data.measurements.length === 0) {
-        let msg = generateResultsMessage(data.measurements.length, source, failures, fetchStarted, fetchEnded, argv.dryrun);
+        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded, argv.dryrun);
         return done(null, msg);
       }
 
@@ -198,27 +200,32 @@ var getAndSaveData = function (source) {
       if (!argv.dryrun) {
         var inserts = [];
       }
-      data.measurements.forEach((m) => {
+      data.measurements.forEach((m, index) => {
         // Save or print depending on the state
         if (argv.dryrun) {
           log.info(JSON.stringify(m));
         } else {
-          inserts.push(buildSQLObject(m));
+          inserts.push({index: index, data: buildSQLObject(m)});
         }
       });
       if (argv.dryrun) {
-        let msg = generateResultsMessage(data.measurements.length, source, failures, fetchStarted, fetchEnded, argv.dryrun);
+        let results = data.measurements.map(data => {
+          return {
+            data: data
+          };
+        });
+        let msg = generateResultsMessage(results, source, failures, fetchStarted, fetchEnded, argv.dryrun);
         done(null, msg);
       } else {
         // We're running each insert task individually so we can catch any
         // duplicate errors. Good idea? Who knows!
-        let insertRecord = function (record) {
+        let insertRecord = function (record, index) {
           return function (done) {
             pg('measurements')
               .returning('location')
               .insert(record)
               .then((loc) => {
-                done(null, {status: 'new'});
+                done(null, {status: 'new', index: index});
               })
               .catch((e) => {
                 // Log out an error if it's not an failed duplicate insert
@@ -232,7 +239,7 @@ var getAndSaveData = function (source) {
           };
         };
         let tasks = inserts.map((i) => {
-          return insertRecord(i);
+          return insertRecord(i.data, i.index);
         });
         async.parallelLimit(tasks, process.env.PSQL_POOL_MAX || 10, function (err, results) {
           if (err) {
@@ -243,7 +250,13 @@ var getAndSaveData = function (source) {
           results = filter(results, (r) => {
             return r.status !== 'duplicate';
           });
-          let msg = generateResultsMessage(results.length, source, failures, fetchStarted, fetchEnded, argv.dryrun);
+
+          // Add the original data measurement to the results
+          results = results.map(obj => {
+            return Object.assign({}, obj, {data: data.measurements[obj.index]});
+          });
+
+          let msg = generateResultsMessage(results, source, failures, fetchStarted, fetchEnded, argv.dryrun);
 
           done(null, msg);
         });
@@ -279,6 +292,37 @@ const saveFetches = function (timeStarted, timeEnded, itemsInserted, err, result
         log.error(e);
         done(null);
       });
+  };
+};
+
+/**
+ * Saves inserted records to S3
+ * ${param} records Array of measurements
+ *
+ */
+const saveToS3 = function (records) {
+  let AWS = require('aws-sdk');
+
+  const validAWS = has(process.env, 'AWS_BUCKET_NAME');
+
+  return function (done) {
+    if (!validAWS) {
+      return done(new Error('missing AWS Credentials'));
+    }
+
+    log.info('Saving fetch to S3');
+
+    let s3 = new AWS.S3();
+
+    // Create a line delimited JSON
+    let rows = records.map(record => JSON.stringify(record)).join('\n');
+
+    // Write to an S3 bucket with the key fetches/realtime/yyyy-mm-dd/unixtime.ndjson
+    s3.putObject({
+      Bucket: process.env['AWS_BUCKET_NAME'],
+      Key: `realtime/${moment().format('YYYY-MM-DD/X')}.ndjson`,
+      Body: rows
+    }, done);
   };
 };
 
@@ -324,7 +368,8 @@ const saveSources = function () {
 var runTasks = function () {
   log.info('Running all fetch tasks.');
   let timeStarted = new Date();
-  let itemsInserted = 0;
+  let itemsInsertedCount = 0;
+  let itemsInserted = [];
   async.parallel(tasks, (err, results) => {
     let timeEnded = new Date();
     if (err) {
@@ -337,7 +382,8 @@ var runTasks = function () {
         // Add to inserted count if response has a count, if there was a failure
         // response will not have a count
         if (r.count !== undefined) {
-          itemsInserted += r.count;
+          itemsInsertedCount += r.count;
+          itemsInserted = itemsInserted.concat(r.results.map(result => result.data)); // Grab the original data measurement
         }
         log.info('///////');
         log.info(r.message);
@@ -354,10 +400,14 @@ var runTasks = function () {
       process.exit(0);
     } else {
       // Run functions post fetches
-      const postFetchFunctions = [
-        saveFetches(timeStarted, timeEnded, itemsInserted, err, results),
+      let postFetchFunctions = [
+        saveFetches(timeStarted, timeEnded, itemsInsertedCount, err, results),
         saveSources()
       ];
+
+      if (process.env.SAVE_TO_S3 === 'true' && itemsInsertedCount > 0) {
+        postFetchFunctions.push(saveToS3(itemsInserted));
+      }
       async.parallel(postFetchFunctions, (err, results) => {
         if (err) {
           log.error(err);
