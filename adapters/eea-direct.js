@@ -5,10 +5,10 @@ import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import { parallel, map, filter } from 'async';
 import { default as parse } from 'csv-parse/lib/sync';
-import { readFile, writeFile } from 'fs';
 import uniqBy from 'lodash.uniqby';
 import { bboxPolygon, inside, point } from 'turf';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+const stationsLink = "https://raw.githubusercontent.com/openaq/battuta/develop/eea-stations.json"
 
 export const name = 'eea-direct';
 
@@ -102,7 +102,6 @@ const makeTaskRequests = (source) => {
 const formatData = (data, source, cb) => {
   const coordinates = data[0];
   const records = data[1];
-  const toGeocode = [];
   parallel([
     (done) => {
       map(records, (record, cb) => {
@@ -134,8 +133,11 @@ const formatData = (data, source, cb) => {
       // read in location file, try to combine locations with coordinates
       // by matching stationId or a spatial join, then return successful combos
       // TODO: change this to fetch upon implementing new repo
-      readFile(source.locations, (err, locations) => {
-        locations = JSON.parse(locations.toString());
+      request.get({url: stationsLink}, (err, res, locations) => {
+        if (err) {
+          return done(null, []);
+        }
+        locations = JSON.parse(locations);
         map(coordinates, (crds, cb) => {
           if (err) {
             return cb(null, crds);
@@ -163,11 +165,6 @@ const formatData = (data, source, cb) => {
               }
             });
           }
-          // if nothing joined, send to que do geocoding and update the
-          // country's location file.
-          if (!(geocodedProps)) {
-            toGeocode.push(crds);
-          }
           if (geocodedProps) {
             geocodedProps = typeof geocodedProps === 'string' ? crds : Object.assign(geocodedProps, crds);
             cb(null, geocodedProps);
@@ -188,17 +185,11 @@ const formatData = (data, source, cb) => {
     const coordinates = mappedData[1];
     // map coordinates and location names to measurements
     map(measurements, (measurement, done) => {
-      const station = matchStation(coordinates, measurement['coordinates']);
-      measurement['location'] = station ? station.location : 'unused';
-      measurement['city'] = station ? station.city : 'unused';
+      let station = matchStation(coordinates, measurement['coordinates']);
+      measurement['location'] = (station.location ? station.location : 'unused');
+      measurement['city'] = (station.city ? station.city : 'unused');
       done(null, measurement);
     }, (err, finalMeasurements) => {
-      // if there locations to geocode, add to file that tells
-      // eea locations adapter it needs to add new locations to the
-      // current country's locations file
-      if (toGeocode.length > 0) {
-        populateToGeocode(toGeocode, source.locations);
-      }
       if (err) {
         return cb(null, {name: 'unused', measurements: measurements});
       }
@@ -208,10 +199,13 @@ const formatData = (data, source, cb) => {
 };
 
 const matchStation = (coordinates, measurementCoords) => {
-  const station = coordinates.find((crds) => {
-    return crds.coordinates === measurementCoords;
-  });
-  return station;
+  let station;
+  if (coordinates.length > 0) {
+    station = coordinates.find((crds) => {
+      return crds.coordinates === measurementCoords;
+    });
+    return station;
+  }
 };
 
 const makeCoordinates = (coordinatesList, stationId) => {
@@ -267,11 +261,4 @@ const makeDate = (date, timeZone) => {
     utc: date.toDate(),
     local: date.format()
   };
-};
-
-const populateToGeocode = (toGeocode, locations) => {
-  const toGeocodeLocs = locations.replace('locations', 'locations-to-add');
-  writeFile(toGeocodeLocs, toGeocode, (err) => {
-    if (err) {}
-  });
 };
