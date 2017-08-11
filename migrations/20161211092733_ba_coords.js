@@ -64,8 +64,6 @@ const getCoordinates = function (location, useNew) {
           latitude: 43.661,
           longitude: 18.977
         };
-      default:
-        return;
     }
   } else {
     switch (location) {
@@ -114,8 +112,6 @@ const getCoordinates = function (location, useNew) {
           latitude: 44.3,
           longitude: 17.93
         };
-      default:
-        return;
     }
   }
 };

@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://www.buenosaires.gob.ar/areas/med_ambiente/apra/calidad_amb/red_monitoreo/index.php?",
+        "adapter": "buenos-aires",
+        "name": "Buenos Aires",
+        "country": "AR",
+        "city": "Buenos Aires",
+        "description": "Air quality data for Buenos Aires",
+        "sourceURL": "http://www.buenosaires.gob.ar/agenciaambiental",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
