@@ -1,13 +1,15 @@
 [
   {
     "url": "http://live.rbcaa.org.za/",
-    "adapter": "envista_za",
+    "adapter": "envista",
     "name": "Richards Bay",
     "city": "Richards Bay",
     "country": "ZA",
     "description": "",
     "resolution": "15 min",
     "sourceURL": "http://live.rbcaa.org.za/",
+    "timezone": "Africa/Johannesburg",
+    "organization": "Richards Bay Clean Air Association",
     "contacts": [
       "info@openaq.org"
     ],
