@@ -87,6 +87,9 @@ let getCoordinates = function (link, stationID) {
       }).filter((data) => { return data !== undefined; });
       if (stationData.length === 3) {
         if (!(_.includes([stationData[1], stationData[2]], undefined)) || !(_.includes([stationData[1], stationData[2]], 0))) {
+          if (Number(stationData[2]) === 0 && Number(stationData[1]) === 0) {
+            return done(null, []);
+          }
           const stationObj = {};
           stationObj[stationID] = {
             coordinates: {
