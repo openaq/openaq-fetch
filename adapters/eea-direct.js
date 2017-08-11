@@ -8,7 +8,7 @@ import { default as parse } from 'csv-parse/lib/sync';
 import uniqBy from 'lodash.uniqby';
 import { bboxPolygon, inside, point } from 'turf';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
-const stationsLink = "https://raw.githubusercontent.com/openaq/battuta/develop/eea-stations.json"
+const stationsLink = 'https://raw.githubusercontent.com/openaq/battuta/develop/eea-stations.json';
 
 export const name = 'eea-direct';
 
