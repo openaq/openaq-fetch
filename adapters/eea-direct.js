@@ -130,9 +130,9 @@ const formatData = (data, source, cb) => {
       });
     },
     (done) => {
-      // read in location file, try to combine locations with coordinates
-      // by matching stationId or a spatial join, then return successful combos
-      // TODO: change this to fetch upon implementing new repo
+      // try to combine locations with coordinates
+      // by matching stationId or a spatial join.
+      // then return successful combos
       request.get({url: stationsLink}, (err, res, locations) => {
         if (err) {
           return done(null, []);
@@ -250,10 +250,11 @@ const makeDate = (date, timeZone) => {
       break;
   }
   date = moment.tz(date, 'YYYY-MM-DD hh:mm:ss', timeZone);
-  if ('UTC') {
+  if (timeZone === 'Atlantic/Azores') {
     return {
       utc: date.toDate(),
-      // need to manually add back the UTC offset per rules for formatting local.
+      // need to manually add back the UTC offset
+      // per rules for formatting local.
       local: date.format().split('Z')[0] + '+00:00'
     };
   }
