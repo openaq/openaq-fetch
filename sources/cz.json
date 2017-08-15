@@ -1,7 +1,7 @@
 [
     {
-        "url": null,
-        "adapter": "eea",
+        "url": "http://discomap.eea.europa.eu/map/fme/latest/",
+        "adapter": "eea-direct",
         "name": "EEA Czech Republic",
         "city": "",
         "country": "CZ",
@@ -11,6 +11,6 @@
             "olaf.veerman@gmail.com",
             "info@openaq.org"
         ],
-        "active": false
+        "active": true
     }
 ]

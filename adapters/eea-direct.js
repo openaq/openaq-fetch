@@ -1,9 +1,10 @@
 'use strict';
+
 import { acceptableParameters, convertUnits } from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
-import { parallel, map, filter } from 'async';
+import { parallel, map } from 'async';
 import { default as parse } from 'csv-parse/lib/sync';
 import uniqBy from 'lodash.uniqby';
 import { bboxPolygon, inside, point } from 'turf';
@@ -19,7 +20,7 @@ export function fetchData (source, cb) {
     [metadataRequest, requestTasks],
     (err, res) => {
       if (err) {
-        return cb(null, []);
+        return cb('Error getting data from source', []);
       }
       try {
         formatData(res, source, cb);
@@ -38,7 +39,12 @@ const makeMetadataRequest = (source) => {
       if (err || res.statusCode !== 200) {
         return cb('Could not gather current metadata, will generate records without coordinates.', []);
       }
-      const data = parse(body, {delimiter: '\t'});
+      let data;
+      try {
+        data = parse(body, {delimiter: '\t'});
+      } catch (e) {
+        return cb('Could not parse metadata file', []);
+      }
       getCoordinates(data, source.country, cb);
     });
   };
@@ -47,25 +53,23 @@ const makeMetadataRequest = (source) => {
 // reduce metadata to list of objects with coordinates for
 const getCoordinates = (metadata, country, callback) => {
   // filter for only country of interest's records
-  filter(metadata, (record, truth) => {
-    truth(record[0] === country);
-  }, (countryMetadata) => {
-    // map filtered records to be a list of objs w stationId/coordinates
-    map(countryMetadata, (record, done) => {
-      const station = {
-        stationId: record[5],
-        coordinates: {
-          latitude: parseFloat(record[15]),
-          longitude: parseFloat(record[14])
-        }
-      };
-      done(null, station);
-    }, (err, mappedRecords) => {
-      if (err) {
-        return callback(null, []);
+  metadata = metadata.filter((record) => {
+    return record[0] === country;
+  });
+  map(metadata, (record, done) => {
+    const station = {
+      stationId: record[5],
+      coordinates: {
+        latitude: parseFloat(record[15]),
+        longitude: parseFloat(record[14])
       }
-      callback(null, uniqBy(mappedRecords, 'stationId'));
-    });
+    };
+    done(null, station);
+  }, (err, mappedRecords) => {
+    if (err) {
+      return callback(null, []);
+    }
+    callback(null, uniqBy(mappedRecords, 'stationId'));
   });
 };
 
@@ -74,7 +78,7 @@ const makeTaskRequests = (source) => {
   const pollutantRequests = acceptableParameters.map((pollutant) => {
     pollutant = pollutant.toUpperCase();
     return (done) => {
-      const url = source.url.replace('<pollutant>', pollutant);
+      const url = source.url + source.country + '_' + pollutant + '.csv';
       request.get({
         url: url
       }, (err, res, body) => {
@@ -130,14 +134,18 @@ const formatData = (data, source, cb) => {
       });
     },
     (done) => {
-      // try to combine locations with coordinates
-      // by matching stationId or a spatial join.
-      // then return successful combos
+      // read in location file, try to combine locations with coordinates
+      // by matching stationId or a spatial join, then return successful combos
+      // TODO: change this to fetch upon implementing new repo
       request.get({url: stationsLink}, (err, res, locations) => {
         if (err) {
           return done(null, []);
         }
-        locations = JSON.parse(locations);
+        try {
+          locations = JSON.parse(locations);
+        } catch (e) {
+          return done('Could not parse stations file', []);
+        }
         map(coordinates, (crds, cb) => {
           if (err) {
             return cb(null, crds);
@@ -164,6 +172,10 @@ const formatData = (data, source, cb) => {
                 return inside(stationPoint, bbox);
               }
             });
+            // if failed spatial selection, return original coords
+            if (!(geocodedProps)) {
+              return cb(null, crds);
+            }
           }
           if (geocodedProps) {
             geocodedProps = typeof geocodedProps === 'string' ? crds : Object.assign(geocodedProps, crds);
@@ -186,8 +198,12 @@ const formatData = (data, source, cb) => {
     // map coordinates and location names to measurements
     map(measurements, (measurement, done) => {
       let station = matchStation(coordinates, measurement['coordinates']);
-      measurement['location'] = (station.location ? station.location : 'unused');
-      measurement['city'] = (station.city ? station.city : 'unused');
+      if (station.location) {
+        measurement['location'] = station.location;
+      }
+      if (station.city) {
+        measurement['city'] = station.city;
+      }
       done(null, measurement);
     }, (err, finalMeasurements) => {
       if (err) {
@@ -215,51 +231,9 @@ const makeCoordinates = (coordinatesList, stationId) => {
 };
 
 const makeDate = (date, timeZone) => {
-  timeZone = timeZone.split('timezone/')[1];
-  date = date.split('+')[0];
-  switch (timeZone) {
-    case 'UTC':
-      timeZone = 'Atlantic/Azores';
-      date = date + '+00:00';
-      break;
-    case 'UTC+01':
-      timeZone = 'Europe/Lisbon';
-      date = date + '+01:00';
-      break;
-    case 'UTC+02':
-      timeZone = 'Europe/Madrid';
-      date = date + '+02:00';
-      break;
-    case 'UTC+03':
-      timeZone = 'Europe/Helsinki';
-      date = date + '+03:00';
-      break;
-    case 'UTC+04':
-      timeZone = 'Asia/Tbilisi';
-      date = date + '+04:00';
-      break;
-    case 'UTC-04':
-      timeZone = 'America/New_York';
-      date = date + '-04:00';
-      break;
-    case 'UTC-03':
-      timeZone = 'Atlantic/Bermuda';
-      date = date + '-03:00';
-      break;
-    default:
-      break;
-  }
-  date = moment.tz(date, 'YYYY-MM-DD hh:mm:ss', timeZone);
-  if (timeZone === 'Atlantic/Azores') {
-    return {
-      utc: date.toDate(),
-      // need to manually add back the UTC offset
-      // per rules for formatting local.
-      local: date.format().split('Z')[0] + '+00:00'
-    };
-  }
+  const time = moment.utc(date, 'YYYY-MM-DD:mm:ss').utcOffset(timeZone, true);
   return {
-    utc: date.toDate(),
-    local: date.format()
+    utc: time.toDate(),
+    local: time.format('YYYY-MM-DDTHH:mm:ssZ')
   };
 };

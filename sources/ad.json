@@ -1,7 +1,7 @@
 
 [
     {
-        "url": "http://discomap.eea.europa.eu/map/fme/latest/AD_<pollutant>.csv",
+        "url": "http://discomap.eea.europa.eu/map/fme/latest/",
         "adapter": "eea-direct",
         "name": "EEA Andora",
         "city": "",
@@ -12,6 +12,6 @@
             "olaf.veerman@gmail.com",
             "info@openaq.org"
         ],
-        "active": false
+        "active": true
     }
 ]

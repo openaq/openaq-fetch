@@ -1,6 +1,6 @@
 [
     {
-        "url": "http://discomap.eea.europa.eu/map/fme/latest/DE_<pollutant>.csv",
+        "url": "http://discomap.eea.europa.eu/map/fme/latest/",
         "adapter": "eea-direct",
         "name": "EEA Germany",
         "city": "",
@@ -10,6 +10,6 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": false
+        "active": true
     }
 ]
