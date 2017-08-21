@@ -1,0 +1,16 @@
+[
+    {
+        "url": "http://www.arso.gov.si/xml/zrak/ones_zrak_urni_podatki_zadnji.xml",
+        "adapter": "slovenia",
+        "name": "Slovenian Environment Agency",
+        "city": "",
+        "country": "SI",
+        "description": "Official hourly air pollution data by the Slovenian Environment Agency",
+        "sourceURL": "http://www.arso.gov.si",
+        "resolution": "1 hr",
+        "contacts": [
+            "gp.arso@gov.si"
+        ],
+        "active": true
+    }
+]
