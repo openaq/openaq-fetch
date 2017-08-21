@@ -2,10 +2,11 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
-import _ from 'lodash';
+import { cloneDeep } from 'lodash';
 import { default as moment } from 'moment-timezone';
+import { convertUnits } from '../lib/utils';
 import cheerio from 'cheerio';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 exports.name = 'slovenia';
 
@@ -46,8 +47,8 @@ var formatData = function (data, source) {
       'pm10': 'µg/m³'
     };
 
-    return units[parameter]
-  }
+    return units[parameter];
+  };
 
   // Load all the XML
   var $ = cheerio.load(data, {xmlMode: true});
@@ -78,31 +79,37 @@ var formatData = function (data, source) {
     }]
   };
 
-
   // Loop over each item and save the object
   $('postaja').each(function (i, elem) {
-
     var coordinates = {
       latitude: parseFloat($(elem).attr('ge_sirina')),
       longitude: parseFloat($(elem).attr('ge_dolzina'))
     };
 
     var date = getDate($(elem).children('datum_do').text());
-    var city = $(elem).children('merilno_mesto').text();
+    var location = $(elem).children('merilno_mesto').text();
 
     $(elem).children().each(function (i, e) {
+      // Currently only storing PM10 as the other measurements
+      // should be picked up by EEA.
+      if (this.tagName !== 'pm10') {
+        return;
+      }
 
-      var obj = _.cloneDeep(baseObj);
+      var obj = cloneDeep(baseObj);
 
       var unit = getUnit(this.tagName);
       var value = parseFloat($(this).text());
 
-      if(unit === 'mg/m³') {
-        value = value * 1000
+      if (unit === 'mg/m³') {
+        value = value * 1000;
       }
 
       if (unit && value) {
-        obj.city = city
+        // Since there is limited information, both city &
+        // location will be set to same value.
+        obj.city = location;
+        obj.location = location;
         obj.parameter = this.tagName;
         obj.unit = 'µg/m³';
         obj.value = value;
@@ -110,8 +117,11 @@ var formatData = function (data, source) {
         obj.date = date;
         measurements.push(obj);
       }
-    })
+    });
   });
+
+  // Convert units to platform standard
+  measurements = convertUnits(measurements);
 
   return {
     name: source.name,
