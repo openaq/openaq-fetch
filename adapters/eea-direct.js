@@ -5,11 +5,15 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import { parallel, map } from 'async';
+import { uniqBy } from 'lodash';
 import { default as parse } from 'csv-parse/lib/sync';
-import uniqBy from 'lodash.uniqby';
-import { bboxPolygon, inside, point } from 'turf';
+import tzlookup from 'tz-lookup';
+import bboxPolygon from '@turf/bbox-polygon';
+import inside from '@turf/inside';
+import { point } from '@turf/helpers';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 const stationsLink = 'http://battuta.s3.amazonaws.com/eea-stations.json';
+
 export const name = 'eea-direct';
 
 export function fetchData (source, cb) {
@@ -36,13 +40,13 @@ const makeMetadataRequest = (source) => {
       url: 'http://discomap.eea.europa.eu/map/fme/metadata/PanEuropean_metadata.csv'
     }, (err, res, body) => {
       if (err || res.statusCode !== 200) {
-        return cb('Could not gather current metadata, will generate records without coordinates.', []);
+        return done('Could not gather current metadata, will generate records without coordinates.', []);
       }
       let data;
       try {
         data = parse(body, {delimiter: '\t'});
       } catch (e) {
-        return cb('Could not parse metadata file', []);
+        return done('Could not parse metadata file', []);
       }
       getCoordinates(data, source.country, cb);
     });
@@ -56,12 +60,15 @@ const getCoordinates = (metadata, country, callback) => {
     return record[0] === country;
   });
   map(metadata, (record, done) => {
+    const lat = Number(record[15]);
+    const lon = Number(record[14]);
     const station = {
       stationId: record[5],
       coordinates: {
-        latitude: parseFloat(record[15]),
-        longitude: parseFloat(record[14])
-      }
+        latitude: lat,
+        longitude: lon
+      },
+      tz: tzlookup(lat, lon)
     };
     done(null, station);
   }, (err, mappedRecords) => {
@@ -108,11 +115,12 @@ const formatData = (data, source, cb) => {
   parallel([
     (done) => {
       map(records, (record, cb) => {
+        const tz = getTZ(coordinates, record[11]);
         let measurement = {
           coordinates: makeCoordinates(coordinates, record[11]),
           parameter: record[5].toLowerCase(),
-          date: makeDate(record[16], record[4]),
-          value: parseInt(record[19]),
+          date: makeDate(record[16], tz),
+          value: Number(record[19]),
           unit: record[record.length - 1],
           attribution: [{
             name: 'EEA',
@@ -229,10 +237,17 @@ const makeCoordinates = (coordinatesList, stationId) => {
   }).coordinates;
 };
 
-const makeDate = (date, timeZone) => {
-  const time = moment.utc(date, 'YYYY-MM-DD:mm:ss').utcOffset(timeZone, true);
+const getTZ = (coordinatesList, stationId) => {
+  return coordinatesList.find((coordinates) => {
+    return coordinates.stationId === stationId;
+  }).tz;
+};
+
+const makeDate = (date, tz) => {
+  date = date.match(/\+/) ? date.split(/\+/)[0] : date.split(/-/)[0];
+  date = moment.tz(date, 'YYYY-MM-DD HH:mm:ss', tz);
   return {
-    utc: time.toDate(),
-    local: time.format('YYYY-MM-DDTHH:mm:ssZ')
+    utc: date.toDate(),
+    local: date.format()
   };
 };
