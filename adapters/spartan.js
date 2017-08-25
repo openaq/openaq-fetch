@@ -2,10 +2,10 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 import { default as moment } from 'moment-timezone';
 import AdmZip from 'adm-zip';
 import { parallel } from 'async';
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'spartan';
 
@@ -32,7 +32,6 @@ export const fetchData = function (source, cb) {
             zipData.split('\n').forEach((l, i) => {
               if (i === 0) {
                 // Skip first line
-                return;
               } else if (i === 1) {
                 // Save col names on line 1
                 colNames = l.split(',');
