@@ -40,13 +40,13 @@ const makeMetadataRequest = (source) => {
       url: 'http://discomap.eea.europa.eu/map/fme/metadata/PanEuropean_metadata.csv'
     }, (err, res, body) => {
       if (err || res.statusCode !== 200) {
-        return done('Could not gather current metadata, will generate records without coordinates.', []);
+        return cb('Could not gather current metadata, will generate records without coordinates.', []);
       }
       let data;
       try {
         data = parse(body, {delimiter: '\t'});
       } catch (e) {
-        return done('Could not parse metadata file', []);
+        return cb('Could not parse metadata file', []);
       }
       getCoordinates(data, source.country, cb);
     });
