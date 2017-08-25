@@ -1,13 +1,14 @@
 [
   {
     "url": "http://88.45.133.130/meteoambientecampania/prodotti/aria/arpac_dati_centraline_<date>.csv",
-    "adapter": "campania",
-    "name": "Italy",
+    "adapter": "Campania",
+    "name": "Campania",
     "country": "It",
     "description": "Campania data from Climatological and Meteorological Center",
     "sourceURL": "http://88.45.133.130/meteoambientecampania/php/index.php",
     "contacts": [
       "info@openaq.org"
-    ]
+    ],
+    "active": true
   }
 ]

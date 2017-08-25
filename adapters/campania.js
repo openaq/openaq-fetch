@@ -1,13 +1,14 @@
 'use strict';
 import { REQUEST_TIMEOUT } from '../lib/constants';
+import { acceptableParameters, convertUnits } from '../lib/utils';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
-import Papa from 'babyparse';
-import { intersection } from 'lodash';
+import { default as parse } from 'csv-parse/lib/sync';
+import { includes, startCase } from 'lodash';
 import { parallel } from 'async';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-export const name = 'campania';
+export const name = 'Campania';
 
 export function fetchData (source, callback) {
   const tasks = generateRequests(source);
@@ -33,37 +34,40 @@ const generateRequests = (source) => {
         if (err || res.statusCode !== 200) {
           return done(null, []);
         }
-        const data = formatData(body, source);
-        return done(null, data);
+        try {
+          const data = formatData(body, source);
+          return done(null, data);
+        } catch (e) {
+          return done(null, []);
+        }
       });
     };
   });
 };
 
 const formatData = (html, source) => {
-  let records = Papa.parse(html);
-  return records.data.filter((record) => {
+  let records = parse(html, {delimiter: ','});
+  return records.filter((record) => {
     // filter out those records we cannot intersect pollutant types with
-    const pollutants = ['CO', 'SO2', 'NO2', 'PM10', 'NO2', 'PM2.5', 'O3'];
-    const match = intersection(pollutants, record);
-    if (match.length > 0) {
-      return record;
-    }
+    return includes(acceptableParameters, record[2].toLowerCase());
   }).map((validRecord) => {
-    return {
-      parameter: validRecord[2],
+    let measurement = {
+      city: startCase(validRecord[0].toLowerCase()),
+      location: validRecord[1],
+      parameter: validRecord[2].toLowerCase(),
       date: makeDate(validRecord[4]),
       coordinates: mapCoordinates(validRecord[0], stations),
       // convert milogram to microgram if neccessary
-      value: validRecord[3] === 'mg/m³' ? validRecord[5] * 1000 : validRecord[5],
-      unit: validRecord[3] === 'mg/m³' ? 'µg/m³' : validRecord[3],
+      value: Number(validRecord[5]),
+      unit: validRecord[3],
       attribution: [{
         name: 'Climatological and Meteorological Center',
         url: source.sourceUrl
       }],
       // TODO: find this answer.
-      averagingPeriod: {unit: 'hours', value: ''}
+      averagingPeriod: {unit: 'hours', value: 1}
     };
+    return convertUnits([measurement])[0];
   });
 };
 
