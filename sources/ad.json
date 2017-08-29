@@ -3,8 +3,9 @@
     {
         "url": "http://discomap.eea.europa.eu/map/fme/latest/",
         "adapter": "eea-direct",
-        "name": "EEA Andora",
-        "city": "",
+        "name": "EEA Andorra",
+        "location": "Andorra Location",
+        "city": "Andorra City",
         "country": "AD",
         "description": "Andoran data from UTD service",
         "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
