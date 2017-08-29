@@ -1,5 +1,3 @@
-'use strict';
-
 import { acceptableParameters, convertUnits } from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
@@ -84,11 +82,9 @@ const makeTaskRequests = (source) => {
 const formatData = (data, source, cb) => {
   const stations = data[0];
   const records = data[1];
-  let missed = [];
   map(records, (record, done) => {
     const matchedStation = matchStation(stations, record[11]);
     if (!(matchedStation)) {
-      missed.push(record[11]);
       return done(null, {});
     }
     const timeZone = tzlookup(matchedStation.latitude, matchedStation.longitude);
