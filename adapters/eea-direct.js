@@ -3,7 +3,7 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import { parallel, map } from 'async';
-import { uniq } from 'lodash';
+import { writeFileSync, readFileSync } from 'fs';
 import tzlookup from 'tz-lookup';
 import { default as parse } from 'csv-parse/lib/sync';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
@@ -82,13 +82,13 @@ const makeTaskRequests = (source) => {
 const formatData = (data, source, cb) => {
   const stations = data[0];
   const records = data[1];
+  const missed = JSON.parse(readFileSync('./missed.json').toString());
   map(records, (record, done) => {
     const matchedStation = matchStation(stations, record[11]);
     if (!(matchedStation)) {
       return done(null, {});
     }
     const timeZone = tzlookup(matchedStation.latitude, matchedStation.longitude);
-    const offsetString = moment().tz(timeZone).format('Z');
     let m = {
       location: matchedStation.location ? matchedStation.location : (
         matchedStation.city ? matchedStation.city : source.location
@@ -101,7 +101,7 @@ const formatData = (data, source, cb) => {
         longitude: Number(matchedStation.longitude)
       },
       parameter: record[5].toLowerCase(),
-      date: makeDate(record[16], offsetString),
+      date: makeDate(record[16], timeZone),
       value: Number(record[19]),
       unit: record[record.length - 1],
       attribution: [{
@@ -116,7 +116,7 @@ const formatData = (data, source, cb) => {
     // apply unit conversion to generated record
     done(null, convertUnits([m])[0]);
   }, (err, measurements) => {
-    missed = uniq(missed);
+    writeFileSync('./missed.json', JSON.stringify(missed));
     if (err) {
       return cb(null, {name: 'unused', measurements: []});
     }
@@ -130,10 +130,13 @@ const matchStation = (stations, stationId) => {
   });
 };
 
-const makeDate = (date, offsetString) => {
-  date = moment.utc(date, 'YYYY-MM-DD HH:mm:ss').utcOffset(offsetString, true);
+const makeDate = (date, timeZone) => {
+  // parse date, considering its utc offset
+  date = moment.parseZone(date);
+  // pass parsed date as a string plus station timeZone offset to generate local time.
+  const localDate = moment.tz(date.format(), timeZone);
   return {
     utc: date.toDate(),
-    local: date.format()
+    local: localDate.format()
   };
 };
