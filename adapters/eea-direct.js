@@ -3,7 +3,6 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import { parallel, map } from 'async';
-import { writeFileSync, readFileSync } from 'fs';
 import tzlookup from 'tz-lookup';
 import { default as parse } from 'csv-parse/lib/sync';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
@@ -82,7 +81,6 @@ const makeTaskRequests = (source) => {
 const formatData = (data, source, cb) => {
   const stations = data[0];
   const records = data[1];
-  const missed = JSON.parse(readFileSync('./missed.json').toString());
   map(records, (record, done) => {
     const matchedStation = matchStation(stations, record[11]);
     if (!(matchedStation)) {
@@ -116,7 +114,6 @@ const formatData = (data, source, cb) => {
     // apply unit conversion to generated record
     done(null, convertUnits([m])[0]);
   }, (err, measurements) => {
-    writeFileSync('./missed.json', JSON.stringify(missed));
     if (err) {
       return cb(null, {name: 'unused', measurements: []});
     }
