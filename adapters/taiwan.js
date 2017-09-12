@@ -7,10 +7,8 @@
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
-import cheerio from 'cheerio';
 import { parallel } from 'async';
 import { convertUnits } from '../lib/utils';
-import { default as parse } from 'csv-parse/lib/sync';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 exports.name = 'taiwan';
@@ -25,10 +23,10 @@ exports.fetchData = function (source, cb) {
   // coordinates for locations
   parallel({
     sources: (done) => {
-      const url = `${source.url}?fields=SiteName,County,SO2,CO,O3,PM10,PM2.5,NO2,PublishTime&format=json`;
+      const url = `${source.url}/355000000I-000259?format=json&token=${process.env.TW_EPA_TOKEN}`;
       request(url, (err, res, body) => {
         if (err || res.statusCode !== 200) {
-          return done({message: 'Failure to load data url.'});
+          return done({message: 'Failure to load data url'});
         }
 
         return done(null, body);
@@ -36,9 +34,9 @@ exports.fetchData = function (source, cb) {
     },
     coordinates: (done) => {
       // This url seems to have a list of all locations
-      request('http://taqm.epa.gov.tw/taqm/en/Site/Keelung.aspx', (err, res, body) => {
+      request(`${source.url}/355000000I-000006?format=json&token=${process.env.TW_EPA_TOKEN}`, (err, res, body) => {
         if (err || res.statusCode !== 200) {
-          return done({message: 'Failure to load coordinates url.'});
+          return done({message: 'Failure to load coordinates url'});
         }
 
         return done(null, body);
@@ -71,27 +69,8 @@ exports.fetchData = function (source, cb) {
  * @return {object} Parsed and standarized data our system can use
  */
 const formatData = function (data) {
-  // Turn this into an object containing coordinates, there is a bit of
-  // hackery going on here since we're pulling out values from code
-  const coordsHTML = cheerio.load(data.coordinates).html();
-  const coordsRe = /addSite\(map, mapId,(.*)\);/g;
-  var tmpArray;
-  let metadata = [];
-  while ((tmpArray = coordsRe.exec(coordsHTML)) !== null) {
-    tmpArray[1] = tmpArray[1].replace(/'/g, '"');
-    let locArr = parse(tmpArray[1])[0];
-    metadata.push({
-      coordinates: {
-        latitude: Number(locArr[2]),
-        longitude: Number(locArr[3])
-      },
-      location: locArr[1],
-      city: locArr[7],
-      address: locArr[4]
-    });
-  }
-
   // Parse the JSON and grab records
+  const sites = JSON.parse(data.coordinates).result.records;
   const records = JSON.parse(data.sources).result.records;
 
   /**
@@ -102,9 +81,9 @@ const formatData = function (data) {
   const aqRepack = (item) => {
     // Find the associated metadata by looking for location/county in address
     let locationMetadata;
-    for (let i = 0; i < metadata.length; i++) {
-      const m = metadata[i];
-      if (m.address.includes(item.SiteName) && m.address.includes(item.County)) {
+    for (let i = 0; i < sites.length; i++) {
+      const m = sites[i];
+      if (m.SiteName === item.SiteName) {
         locationMetadata = m;
         break;
       }
@@ -115,16 +94,19 @@ const formatData = function (data) {
       return;
     }
 
-    const dateMoment = moment.tz(item.PublishTime, 'YYYY-MM-DD HH:mm', 'Asia/Shanghai');
+    const dateMoment = moment.tz(item.PublishTime, 'YYYY-MM-DD HH:mm', 'Asia/Taipei');
     const base = {
       date: {
         utc: dateMoment.toDate(),
         local: dateMoment.format()
       },
-      location: locationMetadata.location,
-      city: locationMetadata.city,
-      coordinates: locationMetadata.coordinates,
-      attribution: [{name: 'http://opendata.epa.gov.tw/', url: 'http://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-001805'}, {name: 'Environmental Protection Administration, Executive Yuan, R.O.C. (Taiwan)', url: 'http://taqm.epa.gov.tw/taqm/en/'}],
+      location: locationMetadata.SiteEngName,
+      city: locationMetadata.County,
+      coordinates: {
+        latitude: Number(locationMetadata.TWD97Lat),
+        longitude: Number(locationMetadata.TWD97Lon)
+      },
+      attribution: [{name: 'http://opendata.epa.gov.tw/', url: 'https://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-000259?format=json&token={TOKEN}'}, {name: 'Environmental Protection Administration, Executive Yuan, R.O.C. (Taiwan)', url: 'http://taqm.epa.gov.tw/taqm/en/'}],
       averagingPeriod: {unit: 'hours', value: 1}
     };
 
