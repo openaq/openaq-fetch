@@ -27,7 +27,9 @@ export function fetchData (source, cb) {
     });
 }
 
-// makes request used to get then format metadata for station coordinates
+// Location info by station is not reported on consistently. Instead of using
+// the metadata that is included in the CSV file, this adapter relies on
+// Battuta (https://github.com/openaq/battuta) to provide station metadata.
 const makeMetadataRequest = (source) => {
   return (cb) => {
     request.get({
@@ -43,7 +45,6 @@ const makeMetadataRequest = (source) => {
         return cb('Could not parse metadata file', []);
       }
       cb(null, data);
-      // getCoordinates(data, source.country, cb);
     });
   };
 };
@@ -60,7 +61,7 @@ const makeTaskRequests = (source) => {
         if (err || res.statusCode !== 200) {
           return done(null, []);
         }
-        done(null, parse(body, {relax_column_count: true}).slice(1, -1));
+        done(null, parse(body, {columns: true, relax_column_count: true}));
       });
     };
   });
@@ -82,7 +83,7 @@ const formatData = (data, source, cb) => {
   const stations = data[0];
   const records = data[1];
   map(records, (record, done) => {
-    const matchedStation = matchStation(stations, record[11]);
+    const matchedStation = stations.find(station => station.stationId === record['station_code']);
     if (!(matchedStation)) {
       return done(null, {});
     }
@@ -98,10 +99,10 @@ const formatData = (data, source, cb) => {
         latitude: Number(matchedStation.latitude),
         longitude: Number(matchedStation.longitude)
       },
-      parameter: record[5].toLowerCase(),
-      date: makeDate(record[16], timeZone),
-      value: Number(record[19]),
-      unit: record[record.length - 1],
+      parameter: record['pollutant'].toLowerCase(),
+      date: makeDate(record['value_datetime_end'], timeZone),
+      value: Number(record['value_numeric']),
+      unit: record['value_unit'],
       attribution: [{
         name: 'EEA',
         url: source.sourceURL
@@ -118,12 +119,6 @@ const formatData = (data, source, cb) => {
       return cb(null, {name: 'unused', measurements: []});
     }
     cb(null, {name: 'unused', measurements: measurements});
-  });
-};
-
-const matchStation = (stations, stationId) => {
-  return stations.find((station) => {
-    return station.stationId === stationId;
   });
 };
 
