@@ -1,7 +1,7 @@
 [
     {
         "url": null,
-        "adapter": "eea",
+        "adapter": "eea-direct",
         "name": "EEA Austria",
         "city": "",
         "country": "AT",
@@ -10,6 +10,6 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     }
 ]
