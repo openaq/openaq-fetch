@@ -89,9 +89,7 @@ const formatData = (data, source, cb) => {
     }
     const timeZone = tzlookup(matchedStation.latitude, matchedStation.longitude);
     let m = {
-      location: matchedStation.location ? matchedStation.location : (
-        matchedStation.city ? matchedStation.city : source.location
-      ),
+      location: record['station_code'],
       city: matchedStation.city ? matchedStation.city : (
         matchedStation.location ? matchedStation.location : source.city
       ),
