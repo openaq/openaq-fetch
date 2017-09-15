@@ -1,14 +1,13 @@
 [
     {
-        "url": null,
-        "adapter": "eea",
+        "url": "http://discomap.eea.europa.eu/map/fme/latest/",
+        "adapter": "eea-direct",
         "name": "EEA Spain",
         "city": "",
         "country": "ES",
         "description": "Spanish data from UTD service",
         "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
         "contacts": [
-            "olaf.veerman@gmail.com",
             "info@openaq.org"
         ],
         "active": false
@@ -26,5 +25,3 @@
         "active": true
     }
 ]
-
-

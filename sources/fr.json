@@ -1,14 +1,13 @@
 [
     {
-        "url": null,
-        "adapter": "eea",
+        "url": "http://discomap.eea.europa.eu/map/fme/latest/",
+        "adapter": "eea-direct",
         "name": "EEA France",
         "city": "",
         "country": "FR",
         "description": "French data from UTD service",
         "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
         "contacts": [
-            "olaf.veerman@gmail.com",
             "info@openaq.org"
         ],
         "active": false
