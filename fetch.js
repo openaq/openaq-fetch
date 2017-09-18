@@ -20,7 +20,7 @@ var argv = require('yargs')
   .alias('h', 'help')
   .argv;
 
-import { assign, filter, pick, chain, find, has } from 'lodash'; // eslint-disable-line import/first
+import { assign, filter, pick, chain, find, has, omit } from 'lodash'; // eslint-disable-line import/first
 var async = require('async');
 var knex = require('knex');
 let knexConfig = require('./knexfile');
@@ -370,7 +370,7 @@ var runTasks = function () {
   let timeStarted = new Date();
   let itemsInsertedCount = 0;
   let itemsInserted = [];
-  async.parallel(tasks, (err, results) => {
+  async.parallel(tasks, (err, taskResults) => {
     let timeEnded = new Date();
     if (err) {
       log.error('Error during fetching of data sources.');
@@ -378,7 +378,7 @@ var runTasks = function () {
       if (!argv.dryrun) {
         log.info('All data grabbed and saved.');
       }
-      results.forEach(function (r) {
+      taskResults.forEach(function (r) {
         // Add to inserted count if response has a count, if there was a failure
         // response will not have a count
         if (r.count !== undefined) {
@@ -400,8 +400,13 @@ var runTasks = function () {
       process.exit(0);
     } else {
       // Run functions post fetches
+
+      // We need to remove the `results` key from the taskResults
+      // because we don't want the data measurements in the fetch table
+      taskResults = taskResults.map(taskResult => omit(taskResult, ['results']));
+
       let postFetchFunctions = [
-        saveFetches(timeStarted, timeEnded, itemsInsertedCount, err, results),
+        saveFetches(timeStarted, timeEnded, itemsInsertedCount, err, taskResults),
         saveSources()
       ];
 
