@@ -81,7 +81,13 @@ const makeTaskRequests = (source) => {
 // formats data to match openAQ standard
 const formatData = (data, source, cb) => {
   const stations = data[0];
-  const records = data[1];
+
+  // the CSV files contain 48 hours worth of data
+  // filter this down to records that were inserted up to two hours ago
+  // this vastly reduces the amount of redundant inserts fetch tries to make
+  const timeLastInsert = data[1].reduce((a, b) => Math.max(a, Date.parse(b.value_datetime_inserted) || 0), 0);
+  const records = data[1].filter(o => Date.parse(o.value_datetime_inserted) > (timeLastInsert - 7200000));
+
   map(records, (record, done) => {
     const matchedStation = stations.find(station => station.stationId === record['station_code']);
     if (!(matchedStation)) {
