@@ -52,7 +52,14 @@ const makeMetadataRequest = (source) => {
 // makes requests to get country's pollutant data.
 const makeTaskRequests = (source) => {
   const pollutantRequests = acceptableParameters.map((pollutant) => {
-    pollutant = pollutant.toUpperCase();
+    switch (pollutant) {
+      case 'pm25':
+        pollutant = 'PM2.5';
+        break;
+      default:
+        pollutant = pollutant.toUpperCase();
+    }
+
     return (done) => {
       const url = source.url + source.country + '_' + pollutant + '.csv';
       request.get({
@@ -103,7 +110,7 @@ const formatData = (data, source, cb) => {
         latitude: Number(matchedStation.latitude),
         longitude: Number(matchedStation.longitude)
       },
-      parameter: record['pollutant'].toLowerCase(),
+      parameter: record['pollutant'].toLowerCase().replace('.', ''),
       date: makeDate(record['value_datetime_end'], timeZone),
       value: Number(record['value_numeric']),
       unit: record['value_unit'],
