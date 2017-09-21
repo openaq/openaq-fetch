@@ -10,6 +10,7 @@ module.exports = {
     min: process.env.PSQL_POOL_MIN || 2,
     max: process.env.PSQL_POOL_MAX || 10
   },
+  acquireConnectionTimeout: 600000,
   migrations: {
     tableName: 'migrations'
   }
