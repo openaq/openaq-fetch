@@ -93,7 +93,7 @@ const formatData = (data, source, cb) => {
   // filter this down to records that were inserted up to two hours ago
   // this vastly reduces the amount of redundant inserts fetch tries to make
   const timeLastInsert = data[1].reduce((a, b) => Math.max(a, Date.parse(b.value_datetime_inserted) || 0), 0);
-  const records = data[1].filter(o => Date.parse(o.value_datetime_inserted) > (timeLastInsert - 1800000));
+  const records = data[1].filter(o => Date.parse(o.value_datetime_inserted) > (timeLastInsert - 3700000));
 
   map(records, (record, done) => {
     const matchedStation = stations.find(station => station.stationId === record['station_code']);
