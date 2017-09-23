@@ -5,7 +5,7 @@
         "adapter": "eea-direct",
         "name": "EEA Slovakia",
         "city": "",
-        "country": "sk",
+        "country": "SK",
         "description": "Slovak data from EEA Direct service",
         "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
         "contacts": [
