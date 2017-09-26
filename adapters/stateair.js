@@ -91,6 +91,8 @@ var formatData = function (data) {
         case 'Embassy Kathmandu':
         case 'Phora Durbar Kathmandu':
           return 'Asia/Kathmandu';
+        case 'Colombo':
+          return 'Asia/Colombo';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -205,6 +207,11 @@ var formatData = function (data) {
           latitude: 27.738703,
           longitude: 85.336205
         };
+      case 'Colombo':
+        return {
+          latitude: 6.913253,
+          longitude: 79.848684
+        }; // Colombo coordinates assume location is at US Embassy
     }
   };
 
