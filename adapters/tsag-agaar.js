@@ -114,7 +114,7 @@ const formatData = function (source, body, city, cb) {
             }
           ],
           averagingPeriod: {
-            value: 12, // FIXME
+            value: 0.3,
             unit: 'hours'
           }
         };
