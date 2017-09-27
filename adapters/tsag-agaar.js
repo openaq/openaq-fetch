@@ -84,10 +84,12 @@ const formatData = function (source, body, city, cb) {
   let measurements = [];
   $('#table-data table').each((i, el) => {
     let parameters = {};
+    let units = {};
     const stationMeta = $(el).find('th').text();
     $(el).find('thead tr').last().find('td').each((i, el) => {
       if (i < 2) { return; }
       parameters[i] = $(el).text().trim().split(' ')[0].toLowerCase();
+      units[i] = $(el).text().trim().match(/.* \((.*\/.*)\)/)[1];
     });
     $(el).find('tbody tr').each((i, el) => {
       const date = $(el).find('td').first().text();
@@ -96,11 +98,19 @@ const formatData = function (source, body, city, cb) {
       $(el).find('td').each((i, el) => {
         if (i < 2 || !isFinite(Number($(el).text()))) { return; }
         const location = stationMeta.split(' (')[0];
+
+        if (location.match(/УБ-[0-9]{1,2}/)) {
+          city = 'Ulaanbaatar';
+        }
+        if (units[i] == 'мг/м3') {
+          units[i] = 'mg/m³';
+        }
+        
         let m = {
           city: city,
           location: location,
           parameter: parameters[i],
-          unit: 'mg/m³', // FIXME
+          unit: units[i],
           value: Number($(el).text()),
           coordinates: coordinates[location],
           date: getDate(date, hours, source.timezone),
