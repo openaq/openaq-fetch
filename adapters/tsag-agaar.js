@@ -102,10 +102,10 @@ const formatData = function (source, body, city, cb) {
         if (location.match(/УБ-[0-9]{1,2}/)) {
           city = 'Ulaanbaatar';
         }
-        if (units[i] == 'мг/м3') {
+        if (units[i] === 'мг/м3') {
           units[i] = 'mg/m³';
         }
-        
+
         let m = {
           city: city,
           location: location,
