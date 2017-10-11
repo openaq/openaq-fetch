@@ -11,6 +11,10 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'tsag-agaar';
 
+// agaar.mn provides data for these
+// so skip them to avoid unneeded duplicates
+export const skippableLocations = ['УБ-2', 'УБ-8'];
+
 export function fetchData (source, cb) {
   request(source.url, (err, res, body) => {
     if (err || res.statusCode !== 200) {
@@ -98,6 +102,9 @@ const formatData = function (source, body, city, cb) {
       $(el).find('td').each((i, el) => {
         if (i < 2 || !isFinite(Number($(el).text()))) { return; }
         const location = stationMeta.split(' (')[0];
+        if (skippableLocations.indexOf(location) > -1) {
+          return;
+        }
 
         if (location.match(/УБ-[0-9]{1,2}/)) {
           city = 'Ulaanbaatar';
