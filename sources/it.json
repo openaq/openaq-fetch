@@ -18,6 +18,7 @@
     "name": "Arpae Emilia-Romagna",
     "country": "IT",
     "region": "Emilia-Romagna",
+    "timezone": "Europe/Rome",
     "description": "Air quality data from Emilia-Romagna region, Italy",
     "sourceURL": "https://dati.arpae.it/",
     "contacts": [
