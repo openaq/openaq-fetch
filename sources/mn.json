@@ -25,5 +25,18 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "http://tsag-agaar.gov.mn/observation/environment-monitoring/air-data",
+        "adapter": "tsag-agaar",
+        "name": "Tsag-Agaar.gov.mn",
+        "country": "MN",
+        "description": "",
+        "sourceURL": "http://tsag-agaar.gov.mn",
+        "timezone": "Asia/Ulaanbaatar",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
