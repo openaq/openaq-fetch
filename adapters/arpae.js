@@ -13,7 +13,9 @@ const searchUrl = 'https://dati.arpae.it/api/action/datastore_search';
 
 exports.fetchData = function (source, cb) {
   const yesterday = moment.tz(source.timezone).subtract(1, 'days').format('Y-M-D');
-  const queryUrl = `${searchUrl}?resource_id=${ckanResourceID}&filters={"reftime": "${yesterday}"}`;
+  // not doing paging right now, so set a limit
+  const limit = 100 * acceptableParameters.length;
+  const queryUrl = `${searchUrl}?resource_id=${ckanResourceID}&filters={"reftime": "${yesterday}"}&limit=${limit}`;
 
   request(queryUrl, (err, res, body) => {
     if (err || res.statusCode !== 200) {
@@ -58,7 +60,6 @@ exports.fetchData = function (source, cb) {
     });
 
     measurements = convertUnits(measurements);
-    console.log(measurements);
 
     return cb(null, {
       name: 'unused',
