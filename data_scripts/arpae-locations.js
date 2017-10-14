@@ -21,7 +21,7 @@ request(csvUrl, (err, res, data) => {
   let locations = {};
   uniqBy(parsed, 'Cod_staz').forEach((o) => {
     locations[o.Cod_staz] = {
-      name: o.Stazione,
+      station: o.Stazione,
       comune: o.COMUNE,
       coordinates: {
         latitude: Number(o.Lat),
