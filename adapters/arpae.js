@@ -48,6 +48,10 @@ exports.fetchData = function (source, cb) {
         city: city,
         location: location,
         coordinates: coordinates,
+        averagingPeriod: {
+          value: 1,
+          unit: 'hours'
+        },
         attribution: [
           {
             name: source.name,
