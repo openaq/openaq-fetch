@@ -28,7 +28,11 @@ exports.fetchData = function (source, cb) {
       cb(err || res);
     }
 
-    const $ = cheerio.load(body);
+    try {
+      const $ = cheerio.load(body);
+    } catch (e) {
+      return cb({message: 'Unable to load response.'})
+    }
     let provinces = $('#provincia option')
       .filter(function (i, el) {
         return Number($(this).attr('value')) >= 0;
