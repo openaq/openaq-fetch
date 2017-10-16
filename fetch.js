@@ -272,6 +272,8 @@ let tasks = [];
 sources.forEach((source) => {
   if (source.active) {
     tasks.push(getAndSaveData(source));
+  } else {
+    log.info(`Skipping inactive source: ${source.name}`);
   }
 });
 
