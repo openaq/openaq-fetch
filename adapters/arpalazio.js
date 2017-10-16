@@ -28,10 +28,12 @@ exports.fetchData = function (source, cb) {
       cb(err || res);
     }
 
+    let $;
+
     try {
-      const $ = cheerio.load(body);
+      $ = cheerio.load(body);
     } catch (e) {
-      return cb({message: 'Unable to load response.'})
+      return cb({message: 'Unable to load response.'});
     }
     let provinces = $('#provincia option')
       .filter(function (i, el) {
