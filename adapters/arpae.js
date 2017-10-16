@@ -9,13 +9,11 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 exports.name = 'arpae';
 
 const ckanResourceID = 'a1c46cfe-46e5-44b4-9231-7d9260a38e68';
-const searchUrl = 'https://dati.arpae.it/api/action/datastore_search';
 
 exports.fetchData = function (source, cb) {
-  const yesterday = moment.tz(source.timezone).subtract(1, 'days').format('Y-M-D');
-  // not doing paging right now, so set a limit
-  const limit = 100 * acceptableParameters.length;
-  const queryUrl = `${searchUrl}?resource_id=${ckanResourceID}&filters={"reftime": "${yesterday}"}&limit=${limit}`;
+  const before = moment.tz(source.timezone).subtract(3, 'days').format('Y-M-DT00:00:00');
+  const sql = `SELECT * from "${ckanResourceID}" WHERE reftime >= '${before}' ORDER BY reftime DESC`;
+  const queryUrl = `https://dati.arpae.it/api/action/datastore_search_sql?sql=${sql}`;
 
   request(queryUrl, (err, res, body) => {
     if (err || res.statusCode !== 200) {
