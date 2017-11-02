@@ -11,5 +11,19 @@
       "info@openaq.org"
     ],
     "active": false
+  },
+  {
+    "url": "https://dati.arpae.it/dataset/qualita-dell-aria-rete-di-monitoraggio/resource/a1c46cfe-46e5-44b4-9231-7d9260a38e68",
+    "adapter": "arpae",
+    "name": "Arpae Emilia-Romagna",
+    "country": "IT",
+    "region": "Emilia-Romagna",
+    "timezone": "Etc/GMT-1",
+    "description": "Air quality data from Emilia-Romagna region, Italy",
+    "sourceURL": "https://dati.arpae.it/",
+    "contacts": [
+      "info@openaq.org"
+    ],
+    "active": true
   }
 ]
