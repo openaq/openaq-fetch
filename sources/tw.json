@@ -1,6 +1,6 @@
 [
     {
-        "url": "http://opendata.epa.gov.tw/webapi/api/rest/datastore/355000000I-001805",
+        "url": "http://opendata.epa.gov.tw/webapi/api/rest/datastore",
         "adapter": "taiwan",
         "name": "Taiwan",
         "city": "",

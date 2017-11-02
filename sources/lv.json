@@ -1,11 +1,12 @@
+
 [
     {
         "url": "http://discomap.eea.europa.eu/map/fme/latest/",
         "adapter": "eea-direct",
-        "name": "EEA Macedonia",
+        "name": "EEA Latvia",
         "city": "",
-        "country": "MK",
-        "description": "Macedonian data from UTD service",
+        "country": "LV",
+        "description": "Latvian data from EEA Direct service",
         "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
         "contacts": [
             "info@openaq.org"
