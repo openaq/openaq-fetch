@@ -41,7 +41,7 @@ export const fetchData = function (source, cb) {
 
 /**
  * A city name in pinyin romanization or Chinese characters and a station name in chinese characters, get the coordinates of the station
- * To deal with a homonym, Taizhoushi resolves to 泰州 while Taizhou resolves to 台州, 
+ * To deal with a homonym, Taizhoushi resolves to 泰州 while Taizhou resolves to 台州,
  * even though 台州 and 泰州 have the same pinyin romanization
  * @param {object} city A city name in pinyin romanization or Chinese characters
  * @param {object} station A station name in Chinese characters
