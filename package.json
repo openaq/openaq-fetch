@@ -40,6 +40,7 @@
     "proj4js-defs": "0.0.1",
     "request": "^2.58.0",
     "require-dir": "^0.3.0",
+    "transliteration": "^1.6.2",
     "tz-lookup": "^6.1.2",
     "winston": "^2.1.1",
     "winston-papertrail": "^1.0.2",
