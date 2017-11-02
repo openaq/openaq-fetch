@@ -20,7 +20,7 @@ var argv = require('yargs')
   .alias('h', 'help')
   .argv;
 
-import { assign, filter, pick, chain, find, has, omit } from 'lodash'; // eslint-disable-line import/first
+import { assign, filter, pick, pickBy, chain, find, has, omit } from 'lodash'; // eslint-disable-line import/first
 var async = require('async');
 var knex = require('knex');
 let knexConfig = require('./knexfile');
@@ -42,6 +42,8 @@ let st;
 // time in case it's hanging. Intended to avoid https://github.com/openaq/openaq-fetch/issues/154
 setTimeout(() => {
   log.error('Uh oh, process timed out.');
+  runningSources = Object.keys(pickBy(runningSources, v => v !== 'finished'));
+  log.error(`Still running sources at time out: ${runningSources}`);
   process.exit(1);
 }, processTimeout);
 
@@ -257,7 +259,7 @@ var getAndSaveData = function (source) {
           });
 
           let msg = generateResultsMessage(results, source, failures, fetchStarted, fetchEnded, argv.dryrun);
-
+          runningSources[source.name] = 'finished';
           done(null, msg);
         });
       }
@@ -269,9 +271,13 @@ var getAndSaveData = function (source) {
  * Generate tasks to run in parallel, only care about the active sources
  */
 let tasks = [];
+let runningSources = {}; // Useful for debugging timeouts
 sources.forEach((source) => {
   if (source.active) {
+    runningSources[source.name] = 'running';
     tasks.push(getAndSaveData(source));
+  } else {
+    log.info(`Skipping inactive source: ${source.name}`);
   }
 });
 

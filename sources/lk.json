@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://stateair.net/dos/RSS/Colombo/Colombo-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Colombo",
+        "city": "Colombo",
+        "country": "LK",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
