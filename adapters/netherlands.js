@@ -267,8 +267,8 @@ var formatData = function (name, data) {
       m.coordinates = {
         latitude: coordinates[stationID][0],
         longitude: coordinates[stationID][1]
-      }
-    };
+      };
+    }
     measurements.push(m);
   });
 
