@@ -261,12 +261,15 @@ var formatData = function (name, data) {
       stationId: stationID,
       city: getCity($('STAT_NAAM', this).text()),
       attribution: getAttribution($('OPST_OPDR_ORGA_CODE', this).text()),
-      averagingPeriod: getPeriod(p),
-      coordinates: {
+      averagingPeriod: getPeriod(p)
+    };
+    // Catch missing coords https://github.com/openaq/openaq-fetch/issues/425
+    if (coordinates[stationID]) {
+      m.coordinates = {
         latitude: coordinates[stationID][0],
         longitude: coordinates[stationID][1]
-      }
-    };
+      };
+    }
     measurements.push(m);
   });
 
