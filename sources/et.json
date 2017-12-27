@@ -1,25 +1,25 @@
 [
     {
-        "url": "http://stateair.net/dos/RSS/AddisAbabaCentral/AddisAbabaCentral-PM2.5.xml",
+        "url": "http://dosairnowdata.org/dos/RSS/AddisAbabaCentral/AddisAbabaCentral-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_Addis_Ababa_Central",
         "city": "Addis Ababa",
         "country": "ET",
         "description": "",
-        "sourceURL": "http://stateair.net/dos/",
+        "sourceURL": "https://airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ],
         "active": true
     },
     {
-        "url": "http://stateair.net/dos/RSS/AddisAbabaSchool/AddisAbabaSchool-PM2.5.xml",
+        "url": "http://dosairnowdata.org/dos/RSS/AddisAbabaSchool/AddisAbabaSchool-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_Addis_Ababa_School",
         "city": "Addis Ababa",
         "country": "ET",
         "description": "",
-        "sourceURL": "http://stateair.net/dos/",
+        "sourceURL": "https://airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ],

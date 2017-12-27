@@ -14,13 +14,13 @@
         "active": true
     },
     {
-        "url": "http://stateair.net/dos/RSS/Ulaanbaatar/Ulaanbaatar-PM2.5.xml",
+        "url": "http://dosairnowdata.org/dos/RSS/Ulaanbaatar/Ulaanbaatar-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_Ulaanbaatar",
         "city": "Ulaanbaatar",
         "country": "MN",
         "description": "",
-        "sourceURL": "http://stateair.net/dos/",
+        "sourceURL": "https://airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ],

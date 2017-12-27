@@ -138,8 +138,9 @@ const makeDate = (date, timeZone) => {
   date = moment.parseZone(date);
   // pass parsed date as a string plus station timeZone offset to generate local time.
   const localDate = moment.tz(date.format(), timeZone);
+  // Force local data format to get around issue where +00:00 shows up as Z
   return {
     utc: date.toDate(),
-    local: localDate.format()
+    local: localDate.format('YYYY-MM-DDTHH:mm:ssZ')
   };
 };

@@ -1,12 +1,12 @@
 [
     {
-        "url": "http://stateair.net/dos/RSS/KuwaitCity/KuwaitCity-PM2.5.xml",
+        "url": "http://dosairnowdata.org/dos/RSS/KuwaitCity/KuwaitCity-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_KuwaitCity",
         "city": "Kuwait City",
         "country": "KW",
         "description": "",
-        "sourceURL": "http://stateair.net/dos/",
+        "sourceURL": "https://airnow.gov",
         "contacts": [
             "info@openaq.org"
         ],

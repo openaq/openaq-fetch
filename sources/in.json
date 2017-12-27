@@ -1,64 +1,64 @@
 [
     {
-        "url": "http://stateair.net/dos/RSS/Chennai/Chennai-PM2.5.xml",
+        "url": "http://dosairnowdata.org/dos/RSS/Chennai/Chennai-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_Chennai",
         "city": "Chennai",
         "country": "IN",
         "description": "",
-        "sourceURL": "http://stateair.net/dos/",
+        "sourceURL": "https://airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ],
         "active": true
     },
     {
-        "url": "http://stateair.net/dos/RSS/Hyderabad/Hyderabad-PM2.5.xml",
+        "url": "http://dosairnowdata.org/dos/RSS/Hyderabad/Hyderabad-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_Hyderabad",
         "city": "Hyderabad",
         "country": "IN",
         "description": "",
-        "sourceURL": "http://stateair.net/dos/",
+        "sourceURL": "https://airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ],
         "active": true
     },
     {
-        "url": "http://stateair.net/dos/RSS/Kolkata/Kolkata-PM2.5.xml",
+        "url": "http://dosairnowdata.org/dos/RSS/Kolkata/Kolkata-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_Kolkata",
         "city": "Kolkata",
         "country": "IN",
         "description": "",
-        "sourceURL": "http://stateair.net/dos/",
+        "sourceURL": "https://airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ],
         "active": true
     },
     {
-        "url": "http://stateair.net/dos/RSS/Mumbai/Mumbai-PM2.5.xml",
+        "url": "http://dosairnowdata.org/dos/RSS/Mumbai/Mumbai-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_Mumbai",
         "city": "Mumbai",
         "country": "IN",
         "description": "",
-        "sourceURL": "http://stateair.net/dos/",
+        "sourceURL": "https://airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ],
         "active": true
     },
     {
-        "url": "http://stateair.net/dos/RSS/NewDelhi/NewDelhi-PM2.5.xml",
+        "url": "http://dosairnowdata.org/dos/RSS/NewDelhi/NewDelhi-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_NewDelhi",
         "city": "Delhi",
         "country": "IN",
         "description": "",
-        "sourceURL": "http://stateair.net/dos/",
+        "sourceURL": "https://airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ],
