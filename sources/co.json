@@ -1,12 +1,12 @@
 [
     {
-        "url": "http://stateair.net/dos/RSS/Bogota/Bogota-PM2.5.xml",
+        "url": "http://dosairnowdata.org/dos/RSS/Bogota/Bogota-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_Bogota",
         "city": "Bogota",
         "country": "CO",
         "description": "",
-        "sourceURL": "http://stateair.net/dos/",
+        "sourceURL": "https://airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ],
