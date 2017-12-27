@@ -93,12 +93,17 @@ var formatData = function (data, source) {
         name: 'Department of Environment and Heritage Protection',
         url: $(this).parent().attr('information')
       }],
-      averagingPeriod: {'value': 1, 'unit': 'hours'},
-      coordinates: {
+      averagingPeriod: {'value': 1, 'unit': 'hours'}
+    };
+
+    // Add coordinates if they're available
+    if ($(this).parent().attr('latitude') && $(this).parent().attr('longitude')) {
+      m.coordinates = {
         latitude: Number($(this).parent().attr('latitude')),
         longitude: Number($(this).parent().attr('longitude'))
-      }
-    };
+      };
+    }
+
     measurements.push(m);
   });
 
