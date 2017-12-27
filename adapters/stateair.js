@@ -93,6 +93,8 @@ var formatData = function (data) {
           return 'Asia/Kathmandu';
         case 'Colombo':
           return 'Asia/Colombo';
+        case 'Abu Dhabi':
+          return 'Asia/Dubai';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -212,6 +214,11 @@ var formatData = function (data) {
           latitude: 6.913253,
           longitude: 79.848684
         }; // Colombo coordinates assume location is at US Embassy
+      case 'Abu Dhabi':
+        return {
+          latitude: 24.424399,
+          longitude: 54.433746
+        }; // Abu Dhabi coordinates assume location is at US Embassy
     }
   };
 
