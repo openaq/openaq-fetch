@@ -4,7 +4,7 @@
         "adapter": "stateair",
         "name": "StateAir_AbuDhabi",
         "city": "Abu Dhabi",
-        "country": "UE",
+        "country": "AE",
         "description": "",
         "sourceURL": "http://stateair.net/dos/",
         "contacts": [
