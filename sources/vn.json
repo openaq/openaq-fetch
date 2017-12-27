@@ -1,25 +1,25 @@
 [
     {
-        "url": "http://stateair.net/dos/RSS/Hanoi/Hanoi-PM2.5.xml",
+        "url": "http://dosairnowdata.org/dos/RSS/Hanoi/Hanoi-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_Hanoi",
         "city": "Hanoi",
         "country": "VN",
         "description": "",
-        "sourceURL": "http://stateair.net/dos/",
+        "sourceURL": "https://airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ],
         "active": true
     },
     {
-        "url": "http://stateair.net/dos/RSS/HoChiMinhCity/HoChiMinhCity-PM2.5.xml",
+        "url": "http://dosairnowdata.org/dos/RSS/HoChiMinhCity/HoChiMinhCity-PM2.5.xml",
         "adapter": "stateair",
         "name": "Ho Chi Minh City",
         "city": "Ho Chi Minh City",
         "country": "VN",
         "description": "",
-        "sourceURL": "http://stateair.net/dos/",
+        "sourceURL": "https://airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ],

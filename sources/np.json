@@ -1,25 +1,25 @@
 [
     {
-        "url": "http://stateair.net/dos/RSS/PhoraDurbarKathmandu/PhoraDurbarKathmandu-PM2.5.xml",
+        "url": "http://dosairnowdata.org/dos/RSS/PhoraDurbarKathmandu/PhoraDurbarKathmandu-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_PhoraDurbar",
         "city": "Kathmandu",
         "country": "NP",
         "description": "",
-        "sourceURL": "http://stateair.net/dos/",
+        "sourceURL": "https://airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ],
         "active": true
     },
     {
-        "url": "http://stateair.net/dos/RSS/EmbassyKathmandu/EmbassyKathmandu-PM2.5.xml",
+        "url": "http://dosairnowdata.org/dos/RSS/EmbassyKathmandu/EmbassyKathmandu-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_Kathmandu",
         "city": "Kathmandu",
         "country": "NP",
         "description": "",
-        "sourceURL": "http://stateair.net/dos/",
+        "sourceURL": "https://airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ],
