@@ -42,7 +42,7 @@ parse(input, (err, output) => {
         longitude: Number(m[12])
       },
       country: 'GH',
-      sourceName: 'Accra - manual',
+      sourceName: 'Dr. Raphael E. Arku and Colleagues',
       sourceType: 'research',
       mobile: false
     };
