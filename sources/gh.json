@@ -1,0 +1,15 @@
+[
+    {
+        "url": "unused",
+        "adapter": "unused",
+        "name": "Dr. Raphael E. Arku and Colleagues",
+        "city": "Accra",
+        "country": "GH",
+        "description": "Manual ingest of data from Dr. Raphael E. Arku and colleagues",
+        "sourceURL": "https://www.ncbi.nlm.nih.gov/pubmed?term=Arku+RE%5BAuthor%5D+AND+Accra+air+pollution%5BAll+Fields%5D&cmd=DetailsSearch",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": false
+    }
+]
