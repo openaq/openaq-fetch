@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://www.aqhi.gov.hk/epd/ddata/html/out",
+        "adapter": "hong-kong",
+        "name": "Hong Kong",
+        "city": "",
+        "country": "HK",
+        "description": "Hong Kong data from EPD",
+        "sourceURL": "https://data.gov.hk/en-data/dataset/hk-epd-airteam-past24hr-pc-of-individual-air-quality-monitoring-stations",
+        "contacts": [
+          "info@openaq.org"
+        ],
+        "active": true
+    }
+]
