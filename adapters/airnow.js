@@ -9,6 +9,8 @@ import { StringStream } from 'scramjet';
 
 export const name = 'airnow';
 
+const accepted = ['pm25', 'pm10', 'no2', 'so2', 'o3', 'co', 'bc'];
+
 exports.fetchData = function (source, cb) {
   // A workaround to getting rate limited for 6 logins in 1 hr for AirNow
   // system. Only try to grab data in last 20 minutes of an hour.
@@ -114,8 +116,6 @@ const getDate = (day, time, offset) => {
   return {utc: utc.toDate(), local: local.format()};
 };
 
-const accepted = ['pm25', 'pm10', 'no2', 'so2', 'o3', 'co', 'bc'];
-
 const getStream = async (url, file) => {
   const ftp = new FTP();
 
@@ -125,7 +125,7 @@ const getStream = async (url, file) => {
     ftp.connect({host: url, user: process.env.AIRNOW_FTP_USER, password: process.env.AIRNOW_FTP_PASSWORD});
   });
 
-  const stream = promisify(ftp.get)(file);
+  const stream = await promisify(ftp.get)(file);
   stream.once('close', () => ftp.end());
 
   return stream.pipe(new StringStream())
