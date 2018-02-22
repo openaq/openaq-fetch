@@ -26,7 +26,7 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://epa.tas.gov.au/Air/Live/EPA_tas_latest_particle_data.txt",
