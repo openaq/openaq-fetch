@@ -35,6 +35,7 @@ For production deployment, you will need to have certain environment variables s
 | EEA_GLOBAL_TIMEOUT | How long to check for EEA async results before quitting in seconds | 360 |
 | EEA_ASYNC_RECHECK | How long to wait to recheck for EEA async results in seconds | 60 |
 | SAVE_TO_S3 | Does the process save the measurements to an AWS S3 Bucket | not set |
+| EEA_MEM_LIMIT | Temporary solution to prevent large EEA files overwhelming system memory | 6000000 |
 
 ### Pushing to AWS S3
 
