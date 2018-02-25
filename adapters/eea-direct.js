@@ -7,6 +7,7 @@ import tzlookup from 'tz-lookup';
 import { default as parse } from 'csv-parse/lib/sync';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 const stationsLink = 'http://battuta.s3.amazonaws.com/eea-stations-all.json';
+const eeaMemLimit = process.env.EEA_MEM_LIMIT || 6000000;
 
 export const name = 'eea-direct';
 
@@ -62,13 +63,22 @@ const makeTaskRequests = (source) => {
 
     return (done) => {
       const url = source.url + source.country + '_' + pollutant + '.csv';
-      request.get({
+      // This is a bit of a stopgap to make sure we're not getting files that are
+      // too large, for nebluous values of 'too large';
+      request.head({
         url: url
       }, (err, res, body) => {
-        if (err || res.statusCode !== 200) {
+        if (err || Number(res.headers['content-length']) > eeaMemLimit) {
           return done(null, []);
         }
-        done(null, parse(body, {columns: true, relax_column_count: true}));
+        request.get({
+          url: url
+        }, (err, res, body) => {
+          if (err || res.statusCode !== 200) {
+            return done(null, []);
+          }
+          done(null, parse(body, {columns: true, relax_column_count: true}));
+        });
       });
     };
   });
