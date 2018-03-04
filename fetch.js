@@ -210,6 +210,7 @@ var getAndSaveData = function (source) {
             'country', 'sourceName', 'sourceType', 'mobile'];
           return pick(m, wanted);
         })
+        // arrange the data in batches of 64 items for quicker processing
         .batch(64)
         .flatMap(measurements => {
           // Remove any measurements that don't meet our requirements

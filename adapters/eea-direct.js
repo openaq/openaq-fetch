@@ -92,8 +92,9 @@ function fetchPollutants (source, stations) {
             }
           };
         })
-        // TODO: a stream transform would be preferred - working not on an array, but on a single item
-        .map(m => convertUnits([m])[0])
+        // TODO: a stream transform would be preferred - batch is used to increase efficiency
+        .batch(64)
+        .flatMap(convertUnits)
       ;
     }))
     .mux()
