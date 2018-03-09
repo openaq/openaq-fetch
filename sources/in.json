@@ -1,5 +1,18 @@
 [
     {
+        "url": "https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69",
+        "adapter": "data_gov_in",
+        "name": "data.gov.in",
+        "city": "",
+        "country": "IN",
+        "description": "",
+        "sourceURL": "https://data.gov.in/resources/real-time-air-quality-index-various-locations",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
         "url": "http://dosairnowdata.org/dos/RSS/Chennai/Chennai-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_Chennai",
@@ -75,7 +88,7 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://www.dpccairdata.com/dpccairdata/display/pbView15MinData.php",
