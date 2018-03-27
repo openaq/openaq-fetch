@@ -377,7 +377,7 @@ var runTasks = function () {
     let timeEnded = new Date();
     if (err) {
       log.error('Error during fetching of data sources.');
-      log.error(err.stack);
+      console.error(err.stack);
     } else {
       if (!argv.dryrun) {
         log.info('All data grabbed and saved.');
