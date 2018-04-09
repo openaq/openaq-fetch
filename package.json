@@ -28,7 +28,7 @@
     "ftp": "^0.3.10",
     "iconv": "^2.2.3",
     "install": "^0.10.1",
-    "jsonschema": "^1.0.3",
+    "jsonschema": "1.2.0",
     "knex": "^0.13.0",
     "knex-postgis": "^0.2.2",
     "lodash": "^4.17.4",
