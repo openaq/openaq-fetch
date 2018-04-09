@@ -10,7 +10,7 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://dosairnowdata.org/dos/RSS/Chennai/Chennai-PM2.5.xml",
