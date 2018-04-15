@@ -78,12 +78,12 @@ export function fetchData (source, cb) {
 
         return request(options, (err, res, body) => {
           if (err || !res.statusCode === 200) {
-            return done(null, []);
+            return done(null, {});
           }
 
           body = safeParse(body);
           if (body === undefined) {
-            return done(null, []);
+            return done(null, {});
           }
 
           return done(null, body);
@@ -119,6 +119,11 @@ const formatData = (data) => {
 
   // Loop over results from individual stations and start building up the measurements array
   data.results.forEach((site) => {
+    // Make sure we have a valid site object
+    if (!site || !site.siteInfo || !site.siteInfo.siteId) {
+      return;
+    }
+
     const coords = data.sites[findIndex(data.sites, {'station_id': site.siteInfo.siteId})].coords;
     site.tableData.bodyContent.forEach((p) => {
       let parameter = p.parameters.toLowerCase().replace('.', '');
