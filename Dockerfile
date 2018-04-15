@@ -47,6 +47,7 @@ RUN source $NVM_DIR/nvm.sh; npm install
 COPY ["index.js", ".eslintrc", ".eslintignore", ".babelrc", "knexfile.js", "/app/"]
 COPY ["fetch.js", "/app/"]
 COPY lib /app/lib/
+COPY certs /app/certs/
 COPY test /app/test/
 COPY sources /app/sources/
 COPY adapters /app/adapters/
