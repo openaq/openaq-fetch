@@ -1,5 +1,18 @@
 [
     {
+        "url": "https://app.cpcbccr.com/caaqms/caaqms_landing_map_all",
+        "adapter": "caaqm",
+        "name": "caaqm",
+        "city": "",
+        "country": "IN",
+        "description": "",
+        "sourceURL": "https://app.cpcbccr.com/ccr/#/caaqm-dashboard-all/caaqm-landing",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
         "url": "https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69",
         "adapter": "data_gov_in",
         "name": "data.gov.in",
