@@ -51,6 +51,7 @@ function fetchPollutants (source, stations) {
     pollutants.map(pollutant => {
       const url = source.url + source.country + '_' + pollutant + '.csv';
       const timeLastInsert = Date.now() - 72e5;
+      let header;
 
       return new StringStream()
         .use(stream => {
@@ -62,7 +63,10 @@ function fetchPollutants (source, stations) {
             });
           return stream;
         })
-        .CSVParse({header: true, delimiter: ',', skipEmptyLines: true})
+        .CSVParse({header: false, delimiter: ',', skipEmptyLines: true})
+        .shift(1, columns => (header = columns[0]))
+        .filter(o => o.length === header.length)
+        .map(o => header.reduce((a, c, i) => { a[c] = o[i]; return a; }, {}))
         // TODO: it would be good to provide the actual last fetch time so that we can filter already inserted items in a better way
         .filter(o => Date.parse(o.value_datetime_inserted) > timeLastInsert)
         .filter(o => o.station_code in stations)
