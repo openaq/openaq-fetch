@@ -244,7 +244,7 @@ var getAndSaveData = function (source) {
       let n = 0;
 
       measurements = out
-        .setOptions({maxParallel: process.env.PSQL_POOL_MAX || 10})
+        .setOptions({maxParallel: +(process.env.PSQL_POOL_MAX || 10)})
         .map(data => ({
           data, index: -1
         }))
