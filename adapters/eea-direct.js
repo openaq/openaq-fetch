@@ -2,146 +2,108 @@ import { acceptableParameters, convertUnits } from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
-import { parallel, map } from 'async';
 import tzlookup from 'tz-lookup';
-import { default as parse } from 'csv-parse/lib/sync';
+import { MultiStream, DataStream, StringStream } from 'scramjet';
+import { default as JSONStream } from 'JSONStream';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 const stationsLink = 'http://battuta.s3.amazonaws.com/eea-stations-all.json';
-const eeaMemLimit = process.env.EEA_MEM_LIMIT || 6000000;
+// Thanks to streams, no longer need to check file size against the memory limit.
+// const eeaMemLimit = process.env.EEA_MEM_LIMIT || 6000000;
 
 export const name = 'eea-direct';
 
-export function fetchData (source, cb) {
-  const metadataRequest = makeMetadataRequest(source);
-  const requestTasks = makeTaskRequests(source);
-  parallel(
-    [metadataRequest, requestTasks],
-    (err, res) => {
-      if (err) {
-        return cb('Error getting data from source', []);
-      }
-      try {
-        formatData(res, source, cb);
-      } catch (e) {
-        cb({message: 'Error parsing the data'}, null);
-      }
-    });
+export function fetchStream (source) {
+  const out = new DataStream();
+  out.name = 'unused';
+
+  fetchMetadata(source)
+    .then((stations) => fetchPollutants(source, stations))
+    .then(stream => stream.pipe(out))
+  ;
+
+  return out;
 }
 
-// Location info by station is not reported on consistently. Instead of using
-// the metadata that is included in the CSV file, this adapter relies on
-// Battuta (https://github.com/openaq/battuta) to provide station metadata.
-const makeMetadataRequest = (source) => {
-  return (cb) => {
-    request.get({
-      url: stationsLink
-    }, (err, res, body) => {
-      if (err || res.statusCode !== 200) {
-        return cb('Could not gather current metadata, will generate records without coordinates.', []);
-      }
-      let data;
-      try {
-        data = JSON.parse(body);
-      } catch (e) {
-        return cb('Could not parse metadata file', []);
-      }
-      cb(null, data);
-    });
-  };
-};
+export async function fetchData (source, cb) {
+  try {
+    const stream = await fetchStream(source);
+    const measurements = await stream.toArray();
+    cb(null, {name: stream.name, measurements});
+  } catch (e) {
+    cb(e);
+  }
+}
 
-// makes requests to get country's pollutant data.
-const makeTaskRequests = (source) => {
-  const pollutantRequests = acceptableParameters.map((pollutant) => {
-    switch (pollutant) {
-      case 'pm25':
-        pollutant = 'PM2.5';
-        break;
-      default:
-        pollutant = pollutant.toUpperCase();
-    }
+async function fetchMetadata (source) {
+  return request({url: stationsLink})
+    .pipe(JSONStream.parse('*'))
+    .pipe(new DataStream())
+    .filter(({stationId}) => stationId.startsWith(source.country))
+    .accumulate((acc, item) => (acc[item.stationId] = item), {});
+}
 
-    return (done) => {
+function fetchPollutants (source, stations) {
+  const pollutants = acceptableParameters.map(
+    (pollutant) => pollutant === 'pm25' ? 'PM2.5' : pollutant.toUpperCase()
+  );
+
+  return new MultiStream(
+    pollutants.map(pollutant => {
       const url = source.url + source.country + '_' + pollutant + '.csv';
-      // This is a bit of a stopgap to make sure we're not getting files that are
-      // too large, for nebluous values of 'too large';
-      request.head({
-        url: url
-      }, (err, res, body) => {
-        if (err || Number(res.headers['content-length']) > eeaMemLimit) {
-          return done(null, []);
-        }
-        request.get({
-          url: url
-        }, (err, res, body) => {
-          if (err || res.statusCode !== 200) {
-            return done(null, []);
-          }
-          done(null, parse(body, {columns: true, relax_column_count: true}));
-        });
-      });
-    };
-  });
-  return (done) => {
-    parallel(
-      pollutantRequests,
-      (err, response) => {
-        if (err) {
-          done(null, []);
-        }
-        done(null, [].concat.apply([], response));
-      }
-    );
-  };
-};
+      const timeLastInsert = Date.now() - 72e5;
+      let header;
 
-// formats data to match openAQ standard
-const formatData = (data, source, cb) => {
-  const stations = data[0];
-
-  // the CSV files contain 48 hours worth of data
-  // filter this down to records that were inserted up to two hours ago
-  // this vastly reduces the amount of redundant inserts fetch tries to make
-  const timeLastInsert = data[1].reduce((a, b) => Math.max(a, Date.parse(b.value_datetime_inserted) || 0), 0);
-  const records = data[1].filter(o => Date.parse(o.value_datetime_inserted) > (timeLastInsert - 3700000));
-
-  map(records, (record, done) => {
-    const matchedStation = stations.find(station => station.stationId === record['station_code']);
-    if (!(matchedStation)) {
-      return done(null, {});
-    }
-    const timeZone = tzlookup(matchedStation.latitude, matchedStation.longitude);
-    let m = {
-      location: record['station_code'],
-      city: matchedStation.city ? matchedStation.city : (
-        matchedStation.location ? matchedStation.location : source.city
-      ),
-      coordinates: {
-        latitude: Number(matchedStation.latitude),
-        longitude: Number(matchedStation.longitude)
-      },
-      parameter: record['pollutant'].toLowerCase().replace('.', ''),
-      date: makeDate(record['value_datetime_end'], timeZone),
-      value: Number(record['value_numeric']),
-      unit: record['value_unit'],
-      attribution: [{
-        name: 'EEA',
-        url: source.sourceURL
-      }],
-      averagingPeriod: {
-        unit: 'hours',
-        value: 1
-      }
-    };
-    // apply unit conversion to generated record
-    done(null, convertUnits([m])[0]);
-  }, (err, measurements) => {
-    if (err) {
-      return cb(null, {name: 'unused', measurements: []});
-    }
-    cb(null, {name: 'unused', measurements: measurements});
-  });
-};
+      return new StringStream()
+        .use(stream => {
+          const resp = request.get({url})
+            .on('response', ({statusCode}) => {
+              +statusCode !== 200
+                ? stream.end()
+                : resp.pipe(stream);
+            });
+          return stream;
+        })
+        .CSVParse({header: false, delimiter: ',', skipEmptyLines: true})
+        .shift(1, columns => (header = columns[0]))
+        .filter(o => o.length === header.length)
+        .map(o => header.reduce((a, c, i) => { a[c] = o[i]; return a; }, {}))
+        // TODO: it would be good to provide the actual last fetch time so that we can filter already inserted items in a better way
+        .filter(o => Date.parse(o.value_datetime_inserted) > timeLastInsert)
+        .filter(o => o.station_code in stations)
+        .map(record => {
+          const matchedStation = stations[record.station_code];
+          const timeZone = tzlookup(matchedStation.latitude, matchedStation.longitude);
+          return {
+            location: record['station_code'],
+            city: matchedStation.city ? matchedStation.city : (
+              matchedStation.location ? matchedStation.location : source.city
+            ),
+            coordinates: {
+              latitude: Number(matchedStation.latitude),
+              longitude: Number(matchedStation.longitude)
+            },
+            parameter: record['pollutant'].toLowerCase().replace('.', ''),
+            date: makeDate(record['value_datetime_end'], timeZone),
+            value: Number(record['value_numeric']),
+            unit: record['value_unit'],
+            attribution: [{
+              name: 'EEA',
+              url: source.sourceURL
+            }],
+            averagingPeriod: {
+              unit: 'hours',
+              value: 1
+            }
+          };
+        })
+        // TODO: a stream transform would be preferred - batch is used to increase efficiency
+        .batch(64)
+        .flatMap(convertUnits)
+      ;
+    }))
+    .mux()
+  ;
+}
 
 const makeDate = (date, timeZone) => {
   // parse date, considering its utc offset
