@@ -23,6 +23,13 @@ envs.split('\n').forEach(function (e) {
 });
 obj['containerDefinitions'][0]['environment'] = splitEnvs;
 
+// Handle special case for CONTAINER_MEMORY if it exists
+splitEnvs.forEach(function (e) {
+  if (e.name === 'CONTAINER_MEMORY') {
+    obj['containerDefinitions'][0]['memory'] = Number(e.value);
+  }
+})
+
 // Also set container version based on hash
 let hash = 'latest';
 if (process.env.TRAVIS_COMMIT) {

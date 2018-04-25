@@ -20,7 +20,10 @@ var argv = require('yargs')
   .alias('h', 'help')
   .argv;
 
-import { assign, filter, pick, pickBy, chain, find, has, omit } from 'lodash'; // eslint-disable-line import/first
+import { assign, pick, pickBy, chain, find, has, omit } from 'lodash'; // eslint-disable-line import/first
+
+var {promisify} = require('util');
+var {DataStream} = require('scramjet');
 var async = require('async');
 var knex = require('knex');
 let knexConfig = require('./knexfile');
@@ -120,6 +123,43 @@ let buildSQLObject = function (m) {
   return obj;
 };
 
+var getStreamFromAdapter = async function (adapter, source) {
+  if (!adapter.fetchStream) {
+    const data = await promisify(adapter.fetchData)(source);
+    const out = DataStream.fromArray(data.measurements);
+    out.name = data.name;
+    return out;
+  }
+  return adapter.fetchStream(source);
+};
+
+const insertRecord = async function (record, index) {
+  return pg('measurements')
+    .returning('location')
+    .insert(record)
+    .then((loc) => ({status: 'new'}))
+    .catch((e) => {
+      // Log out an error if it's not an failed duplicate insert
+      if (e.code === '23505') {
+        return Promise.resolve({status: 'duplicate'});
+      }
+      log.error(e);
+      return Promise.reject(e);
+    });
+};
+
+// Generates a formatted message based on fetch results
+const generateResultsMessage = function (newResults, source, failures, fetchStarted, fetchEnded, isDryrun = false) {
+  return {
+    message: `${isDryrun ? '[Dry Run] ' : ''}New measurements inserted for ${source.name}: ${newResults.length}`,
+    failures: failures,
+    count: newResults.length,
+    results: newResults,
+    duration: (fetchEnded - fetchStarted) / 1000,
+    sourceName: source.name
+  };
+};
+
 /**
  * Create a function to ask the adapter for data, verify the data and attempt
  * to save to a database when appropriate (i.e., not running with `--dryrun`).
@@ -127,143 +167,100 @@ let buildSQLObject = function (m) {
  * @return {function} The function to make the magic happen
  */
 var getAndSaveData = function (source) {
-  // Generates a formatted message based on fetch results
-  let generateResultsMessage = function (newResults, source, failures, fetchStarted, fetchEnded, isDryrun = false) {
-    return {
-      message: `${isDryrun ? '[Dry Run] ' : ''}New measurements inserted for ${source.name}: ${newResults.length}`,
-      failures: failures,
-      count: newResults.length,
-      results: newResults,
-      duration: (fetchEnded - fetchStarted) / 1000,
-      sourceName: source.name
-    };
-  };
-
-  return function (done) {
+  return async function () {
     // Get the appropriate adapter
     var adapter = findAdapter(source.adapter);
     if (!adapter) {
       const msg = generateResultsMessage([], source, {'Could not find adapter.': 1}, 0, 0, argv.dryrun);
-      return done(null, msg);
+      return msg;
     }
 
-    let fetchStarted = Date.now();
-    adapter.fetchData(source, function (err, data) {
-      let fetchEnded = Date.now();
-      // If we have an error
-      if (err) {
-        const errDict = {};
-        const key = err.message || 'Unknown adapter error';
-        errDict[key] = 1;
-        const msg = generateResultsMessage([], source, errDict, fetchStarted, fetchEnded, argv.dryrun);
-        return done(null, msg);
-      }
+    const fetchStarted = Date.now();
+    const failures = [];
+    let fetchEnded;
+    let out;
 
-      // Verify the data format
-      let { isValid, failures: reasons } = utils.verifyDataFormat(data);
+    try {
+      const stream = await getStreamFromAdapter(adapter, source);
+      const { isValid, failures: reasons } = utils.verifyStream(stream);
 
       // If the data format is invalid
       if (!isValid) {
         const msg = generateResultsMessage([], source, reasons, fetchStarted, fetchEnded, argv.dryrun);
-        return done(null, msg);
+        return msg;
       }
 
       // Clean up the measurements a bit before validation
-      data.measurements = data.measurements.map((m) => {
-        // Set defaults on measurement if needed
-        m.location = m.location || data.name; // use existing location if it exists
-        m.country = m.country || source.country;
-        m.city = m.city || source.city; // use city from measurement, otherwise default to source
-        m.sourceName = source.name;
+      out = stream
+        .map((m) => {
+          // Set defaults on measurement if needed
+          m.location = m.location || stream.name; // use existing location if it exists
+          m.country = m.country || source.country;
+          m.city = m.city || source.city; // use city from measurement, otherwise default to source
+          m.sourceName = source.name;
 
-        // Set defaults for sourceType (default to government)
-        // and mobile (default to false).
-        m.sourceType = m.sourceType || 'government';
-        m.mobile = (m.mobile === undefined) ? false : m.mobile;
+          // Set defaults for sourceType (default to government)
+          // and mobile (default to false).
+          m.sourceType = m.sourceType || 'government';
+          m.mobile = (m.mobile === undefined) ? false : m.mobile;
 
-        // Remove extra fields
-        var wanted = ['date', 'parameter', 'location', 'value', 'unit', 'city',
-          'attribution', 'averagingPeriod', 'coordinates',
-          'country', 'sourceName', 'sourceType', 'mobile'];
-        return pick(m, wanted);
-      });
-
-      // Remove any measurements that don't meet our requirements
-      let { pruned, failures } = utils.pruneMeasurements(data.measurements);
-      data.measurements = pruned;
-
-      // If we have no measurements to insert, we can exit now
-      if (data.measurements && data.measurements.length === 0) {
-        let msg = generateResultsMessage(data.measurements, source, failures, fetchStarted, fetchEnded, argv.dryrun);
-        return done(null, msg);
-      }
-
-      // We can cut out some of the db related tasks if this is a dry run
-      if (!argv.dryrun) {
-        var inserts = [];
-      }
-      data.measurements.forEach((m, index) => {
-        // Save or print depending on the state
-        if (argv.dryrun) {
-          log.info(JSON.stringify(m));
-        } else {
-          inserts.push({index: index, data: buildSQLObject(m)});
-        }
-      });
-      if (argv.dryrun) {
-        let results = data.measurements.map(data => {
-          return {
-            data: data
-          };
-        });
-        let msg = generateResultsMessage(results, source, failures, fetchStarted, fetchEnded, argv.dryrun);
-        done(null, msg);
-      } else {
-        // We're running each insert task individually so we can catch any
-        // duplicate errors. Good idea? Who knows!
-        let insertRecord = function (record, index) {
-          return function (done) {
-            pg('measurements')
-              .returning('location')
-              .insert(record)
-              .then((loc) => {
-                done(null, {status: 'new', index: index});
-              })
-              .catch((e) => {
-                // Log out an error if it's not an failed duplicate insert
-                if (e.code === '23505') {
-                  return done(null, {status: 'duplicate'});
-                }
-
-                log.error(e);
-                done(e);
-              });
-          };
-        };
-        let tasks = inserts.map((i) => {
-          return insertRecord(i.data, i.index);
-        });
-        async.parallelLimit(tasks, process.env.PSQL_POOL_MAX || 10, function (err, results) {
-          if (err) {
-            return done(err);
+          // Remove extra fields
+          var wanted = ['date', 'parameter', 'location', 'value', 'unit', 'city',
+            'attribution', 'averagingPeriod', 'coordinates',
+            'country', 'sourceName', 'sourceType', 'mobile'];
+          return pick(m, wanted);
+        })
+        // arrange the data in batches of 64 items for quicker processing
+        .batch(64)
+        .flatMap(measurements => {
+          // Remove any measurements that don't meet our requirements
+          const { pruned, _failures } = utils.pruneMeasurements(measurements);
+          if (_failures) {
+            failures.push(..._failures);
           }
+          return pruned;
+        })
+      ;
+      out.name = stream.name;
+    } catch (err) {
+      fetchEnded = fetchEnded || Date.now();
 
-          // Get rid of duplicates in results array to get actual insert number
-          results = filter(results, (r) => {
-            return r.status !== 'duplicate';
-          });
+      const errDict = {};
+      const key = err.message || 'Unknown adapter error';
+      errDict[key] = 1;
 
-          // Add the original data measurement to the results
-          results = results.map(obj => {
-            return Object.assign({}, obj, {data: data.measurements[obj.index]});
-          });
+      runningSources[source.name] = 'finished';
 
-          let msg = generateResultsMessage(results, source, failures, fetchStarted, fetchEnded, argv.dryrun);
-          runningSources[source.name] = 'finished';
-          done(null, msg);
-        });
-      }
-    });
+      return generateResultsMessage([], source, errDict, fetchStarted, fetchEnded, argv.dryrun);
+    }
+
+    let measurements = null;
+    if (argv.dryrun) {
+      measurements = out
+        .each(m => log.info(JSON.stringify(m)))
+        .map(data => ({data}))
+      ;
+    } else {
+      let n = 0;
+
+      measurements = out
+        .setOptions({maxParallel: +(process.env.PSQL_POOL_MAX || 10)})
+        .map(data => ({
+          data, index: -1
+        }))
+        .each(item => (item.index = n++))
+        .assign(({data}) => insertRecord(buildSQLObject(data)))
+        .filter(({status}) => status !== 'duplicate')
+      ;
+    }
+
+    try {
+      const results = await measurements.toArray();
+      fetchEnded = Date.now();
+      return generateResultsMessage(results, source, failures, fetchStarted, fetchEnded, argv.dryrun);
+    } catch (err) {
+      return Promise.reject(err);
+    }
   };
 };
 
@@ -380,6 +377,7 @@ var runTasks = function () {
     let timeEnded = new Date();
     if (err) {
       log.error('Error during fetching of data sources.');
+      console.error(err.stack);
     } else {
       if (!argv.dryrun) {
         log.info('All data grabbed and saved.');
