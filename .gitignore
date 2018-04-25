@@ -6,3 +6,4 @@ newrelic_agent.log
 dump
 local.env
 ecs-task-generated.json
+/.nvmrc
