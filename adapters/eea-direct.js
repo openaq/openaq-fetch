@@ -7,8 +7,6 @@ import { MultiStream, DataStream, StringStream } from 'scramjet';
 import { default as JSONStream } from 'JSONStream';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 const stationsLink = 'http://battuta.s3.amazonaws.com/eea-stations-all.json';
-// Thanks to streams, no longer need to check file size against the memory limit.
-// const eeaMemLimit = process.env.EEA_MEM_LIMIT || 6000000;
 
 export const name = 'eea-direct';
 
@@ -50,7 +48,7 @@ function fetchPollutants (source, stations) {
   return new MultiStream(
     pollutants.map(pollutant => {
       const url = source.url + source.country + '_' + pollutant + '.csv';
-      const timeLastInsert = Date.now() - 72e5;
+      const timeLastInsert = moment().utc().subtract(2, 'hours');
       let header;
 
       return new StringStream()
@@ -68,7 +66,7 @@ function fetchPollutants (source, stations) {
         .filter(o => o.length === header.length)
         .map(o => header.reduce((a, c, i) => { a[c] = o[i]; return a; }, {}))
         // TODO: it would be good to provide the actual last fetch time so that we can filter already inserted items in a better way
-        .filter(o => Date.parse(o.value_datetime_inserted) > timeLastInsert)
+        .filter(o => moment(o.value_datetime_inserted).utc().isAfter(timeLastInsert))
         .filter(o => o.station_code in stations)
         .map(record => {
           const matchedStation = stations[record.station_code];
