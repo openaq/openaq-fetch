@@ -9,7 +9,7 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://monitoringzrakatk.info/",
@@ -18,6 +18,19 @@
         "country": "BA",
         "description": "",
         "sourceURL": "http://monitoringzrakatk.info/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Sarajevo/Sarajevo-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "Sarajevo",
+        "city": "Sarajevo",
+        "country": "BA",
+        "description": "",
+        "sourceURL": "https://airnow.gov/",
         "contacts": [
             "info@openaq.org"
         ],
