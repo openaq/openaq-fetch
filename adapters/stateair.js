@@ -95,6 +95,8 @@ var formatData = function (data) {
           return 'Asia/Colombo';
         case 'Abu Dhabi':
           return 'Asia/Dubai';
+        case 'Sarajevo':
+          return 'Europe/Sarajevo';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -219,6 +221,11 @@ var formatData = function (data) {
           latitude: 24.424399,
           longitude: 54.433746
         }; // Abu Dhabi coordinates assume location is at US Embassy
+      case 'Sarajevo':
+        return {
+          latitude: 43.856667,
+          longitude: 18.398205
+        }; // Sarajevo coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
     }
   };
 
