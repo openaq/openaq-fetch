@@ -42,6 +42,7 @@
     "request": "^2.58.0",
     "require-dir": "^0.3.0",
     "scramjet": "^4.9.0",
+    "scramjet-core": "^4.8.0",
     "ssl-root-cas": "^1.2.5",
     "transliteration": "^1.6.2",
     "tz-lookup": "^6.1.2",
