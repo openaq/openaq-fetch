@@ -31,6 +31,7 @@ var utils = require('./lib/utils');
 var request = require('request');
 var log = require('./lib/logger');
 var moment = require('moment');
+require('./lib/cycle.js');
 
 var adapters = require('./adapters');
 var sources = require('./sources');
@@ -282,9 +283,10 @@ sources.forEach((source) => {
  * Saves information about fetches to the database
  */
 const saveFetches = function (timeStarted, timeEnded, itemsInserted, err, results) {
+  console.log(err, results);
   return function (done) {
     pg('fetches')
-      .insert({time_started: timeStarted, time_ended: timeEnded, count: itemsInserted, results: JSON.stringify(err || results)})
+      .insert({time_started: timeStarted, time_ended: timeEnded, count: itemsInserted, results: JSON.stringify(JSON.decycle(err) || JSON.decycle(results))})
       .then((id) => {
         // Insert was successful
         log.info('Fetches table successfully updated');
