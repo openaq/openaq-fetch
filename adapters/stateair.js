@@ -100,6 +100,8 @@ var formatData = function (data) {
           return 'Europe/Sarajevo';
         case 'Astana':
           return 'Asia/Almaty';
+        case 'Curacao':
+          return 'America/Curacao';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -238,6 +240,11 @@ var formatData = function (data) {
         return {
           latitude: 51.125286,
           longitude: 71.46722
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Curacao':
+        return {
+          latitude: 12.1696,
+          longitude: -68.99
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
     }
   };
