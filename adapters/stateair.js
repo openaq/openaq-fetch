@@ -98,6 +98,8 @@ var formatData = function (data) {
           return 'Asia/Dubai';
         case 'Sarajevo':
           return 'Europe/Sarajevo';
+        case 'Astana':
+          return 'Asia/Almaty';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -231,6 +233,11 @@ var formatData = function (data) {
         return {
           latitude: 25.25848,
           longitude: 55.309166
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Astana':
+        return {
+          latitude: 51.125286,
+          longitude: 71.46722
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
     }
   };
