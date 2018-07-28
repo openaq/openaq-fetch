@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Curacao/Curacao-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Curacao",
+        "city": "Curacao",
+        "country": "CW",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
