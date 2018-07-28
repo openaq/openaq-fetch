@@ -11,5 +11,18 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Dubai/Dubai-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Dubai",
+        "city": "Dubai",
+        "country": "AE",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]

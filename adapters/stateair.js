@@ -94,6 +94,7 @@ var formatData = function (data) {
         case 'Colombo':
           return 'Asia/Colombo';
         case 'Abu Dhabi':
+        case 'Dubai':
           return 'Asia/Dubai';
         case 'Sarajevo':
           return 'Europe/Sarajevo';
@@ -226,6 +227,11 @@ var formatData = function (data) {
           latitude: 43.856667,
           longitude: 18.398205
         }; // Sarajevo coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Dubai':
+        return {
+          latitude: 25.25848,
+          longitude: 55.309166
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
     }
   };
 
