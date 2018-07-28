@@ -12,6 +12,18 @@
         "active": false
     },
     {
+        "url": "http://www.fhmzbih.gov.ba/latinica/ZRAK/vrijednostiPolutanata.php",
+        "adapter": "fhmzbih2",
+        "name": "Bosnia2",
+        "country": "BA",
+        "description": "",
+        "sourceURL": "http://www.fhmzbih.gov.ba/latinica/ZRAK/vrijednostiPolutanata.php",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
         "url": "http://monitoringzrakatk.info/",
         "adapter": "tuzlanski",
         "name": "Bosnia_Tuzlanski",

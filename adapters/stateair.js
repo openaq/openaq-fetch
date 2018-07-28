@@ -94,9 +94,14 @@ var formatData = function (data) {
         case 'Colombo':
           return 'Asia/Colombo';
         case 'Abu Dhabi':
+        case 'Dubai':
           return 'Asia/Dubai';
         case 'Sarajevo':
           return 'Europe/Sarajevo';
+        case 'Astana':
+          return 'Asia/Almaty';
+        case 'Curacao':
+          return 'America/Curacao';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -226,6 +231,21 @@ var formatData = function (data) {
           latitude: 43.856667,
           longitude: 18.398205
         }; // Sarajevo coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Dubai':
+        return {
+          latitude: 25.25848,
+          longitude: 55.309166
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Astana':
+        return {
+          latitude: 51.125286,
+          longitude: 71.46722
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Curacao':
+        return {
+          latitude: 12.1696,
+          longitude: -68.99
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
     }
   };
 

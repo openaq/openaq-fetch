@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Astana/Astana-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Astana",
+        "city": "Astana",
+        "country": "KZ",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
