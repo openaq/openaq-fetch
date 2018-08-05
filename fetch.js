@@ -21,7 +21,7 @@ import moment from 'moment';
 import {
   sendUpdatedWebhook, getMeasurementsObjectFromSource,
   STREAM_END, handleMeasurementErrors, streamDataToS3, forwardErrors
-} from './lib/fetch';
+} from './lib/measurement';
 import { getDB, streamDataToDB, saveFetches, saveSources } from './lib/db';
 
 import { DataStream } from 'scramjet';
