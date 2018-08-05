@@ -5,6 +5,8 @@ import { default as moment } from 'moment-timezone';
 import tzlookup from 'tz-lookup';
 import { MultiStream, DataStream, StringStream } from 'scramjet';
 import { default as JSONStream } from 'JSONStream';
+import log from '../lib/logger';
+
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 const stationsLink = 'http://battuta.s3.amazonaws.com/eea-stations-all.json';
 
@@ -13,6 +15,8 @@ export const name = 'eea-direct';
 export function fetchStream (source) {
   const out = new DataStream();
   out.name = 'unused';
+
+  log.debug('Fetch stream called');
 
   fetchMetadata(source)
     .then((stations) => fetchPollutants(source, stations))
