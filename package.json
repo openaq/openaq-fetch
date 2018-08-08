@@ -16,7 +16,7 @@
     "@turf/helpers": "^4.6.0",
     "@turf/inside": "^4.6.0",
     "JSONStream": "^1.3.2",
-    "adm-zip": "^0.4.7",
+    "adm-zip": "^0.4.11",
     "async": "^2.5",
     "aws-sdk": "^2.274.1",
     "babel-preset-node8": "^1.2.0",
