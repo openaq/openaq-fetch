@@ -36,10 +36,20 @@ export async function fetchData (source, cb) {
   }
 }
 
+let _battuta = null;
+function getBattutaStream () {
+  if (!_battuta) {
+    _battuta = request({url: stationsLink})
+      .pipe(JSONStream.parse('*'))
+      .pipe(new DataStream())
+      .keep(Infinity);
+  }
+
+  return _battuta.rewind();
+}
+
 async function fetchMetadata (source) {
-  return request({url: stationsLink})
-    .pipe(JSONStream.parse('*'))
-    .pipe(new DataStream())
+  return getBattutaStream()
     .filter(({stationId}) => stationId.startsWith(source.country))
     .accumulate((acc, item) => (acc[item.stationId] = item), {});
 }

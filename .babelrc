@@ -1,5 +1,5 @@
 {
- "presets": [
-   ["node8"]
+  "presets": [
+    "node8"
   ]
 }
