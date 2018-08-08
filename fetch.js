@@ -94,12 +94,11 @@ Promise.race([
         runningSources[source.name] = 'started';
       })
       .map(async (source) => getMeasurementsFromSource(source, argv.dryrun))
-      .do(async ({source, stream}) => {
-        log.debug(`Got stream for ${source.name}`);
+      .do(async ({stream}) => {
         if (argv.dryrun) {
           return stream
-            .each(m => log.info(m))
-            .whenEnd();
+            .do(m => log.info(m))
+            .run();
         } else {
           const s3 = require('aws-sdk').S3();
           const key = `realtime/${moment().format('YYYY-MM-DD/X')}.ndjson`;
@@ -110,12 +109,10 @@ Promise.race([
             streamDataToS3(stream, s3, bucketName, key),
             streamDataToDB(stream, pg)
           ]);
-
-          return stream.whenEnd();
         }
       })
-      .do(result => {
-        runningSources[result.name] = 'finished';
+      .do(({source}) => {
+        runningSources[source.name] = 'finished';
       })
       .use(forwardErrors)
       .map(measurements => {
@@ -160,14 +157,14 @@ Promise.race([
         }
       })
       .catch(
-        (data) => {
-          const {cause} = data;
+        (error) => {
+          const cause = error instanceof FetchError ? error : error.cause;
           if (cause instanceof FetchError) {
             if (cause.is(STREAM_END)) process.exit(cause.exitCode || 0);
 
             log.error('Fetch error occurred', cause.stack);
           } else {
-            log.error('Runtime error occurred', cause && cause.stack);
+            log.error('Runtime error occurred', error);
           }
           process.exit((cause && cause.exitCode) || 100);
         }

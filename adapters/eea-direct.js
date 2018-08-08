@@ -110,8 +110,7 @@ function fetchPollutants (source, stations) {
         })
         // TODO: a stream transform would be preferred - batch is used to increase efficiency
         .batch(64)
-        .flatMap(convertUnits)
-      ;
+        .flatMap(convertUnits);
     }))
     .mux()
   ;
