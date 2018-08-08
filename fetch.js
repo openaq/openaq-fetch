@@ -7,17 +7,13 @@
  */
 'use strict';
 
-import {
-  getEnv, getArgv
-} from './lib/env';
+import { getEnv, getArgv } from './lib/env';
 
 /* eslint-disable import/first */
 /** Imports are placed above help so dependencies are loaded after parsing... */
 
 // Dependency imports
 import moment from 'moment';
-
-import { inspect } from 'util';
 
 import { sendUpdatedWebhook, getMeasurementsFromSource, streamDataToS3, forwardErrors } from './lib/measurement';
 import { FetchError, STREAM_END } from './lib/errors';
@@ -169,7 +165,7 @@ Promise.race([
           if (cause instanceof FetchError) {
             if (cause.is(STREAM_END)) process.exit(cause.exitCode || 0);
 
-            log.error(`Fetch error occurred "${cause.message}"${cause.source ? ' ' + cause.source.name || cause.source : ''}`, cause.stack);
+            log.error('Fetch error occurred', cause.stack);
           } else {
             log.error('Runtime error occurred', cause && cause.stack);
           }
