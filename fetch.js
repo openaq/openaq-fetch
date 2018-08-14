@@ -15,7 +15,7 @@ import { getEnv, getArgv } from './lib/env';
 // Dependency imports
 import moment from 'moment';
 
-import { sendUpdatedWebhook, getMeasurementsFromSource, streamDataToS3, forwardErrors } from './lib/measurement';
+import { sendUpdatedWebhook, getMeasurementsFromSource, forwardErrors, saveResultsToS3 } from './lib/measurement';
 import { FetchError, STREAM_END } from './lib/errors';
 import { getDB, streamDataToDB, saveFetches, saveSources } from './lib/db';
 
@@ -39,7 +39,7 @@ Promise.race([
       log.info('--- Full fetch started. ---');
     }
 
-    const {bucketName, apiURL, webhookKey, processTimeout, strict} = getEnv(process.env);
+    const {bucketName, apiURL, webhookKey, processTimeout, doSaveToS3, strict} = getEnv();
     let itemsInsertedCount = 0;
     const timeStarted = Date.now();
 
@@ -100,13 +100,11 @@ Promise.race([
             .do(m => log.info(m))
             .run();
         } else {
-          const s3 = require('aws-sdk').S3();
           const key = `realtime/${moment().format('YYYY-MM-DD/X')}.ndjson`;
-
           const pg = getDB();
 
           await Promise.all([
-            streamDataToS3(stream, s3, bucketName, key),
+            doSaveToS3 ? saveResultsToS3(stream, new (require('aws-sdk').S3)(), bucketName, key) : true,
             streamDataToDB(stream, pg)
           ]);
         }

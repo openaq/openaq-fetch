@@ -7,4 +7,4 @@ local.env
 ecs-task-generated.json
 /.nvmrc
 .editorconfig
-knexfile.local.js
+knexfile-local.js
