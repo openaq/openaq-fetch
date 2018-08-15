@@ -162,7 +162,7 @@ Promise.race([
 
             log.error('Fetch error occurred', cause.stack);
           } else {
-            log.error('Runtime error occurred', error);
+            log.error(`Runtime error occurred in ${error.stream && error.stream.name}: ${error.stack}`);
           }
           process.exit((cause && cause.exitCode) || 100);
         }
