@@ -1,7 +1,8 @@
 [
     {
-        "url": "http://www.svivaaqm.net/",
-        "adapter": "envista",
+        "oldurl": "http://www.svivaaqm.net/",
+        "url": "https://www.svivaaqm.net:44301/v1/envista/",
+        "adapter": "envista2",
         "name": "Israel",
         "country": "IL",
         "description": "",
@@ -12,6 +13,6 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": true,
     }
 ]
