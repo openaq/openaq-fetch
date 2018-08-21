@@ -3,8 +3,8 @@
 import { default as baseRequest } from 'request';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as moment } from 'moment';
-import { difference, flattenDeep, isFinite } from 'lodash';
-import { parallel, parallelLimit, retry } from 'async';
+import { difference, flattenDeep } from 'lodash';
+import { parallel, parallelLimit } from 'async';
 import { acceptableParameters, convertUnits } from '../lib/utils';
 
 const requestHeaders = baseRequest.defaults({
@@ -28,22 +28,22 @@ export function fetchData (source, cb) {
     headers: {
       'Authorization': 'ApiToken ' + source.apitoken
     }
-  };  
+  };
   requestHeaders(options, (err, res, body) => {
     if (err || res.statusCode !== 200) {
       return cb({message: 'Failure to load data url.'});
     }
-    
+
     let tasks = [];
-    const regionList = JSON.parse(body);    
+    const regionList = JSON.parse(body);
     regionList.forEach(region => {
       tasks.push(handleRegion(source, region));
     });
-    
+
     parallel(tasks, (err, results) => {
       if (err) {
         return cb(err, []);
-      }      
+      }
       results = flattenDeep(results);
       results = convertUnits(results);
 
@@ -61,43 +61,42 @@ const handleRegion = function (source, region) {
         tasks.push(handleStation(source, region.name, station));
       }
     });
-    
+
     parallelLimit(tasks, 16, (err, results) => { // TODO: Magic number
       if (err) {
         return done(err, []);
       }
       return done(null, results);
-    });         
-  };  
+    });
+  };
 };
 
 const handleStation = function (source, regionName, station) {
   return function (done) {
     // TODO: Need to load whole day to ensure we grab everything at some point?
-    let stationUrl = source.url + 'stations/' + station.stationId + "/data/daily";
+    let stationUrl = source.url + 'stations/' + station.stationId + '/data/daily';
     var options = {
       url: stationUrl,
       headers: {
         'Authorization': 'ApiToken ' + source.apitoken
-      }        
+      }
     };
     requestHeaders(options, (err, res, body) => {
       if (err || res.statusCode !== 200) {
         return done(null, []);
       }
-      
+
       const data = JSON.parse(body);
       try {
         formatData(source, regionName, station, data, (measurements) => {
           return done(null, measurements);
-        });        
+        });
       } catch (err) {
         return done(null, []);
       }
-    });      
+    });
   };
 };
-
 
 const formatData = function (source, regionName, station, data, cb) {
   const base = {
@@ -113,8 +112,8 @@ const formatData = function (source, regionName, station, data, cb) {
       url: source.url
     }]
   };
-  
-  const measurements = data.data.map(datapoint => formatChannels(base, station, datapoint));  
+
+  const measurements = data.data.map(datapoint => formatChannels(base, station, datapoint));
   return cb(measurements);
 };
 
@@ -123,10 +122,10 @@ const formatChannels = function (base, station, datapoint) {
   const datapoints = datapoint.channels.map(channel => {
     if (isAcceptedParameter(channel.name)) {
       return getMeasurement(base, station, channel);
-    }    
+    }
   });
-  const filtered_data = datapoints.filter(point => (point)); //removes undefined/invalid measurements
-  return filtered_data;
+  const filteredData = datapoints.filter(point => (point)); // removes undefined/invalid measurements
+  return filteredData;
 };
 
 const hasAcceptedParameters = function (station) {
@@ -144,12 +143,12 @@ const getMeasurement = function (base, station, channel) {
   let parameterName = channel.name.toLowerCase();
   measurement.parameter = parameterName;
   measurement.value = channel.value;
-  measurement.unit = getUnit(station, channel);  
+  measurement.unit = getUnit(station, channel);
   return measurement;
 };
 
 const getUnit = function (station, channel) {
-  return station.monitors.find(monitor => monitor.channelId == channel.id).units;
+  return station.monitors.find(monitor => monitor.channelId === channel.id).units;
 };
 
 const getDate = function (s) {
