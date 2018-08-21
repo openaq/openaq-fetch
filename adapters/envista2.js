@@ -3,7 +3,7 @@
 import { default as baseRequest } from 'request';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as moment } from 'moment';
-import { flattenDeep, isFinite } from 'lodash';
+import { difference, flattenDeep, isFinite } from 'lodash';
 import { parallel, parallelLimit, retry } from 'async';
 import { acceptableParameters, convertUnits } from '../lib/utils';
 
@@ -22,9 +22,9 @@ const requestHeaders = baseRequest.defaults({
 export const name = 'envista2';
 
 export function fetchData (source, cb) {
-  let stationListUrl = source.url + 'stations';
+  let regionListUrl = source.url + 'regions';
   var options = {
-    url: stationListUrl,
+    url: regionListUrl,
     headers: {
       'Authorization': 'ApiToken ' + source.apitoken
     }
@@ -33,12 +33,12 @@ export function fetchData (source, cb) {
     if (err || res.statusCode !== 200) {
       return cb({message: 'Failure to load data url.'});
     }
-
+    
     let tasks = [];
-    const stationData = JSON.parse(body);    
-    for (var stationIndex = 0; stationIndex < stationData.length; stationIndex++) {
-        tasks.push(handleStation(source, stationData[stationIndex]));
-    }    
+    const regionList = JSON.parse(body);    
+    regionList.forEach(region => {
+      tasks.push(handleRegion(source, region));
+    });
     
     parallel(tasks, (err, results) => {
       if (err) {
@@ -52,8 +52,26 @@ export function fetchData (source, cb) {
   });
 }
 
+const handleRegion = function (source, region) {
+  let stationList = region.stations;
+  return function (done) {
+    let tasks = [];
+    stationList.forEach(station => {
+      if (station.active && hasAcceptedParameters(station)) {
+        tasks.push(handleStation(source, region.name, station));
+      }
+    });
+    
+    parallelLimit(tasks, 16, (err, results) => { // TODO: Magic number
+      if (err) {
+        return done(err, []);
+      }
+      return done(null, results);
+    });         
+  };  
+};
 
-const handleStation = function (source, station) {
+const handleStation = function (source, regionName, station) {
   return function (done) {
     // TODO: Need to load whole day to ensure we grab everything at some point?
     let stationUrl = source.url + 'stations/' + station.stationId + "/data/daily";
@@ -67,11 +85,12 @@ const handleStation = function (source, station) {
       if (err || res.statusCode !== 200) {
         return done(null, []);
       }
+      
       const data = JSON.parse(body);
       try {
-        formatData(source, station, data, (measurements) => {
+        formatData(source, regionName, station, data, (measurements) => {
           return done(null, measurements);
-        });
+        });        
       } catch (err) {
         return done(null, []);
       }
@@ -80,28 +99,57 @@ const handleStation = function (source, station) {
 };
 
 
-const formatData = function (source, station, data, cb) {
+const formatData = function (source, regionName, station, data, cb) {
   const base = {
     location: station.name,
+    city: regionName,
     coordinates: {
       latitude: Number(station.location.latitude),
       longitude: Number(station.location.longitude)
     },
-    averagingPeriod: {unit: 'hours', value: 1.0/12.0}, // TODO: Correct? Measurements have 5 mins between them but unknown update freq.
+    averagingPeriod: {unit: 'hours', value: 0.25}, // TODO: Correct? Measurements have 5 mins between them but unknown update freq.
     attribution: [{
       name: source.organization,
       url: source.url
     }]
-  };    
-  let measurements = [];
-  let pm25 = Object.assign({}, base);  
-  /* mockup */  
-  pm25.date = getDate("2018-08-15T00:15:00+03:00");
-  pm25.unit = "ppb";
-  pm25.parameter = "pm25";
-  pm25.value = Number("0.003");
-  measurements.push(pm25);
+  };
+  
+  const measurements = data.data.map(datapoint => formatChannels(base, station, datapoint));  
   return cb(measurements);
+};
+
+const formatChannels = function (base, station, datapoint) {
+  base.date = getDate(datapoint.datetime);
+  const datapoints = datapoint.channels.map(channel => {
+    if (isAcceptedParameter(channel.name)) {
+      return getMeasurement(base, station, channel);
+    }    
+  });
+  const filtered_data = datapoints.filter(point => (point)); //removes undefined/invalid measurements
+  return filtered_data;
+};
+
+const hasAcceptedParameters = function (station) {
+  const stationParameters = station.monitors.map(monitor => monitor.name.toLowerCase());
+  const stationAcceptableParameters = difference(acceptableParameters, stationParameters);
+  return Boolean(stationAcceptableParameters);
+};
+
+const isAcceptedParameter = function (parameter) {
+  return acceptableParameters.includes(parameter.toLowerCase());
+};
+
+const getMeasurement = function (base, station, channel) {
+  let measurement = Object.assign({}, base);
+  let parameterName = channel.name.toLowerCase();
+  measurement.parameter = parameterName;
+  measurement.value = channel.value;
+  measurement.unit = getUnit(station, channel);  
+  return measurement;
+};
+
+const getUnit = function (station, channel) {
+  return station.monitors.find(monitor => monitor.channelId == channel.id).units;
 };
 
 const getDate = function (s) {
