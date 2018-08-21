@@ -15,7 +15,8 @@ const requestHeaders = baseRequest.defaults({
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0',
     'Accept': 'text/html,application/json,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
     'Content-Type': 'text/html; charset=utf-8',
-    'envi-data-source': 'MANA'
+    'envi-data-source': 'MANA',
+    'Authorization': 'ApiToken ' + process.env.IL_MEP_TOKEN
   }
 });
 
@@ -23,13 +24,7 @@ export const name = 'envista2';
 
 export function fetchData (source, cb) {
   let regionListUrl = source.url + 'regions';
-  var options = {
-    url: regionListUrl,
-    headers: {
-      'Authorization': 'ApiToken ' + source.apitoken
-    }
-  };
-  requestHeaders(options, (err, res, body) => {
+  requestHeaders(regionListUrl, (err, res, body) => {
     if (err || res.statusCode !== 200) {
       return cb({message: 'Failure to load data url.'});
     }
@@ -75,13 +70,7 @@ const handleStation = function (source, regionName, station) {
   return function (done) {
     // TODO: Need to load whole day to ensure we grab everything at some point?
     let stationUrl = source.url + 'stations/' + station.stationId + '/data/daily';
-    var options = {
-      url: stationUrl,
-      headers: {
-        'Authorization': 'ApiToken ' + source.apitoken
-      }
-    };
-    requestHeaders(options, (err, res, body) => {
+    requestHeaders(stationUrl, (err, res, body) => {
       if (err || res.statusCode !== 200) {
         return done(null, []);
       }
