@@ -42,7 +42,7 @@
     "proj4js-defs": "0.0.1",
     "request": "^2.87.0",
     "require-dir": "^0.3.0",
-    "scramjet": "^4.18.3",
+    "scramjet": "^4.18.4",
     "ssl-root-cas": "^1.2.5",
     "transliteration": "^1.6.2",
     "tz-lookup": "^6.1.2",
@@ -58,6 +58,7 @@
     "eslint-plugin-node": "^5.1.1",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
-    "mocha": "^3.4.2"
+    "mocha": "^3.4.2",
+    "pidusage": "^2.0.16"
   }
 }
