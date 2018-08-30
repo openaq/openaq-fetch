@@ -12,7 +12,7 @@ import { DataStream } from 'scramjet';
 import { getEnv, getArgv } from './lib/env';
 import { getMeasurementsFromSource, forwardErrors } from './lib/measurement';
 import { streamMeasurementsToDBAndStorage } from './lib/db';
-import { handleProcessTimeout, handleUnresolvedPromises, handleFetchErrors } from './lib/utils';
+import { handleProcessTimeout, handleUnresolvedPromises, handleFetchErrors, handleWarnings } from './lib/utils';
 import { markSourceAs, chooseSourcesBasedOnArgv, prepareCompleteResultsMessage, reportAndRecordFetch } from './lib/adapters';
 
 import sources from './sources';
@@ -27,8 +27,9 @@ const runningSources = {};
  * Run all the data fetch tasks in parallel, simply logs out results
  */
 Promise.race([
-  handleProcessTimeout(processTimeout, runningSources, log),
-  handleUnresolvedPromises(strict, log),
+  handleProcessTimeout(processTimeout, runningSources),
+  handleUnresolvedPromises(strict),
+  handleWarnings(['MaxListenersExceededWarning'], strict),
   (async function () {
     if (argv.dryrun) {
       log.info('--- Dry run for Testing, nothing is saved to the database. ---');
@@ -77,7 +78,7 @@ Promise.race([
   })()
 ])
   .catch(
-    handleFetchErrors(log)
+    handleFetchErrors(log, argv)
   )
   .then(
     exitCode => process.exit(exitCode || 0)
