@@ -7,7 +7,7 @@ var utils = require('../../lib/utils');
 
 describe('Testing helper functions', function () {
   describe('removeUnwantedParameters', function () {
-    it('should remove unwanted measurements', function (done) {
+    it('should remove unwanted measurements', async function () {
       let measurements = [
         {
           parameter: 'pm10', // Good
@@ -32,12 +32,11 @@ describe('Testing helper functions', function () {
         }
       ];
       expect(utils.removeUnwantedParameters(measurements).length).to.equal(2);
-      done();
     });
   });
 
   describe('convertUnits', function () {
-    it('should convert units', function (done) {
+    it('should convert units', async function () {
       let measurements = [
         {
           parameter: 'pm10', // Good
@@ -49,7 +48,6 @@ describe('Testing helper functions', function () {
       ];
       expect(utils.convertUnits(measurements).length).to.equal(2);
       expect(utils.convertUnits(measurements)[0].unit).to.equal('ppm');
-      done();
     });
   });
 });

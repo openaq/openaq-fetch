@@ -5,7 +5,7 @@
   "repository": "https://github.com/openaq/openaq-fetch",
   "scripts": {
     "lint": "eslint .",
-    "test": "npm run lint && mocha test/** --require babel-register",
+    "test": "npm run lint && mocha test/lib/ --require babel-register",
     "start": "node index.js",
     "docker": "docker-compose --project-name openaq run --rm fetch"
   },

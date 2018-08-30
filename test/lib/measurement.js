@@ -8,7 +8,7 @@ const {DataStream} = require('scramjet');
 
 describe('Testing measurements helper functions', function () {
   describe('pruneMeasurements', function () {
-    it('should handle measurements properly', async function (done) {
+    it('should handle measurements properly', async function () {
       var data = {
         name: 'test',
         measurements: [
@@ -101,7 +101,6 @@ describe('Testing measurements helper functions', function () {
 
       expect(pruned.length).to.equal(1);
       expect(Object.keys(failures).length).to.equal(17);
-      done();
     });
   });
 });
