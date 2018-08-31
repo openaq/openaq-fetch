@@ -7,7 +7,13 @@ Sources list is located in the `sources/` directory.
 
 ### Adding new source
 
-To add a source to the list, create a list of
+To add a source to the list, create a new JSON file (if necessary) in `sources/` directory that contains an array of sources.
+
+The filename should be named following this convention `<iso-county-3166-2-letter-lowercase-code>.json`, for example:
+
+* `us.json`
+* `de.json`
+* `gb.json`
 
 ### Source object properties
 
