@@ -24,10 +24,11 @@ Follow these steps to create a full local development environment (this is proba
 4. Install dependencies `cd openaq-fetch && npm install`
 5. Create a user and db in postgres in `docker exec -ti postgis psql -U postgres`
 ```sql
-CREATE ROLE openaq WITH PASSWORD `<enter password here>`;
+CREATE ROLE openaq WITH LOGIN PASSWORD 'openaq-password';
 CREATE DATABASE openaq OWNER openaq;
 \connect openaq
-CREATE EXTENSION postgis IN openaq;
+CREATE EXTENSION postgis;
+\quit
 ```
 6. Create a local knexfile `cp knexfile.js knexfile.local.js && editor knexfile.local.js`
 
