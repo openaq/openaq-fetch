@@ -9,17 +9,17 @@
 
 import { DataStream } from 'scramjet';
 
-import { getEnv, getArgv } from './lib/env';
+import { getEnv } from './lib/env';
 import { getMeasurementsFromSource, forwardErrors } from './lib/measurement';
 import { streamMeasurementsToDBAndStorage } from './lib/db';
 import { handleProcessTimeout, handleUnresolvedPromises, handleFetchErrors, handleWarnings } from './lib/utils';
-import { markSourceAs, chooseSourcesBasedOnArgv, prepareCompleteResultsMessage, reportAndRecordFetch } from './lib/adapters';
+import { markSourceAs, chooseSourcesBasedOnEnv, prepareCompleteResultsMessage, reportAndRecordFetch } from './lib/adapters';
 
 import sources from './sources';
 import log from './lib/logger';
 
-const argv = getArgv();
-const { bucketName, apiURL, webhookKey, processTimeout, doSaveToS3, maxParallelAdapters, strict } = getEnv();
+const env = getEnv();
+const { bucketName, apiURL, webhookKey, processTimeout, doSaveToS3, maxParallelAdapters, strict } = env;
 
 const runningSources = {};
 
@@ -31,7 +31,7 @@ Promise.race([
   handleUnresolvedPromises(strict),
   handleWarnings(['MaxListenersExceededWarning'], strict),
   (async function () {
-    if (argv.dryrun) {
+    if (env.dryrun) {
       log.info('--- Dry run for Testing, nothing is saved to the database. ---');
     } else {
       log.info('--- Full fetch started. ---');
@@ -52,33 +52,33 @@ Promise.race([
       .flatten()
       // set parallel limits
       .setOptions({maxParallel: maxParallelAdapters})
-      // filter sources - if argv is set then choose only matching source,
+      // filter sources - if env is set then choose only matching source,
       //   otherwise filter out inactive sources.
-      // * inactive sources will be run if called by name in argv.
-      .use(chooseSourcesBasedOnArgv, argv, runningSources)
+      // * inactive sources will be run if called by name in env.
+      .use(chooseSourcesBasedOnEnv, env, runningSources)
       // mark sources as started
       .do(markSourceAs('started', runningSources))
       // get measurements object from given source
-      .map(async (source) => getMeasurementsFromSource(source, argv))
+      .map(async (source) => getMeasurementsFromSource(source, env))
       // perform streamed save to DB and S3 on each source.
-      .do(streamMeasurementsToDBAndStorage(doSaveToS3, argv, bucketName))
+      .do(streamMeasurementsToDBAndStorage(doSaveToS3, env, bucketName))
       // mark sources as finished
       .do(markSourceAs('finished', runningSources))
       // handle adapter errors to be forwarded to main stream and well handled.
       .use(forwardErrors)
       // convert to measurement report format for storage
-      .map(prepareCompleteResultsMessage(fetchReport))
+      .map(prepareCompleteResultsMessage(fetchReport, runningSources))
       // aggregate to Array
       .toArray()
       // save fetch log to DB and send a webhook if necessary.
       .then(
         // TODO: filter out sources not included in fetch
-        reportAndRecordFetch(fetchReport, sources, argv, apiURL, webhookKey)
+        reportAndRecordFetch(fetchReport, sources, env, apiURL, webhookKey)
       );
   })()
 ])
   .catch(
-    handleFetchErrors(log, argv)
+    handleFetchErrors(log, env)
   )
   .then(
     exitCode => process.exit(exitCode || 0)
