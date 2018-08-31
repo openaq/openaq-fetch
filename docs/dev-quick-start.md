@@ -1,6 +1,18 @@
 How to quick start development?
 =================================
 
+What you'll need
+------------------
+
+* Windows, Mac, Linux system
+* Approx `200MB` of free disk space
+* At least `1.8GB` free memory
+* `2` core CPU is recommended
+* `node.js >= 8.6`
+* Either of:
+  * `docker` or
+  * `postgresql >= 10` with `postgis >= 2` extensions.
+
 Environment
 -------------
 
