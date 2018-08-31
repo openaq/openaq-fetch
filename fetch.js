@@ -59,9 +59,9 @@ Promise.race([
       // mark sources as started
       .do(markSourceAs('started', runningSources))
       // get measurements object from given source
-      .map(async (source) => getMeasurementsFromSource(source, argv.dryrun))
+      .map(async (source) => getMeasurementsFromSource(source, argv))
       // perform streamed save to DB and S3 on each source.
-      .do(streamMeasurementsToDBAndStorage(doSaveToS3, argv.dryrun, bucketName))
+      .do(streamMeasurementsToDBAndStorage(doSaveToS3, argv, bucketName))
       // mark sources as finished
       .do(markSourceAs('finished', runningSources))
       // handle adapter errors to be forwarded to main stream and well handled.
