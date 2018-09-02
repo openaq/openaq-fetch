@@ -125,7 +125,7 @@ export const getStream = function (cityName, url, averagingPeriod, source) {
           }
         });
     })
-    .filter(x => x[dayPosition] > fewDaysAgo)
+    .filter(x => x[dayPosition] >= fewDaysAgo)
     .map(
       ([date1, date2, ...x]) => {
         const timestamp = (averagingPeriod.value === 1)
