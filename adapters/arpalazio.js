@@ -68,7 +68,7 @@ const handleProvince = async function (name, url, averagingPeriod, source) {
   }
 
   const $ = cheerio.load(response.body);
-  const pollutantURLs = $('a').map(function (i, el) {
+  const pollutantURLs = $('a').map(function () {
     const pollutant = $(this).text().toLowerCase().replace('.', '');
     const currentParameters = getParameters(averagingPeriod);
     if (currentParameters.indexOf(pollutant) >= 0) {
@@ -101,6 +101,7 @@ export const getStream = function (cityName, url, averagingPeriod, source) {
   const parameter = match[1].toLowerCase().replace('.', '');
   const year = match[2];
   const unit = getUnit(parameter);
+  const dayPosition = averagingPeriod.value === 1 ? 0 : 1;
 
   const fewDaysAgo = +Number(moment.tz(timezone).subtract(4, 'days').format('DDD'));
   log.verbose(`Fetching data from ${url}`);
@@ -124,7 +125,7 @@ export const getStream = function (cityName, url, averagingPeriod, source) {
           }
         });
     })
-    .filter(x => x[0] > fewDaysAgo)
+    .filter(x => x[dayPosition] > fewDaysAgo)
     .map(
       ([date1, date2, ...x]) => {
         const timestamp = (averagingPeriod.value === 1)
@@ -149,23 +150,20 @@ export const getStream = function (cityName, url, averagingPeriod, source) {
           .map(x => +x)
           .map(
             (value, i) => {
-              if (value <= -999) return;
-              try {
-                const { name, longitude, latitude } = stations[i];
+              if (value <= -999 || !stations[i]) return;
 
-                return Object.assign({}, base, {
-                  unit,
-                  value,
-                  parameter,
-                  location: name,
-                  coordinates: {
-                    longitude,
-                    latitude
-                  }
-                });
-              } catch (e) {
-                throw new MeasurementError(source, e);
-              }
+              const { name, longitude, latitude } = stations[i];
+
+              return Object.assign({}, base, {
+                unit,
+                value,
+                parameter,
+                location: name,
+                coordinates: {
+                  longitude,
+                  latitude
+                }
+              });
             }
           )
           .filter(x => x)
