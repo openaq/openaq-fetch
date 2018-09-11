@@ -20,6 +20,23 @@ The adapter should expose one the following methods:
   * The method should not return a value.
   * Callback must be called with optional `error? : Error` as first argument, `data : Measurements` as second.
 
+### Error handling
+
+All errors raised in an adapter are handled with only a warning as stream errors, that is:
+
+* An adapter fetch error (thrown as the `FetchError` class).
+* An asynchronous error in the `fetchStream` method.
+* Wrong data format returned (not an array, data stream, generator etc.) by `fetchStream` or `fetchData`.
+* Adapter not found.
+* Measurement validation error.
+
+What may not be ignored:
+
+* Adapter runtime errors leading to unhandled exception - you're safe as long the error is in an asynchronous code or rejects as a promise.
+* Adapter syntax error.
+
+For development reasons a `--strict` mode can be switched on on the command line - then any error should be thrown.
+
 ### Measurement format
 
 The measurement format in general must conform to [measurement schema](../lib/measurement-schema.json).
