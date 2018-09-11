@@ -3,7 +3,8 @@
 'use strict';
 
 const expect = require('chai').expect;
-const {validateMeasurements, handleMeasurementErrors} = require('../../lib/measurement');
+const {validateMeasurements} = require('../../lib/measurement');
+const {handleMeasurementErrors} = require('../../lib/errors');
 const {DataStream} = require('scramjet');
 
 describe('Testing measurements helper functions', function () {

@@ -41,13 +41,16 @@ describe('Testing helper functions', function () {
         {
           parameter: 'pm10', // Good
           unit: 'pphm',
-          value: 'asd',
+          value: 1234,
           date: new Date()
         },
         undefined
       ];
-      expect(utils.convertUnits(measurements).length).to.equal(2);
-      expect(utils.convertUnits(measurements)[0].unit).to.equal('ppm');
+
+      measurements.forEach(utils.unifyMeasurementUnits);
+
+      expect(measurements.length).to.equal(2);
+      expect(measurements[0].unit).to.equal('ppm');
     });
   });
 });
