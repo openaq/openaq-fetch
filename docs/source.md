@@ -19,7 +19,7 @@ The filename should be named following this convention `<iso-county-3166-2-lette
 
 The source object must consist of the following properties:
 
-* `url (String)` - the *informative* url about the source,
+* `sourceURL (String)` - the *informative* url about the source,
 * `adapter (String)` - the module name of the adapter a file or directory residing in `./adapters`,
 * `name (String)` - an *informative* source name
 * `country (String)` - the country for which the data is provided
@@ -29,11 +29,11 @@ The source object must consist of the following properties:
 
 Optional properties (used to add information to measurements):
 
-* `type (Enum<government|private|?>)` - Region name
+* `type (Enum<government|research|other>)` - Region name
 * `city (String)` - City name
 * `location (String)` - Name of the location
 * `mobile (Boolean)` - Is the source mobile
 
 Additonally the whole object is passed to the adapter so anything can be added to the structure. Adapter usually use:
 
-* `sourceURL (String)` - the url to use to fetch the data from
+* `url (String)` - the url to use to fetch the data from
