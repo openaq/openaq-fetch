@@ -10,9 +10,9 @@
 import { DataStream } from 'scramjet';
 
 import { getEnv } from './lib/env';
-import { getMeasurementsFromSource, forwardErrors } from './lib/measurement';
+import { getMeasurementsFromSource } from './lib/measurement';
 import { streamMeasurementsToDBAndStorage } from './lib/db';
-import { handleProcessTimeout, handleUnresolvedPromises, handleFetchErrors, handleWarnings } from './lib/utils';
+import { handleProcessTimeout, handleUnresolvedPromises, handleFetchErrors, handleWarnings, forwardErrors } from './lib/errors';
 import { markSourceAs, chooseSourcesBasedOnEnv, prepareCompleteResultsMessage, reportAndRecordFetch } from './lib/adapters';
 
 import sources from './sources';
@@ -45,9 +45,8 @@ Promise.race([
       timeEnded: NaN
     };
 
-    return DataStream
-      // create a DataStream from sources
-      .fromArray(Object.values(sources))
+    // create a DataStream from sources
+    return DataStream.fromArray(Object.values(sources))
       // flatten the sources
       .flatten()
       // set parallel limits
@@ -65,7 +64,7 @@ Promise.race([
       // mark sources as finished
       .do(markSourceAs('finished', runningSources))
       // handle adapter errors to be forwarded to main stream and well handled.
-      .use(forwardErrors)
+      .use(forwardErrors, env)
       // convert to measurement report format for storage
       .map(prepareCompleteResultsMessage(fetchReport, runningSources))
       // aggregate to Array

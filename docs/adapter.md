@@ -109,3 +109,12 @@ All other values will be ignored.
 Date should be provided as UTC and local. moment.js can be used to handle time zone
 conversions. List of valid zone names at
 https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.
+
+### Benchmark
+
+There's an adapter benchmark script than can generate a markdown document with information
+about the cpu and memory usage as well as total time of execution.
+
+```bash
+node .build_scripts/bench-adapters > docs/adapter-benchmark.md
+```
