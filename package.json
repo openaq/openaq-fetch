@@ -35,7 +35,7 @@
     "proj4js-defs": "0.0.1",
     "request": "^2.88.0",
     "require-dir": "^1.0.0",
-    "scramjet": "^4.18.6",
+    "scramjet": "^4.18.8",
     "ssl-root-cas": "^1.2.5",
     "transliteration": "^1.6.6",
     "tz-lookup": "^6.1.8",
