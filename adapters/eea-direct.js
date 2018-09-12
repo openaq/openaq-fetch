@@ -1,4 +1,4 @@
-import { acceptableParameters, convertUnits } from '../lib/utils';
+import { acceptableParameters } from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
@@ -58,7 +58,6 @@ function fetchPollutants (source, stations) {
   const pollutants = acceptableParameters.map(
     (pollutant) => pollutant === 'pm25' ? 'PM2.5' : pollutant.toUpperCase()
   );
-
 
   return new MultiStream(
     pollutants.map(pollutant => {
