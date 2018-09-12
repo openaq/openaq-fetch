@@ -59,6 +59,7 @@ function fetchPollutants (source, stations) {
     (pollutant) => pollutant === 'pm25' ? 'PM2.5' : pollutant.toUpperCase()
   );
 
+
   return new MultiStream(
     pollutants.map(pollutant => {
       const url = source.url + source.country + '_' + pollutant + '.csv';
@@ -107,10 +108,7 @@ function fetchPollutants (source, stations) {
               value: 1
             }
           };
-        })
-        // TODO: a stream transform would be preferred - batch is used to increase efficiency
-        .batch(64)
-        .flatMap(convertUnits);
+        });
     }))
     .mux()
   ;
