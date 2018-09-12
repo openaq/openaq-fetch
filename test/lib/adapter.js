@@ -145,8 +145,6 @@ describe('Testing adapter operation', function () {
         'instance requires property "country"': 7,
         'instance requires property "city"': 7,
         'instance requires property "sourceName"': 7,
-        'instance requires property "sourceType"': 6,
-        'instance requires property "mobile"': 6,
         'instance.parameter is not of a type(s) string': 1,
         'instance.parameter is not one of enum values: pm25,pm10,no2,so2,o3,co,bc': 1,
         'instance.unit is not of a type(s) string': 1,
@@ -162,7 +160,7 @@ describe('Testing adapter operation', function () {
       const actualFailures = measurements.failures;
 
       expect(actualFailures).to.deep.equal(expectedFailures);
-      expect(Object.keys(actualFailures).length).to.be.equals(14);
+      expect(Object.keys(actualFailures).length).to.be.equals(12);
       expect(pruned.length).to.equal(1);
     });
   });
