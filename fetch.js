@@ -10,7 +10,7 @@
 import { DataStream } from 'scramjet';
 
 import { getEnv } from './lib/env';
-import { getMeasurementsFromSource } from './lib/measurement';
+import { getCorrectedMeasurementsFromSource } from './lib/measurement';
 import { streamMeasurementsToDBAndStorage } from './lib/db';
 import { handleProcessTimeout, handleUnresolvedPromises, handleFetchErrors, handleWarnings, forwardErrors } from './lib/errors';
 import { markSourceAs, chooseSourcesBasedOnEnv, prepareCompleteResultsMessage, reportAndRecordFetch } from './lib/adapters';
@@ -58,7 +58,7 @@ Promise.race([
       // mark sources as started
       .do(markSourceAs('started', runningSources))
       // get measurements object from given source
-      .map(async (source) => getMeasurementsFromSource(source, env))
+      .map(async (source) => getCorrectedMeasurementsFromSource(source, env))
       // perform streamed save to DB and S3 on each source.
       .do(streamMeasurementsToDBAndStorage(doSaveToS3, env, bucketName))
       // mark sources as finished
