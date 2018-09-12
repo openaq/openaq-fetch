@@ -2,17 +2,18 @@
 /* eslint no-unused-expressions: 0 */
 'use strict';
 
-const expect = require('chai').expect;
-const {validateMeasurements} = require('../../lib/measurement');
-const {handleMeasurementErrors} = require('../../lib/errors');
-const {DataStream} = require('scramjet');
+process.env.LOG_LEVEL = 'important'; // mute non-important log messages in tests
 
-describe('Testing measurements helper functions', function () {
+const expect = require('chai').expect;
+const {getMeasurementsFromSource} = require('../../lib/measurement');
+
+describe('Testing adapter operation', function () {
   describe('pruneMeasurements', function () {
     it('should handle measurements properly', async function () {
-      var data = {
+      var source = {
         name: 'test',
-        measurements: [
+        adapter: 'dummy',
+        data: [
           {
             parameter: 324, // Bad param, unit, value
             unit: 234,
@@ -52,7 +53,7 @@ describe('Testing measurements helper functions', function () {
             value: 20,
             mobile: 'foo',
             date: {
-              utc: new Date(),
+              utc: new Date().toISOString(),
               local: '2016-01-24T19:00:00+00:00'
             }
           },
@@ -62,7 +63,7 @@ describe('Testing measurements helper functions', function () {
             value: 20,
             sourceType: 'foo',
             date: {
-              utc: new Date(),
+              utc: new Date().toISOString(),
               local: '2016-01-24T19:00:00+00:00'
             }
           },
@@ -71,7 +72,7 @@ describe('Testing measurements helper functions', function () {
             unit: 'ppm',
             value: 10,
             date: {
-              utc: new Date(),
+              utc: new Date().toISOString(),
               local: '2016-01-24T19:00:00+00:00'
             },
             location: 'test',
@@ -92,16 +93,32 @@ describe('Testing measurements helper functions', function () {
         ]
       };
 
-      const failures = {};
-      const pruned = await (
-        DataStream.from(data.measurements)
-          .use(validateMeasurements)
-          .use(handleMeasurementErrors, failures)
-          .toArray()
-      );
+      const expectedFailures = {
+        'instance requires property "location"': 7,
+        'instance requires property "country"': 7,
+        'instance requires property "city"': 7,
+        'instance requires property "sourceName"': 7,
+        'instance requires property "sourceType"': 6,
+        'instance requires property "mobile"': 6,
+        'instance.parameter is not of a type(s) string': 1,
+        'instance.parameter is not one of enum values: pm25,pm10,no2,so2,o3,co,bc': 1,
+        'instance.unit is not of a type(s) string': 1,
+        'instance.unit is not one of enum values: µg/m³,ppm': 6,
+        'instance.value is not of a type(s) number': 1,
+        'instance.date is not of a type(s) object': 5,
+        'instance.date requires property "utc"': 5,
+        'instance.date requires property "local"': 5,
+        'instance.coordinates requires property "longitude"': 1,
+        'instance.mobile is not of a type(s) boolean': 1,
+        'instance.sourceType is not one of enum values: government,research,other': 1
+      };
 
+      const measurements = await getMeasurementsFromSource(source, {});
+      const pruned = await measurements.stream.toArray();
+      const actualFailures = measurements.failures;
+
+      expect(actualFailures).to.deep.equal(expectedFailures);
       expect(pruned.length).to.equal(1);
-      expect(Object.keys(failures).length).to.equal(17);
     });
   });
 });
