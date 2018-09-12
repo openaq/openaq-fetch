@@ -66,12 +66,11 @@ Promise.race([
       // handle adapter errors to be forwarded to main stream and well handled.
       .use(forwardErrors, env)
       // convert to measurement report format for storage
-      .map(prepareCompleteResultsMessage(fetchReport, runningSources))
+      .map(prepareCompleteResultsMessage(fetchReport))
       // aggregate to Array
       .toArray()
       // save fetch log to DB and send a webhook if necessary.
       .then(
-        // TODO: filter out sources not included in fetch
         reportAndRecordFetch(fetchReport, sources, env, apiURL, webhookKey)
       );
   })()
