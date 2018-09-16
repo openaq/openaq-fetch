@@ -16,7 +16,7 @@ import escape from 'shell-escape';
 import { DataStream } from 'scramjet';
 
 import sources from '../sources';
-import { handleUnresolvedPromises } from '../lib/utils';
+import { handleUnresolvedPromises } from '../lib/errors';
 
 async function runSource ({ name }) {
   const cmd = escape(['/usr/bin/time', '-f', 'cmd=%C\texit_code=%x\ttime_sys=%S\ttime_user=%U\ttime_elapsed=%e\tmax_mem=%M\tavg_mem=%K\tavg_stack=%p\tavg_data=%D\tavg_rss=%t\tsock_in=%r\tsock_out=%s\tfs_in=%I\tfs_out=%O\tcpu_percent=%P', process.argv[0], '../', '-d', '-s', name]);
