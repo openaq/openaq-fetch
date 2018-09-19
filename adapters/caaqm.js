@@ -7,6 +7,11 @@ import { findIndex } from 'lodash';
 import { parallelLimit } from 'async';
 import { convertUnits, safeParse, acceptableParameters } from '../lib/utils';
 import { join } from 'path';
+import JSONStream from 'JSONStream';
+import { DataStream } from 'scramjet';
+import rp from 'request-promise-native';
+import { FetchError } from '../lib/errors';
+
 // Adding in certs to get around unverified connection issue
 require('ssl-root-cas/latest')
   .inject()
@@ -14,6 +19,108 @@ require('ssl-root-cas/latest')
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'caaqm';
+
+export async function fetchStream (source) {
+  const requestOptions = {
+    method: 'POST',
+    headers: {
+      'accept-language': 'en-US,en',
+      'content-type': 'application/x-www-form-urlencoded',
+      accept: 'application/json'
+    },
+    form: false
+  };
+  const options = Object.assign(requestOptions, {
+    url: source.url,
+    body: Buffer.from('{"region":"landing_dashboard"}').toString('base64')
+  });
+
+  return DataStream.from(
+    request(options)
+      .pipe(JSONStream.parse('map.station_list.*'))
+  )
+    .setOptions({maxParallel: 5})
+    .into(
+      (siteStream, site) => {
+        // At this point, check to make sure the parameters were last updated
+        // within the last 35 minutes
+        var fromDate = moment.tz(site['parameter_latest_update_date'], 'YYYY-MM-DD HH:mm:ss', 'Asia/Kolkata');
+        var minuteDiff = moment().utc().diff(fromDate.toDate(), 'minutes');
+        if (minuteDiff < 0 || minuteDiff > 35) {
+          return;
+        }
+
+        // Check if it has parameters we want
+        for (var i = 0; i < site['parameter_status'].length; i++) {
+          const p = site['parameter_status'][i];
+          if (['PM2.5', 'PM10', 'NO2', 'CO', 'SO2', 'NO2', 'BC', 'Ozone'].includes(p['parameter_name'])) {
+            return siteStream.whenWrote({
+              station_id: site['station_id'],
+              station_name: site['station_name'],
+              coords: {latitude: Number(site['latitude']), longitude: Number(site['longitude'])}
+            });
+          }
+        }
+      },
+      new DataStream()
+    )
+    .into(
+      async (measurements, {coords, station_id: stationId}) => {
+        const options = Object.assign(requestOptions, {
+          url: 'https://app.cpcbccr.com/caaqms/caaqms_view_data',
+          body: Buffer.from(`{"site_id":"${stationId}"}`).toString('base64'),
+          resolveWithFullResponse: true
+        });
+
+        try {
+          const response = await rp(options);
+
+          const {siteInfo, tableData: {bodyContent}} = JSON.parse(response.body);
+
+          await (
+            DataStream
+              .from(bodyContent)
+              .each(async p => {
+                let parameter = p.parameters.toLowerCase().replace('.', '');
+                parameter = (parameter === 'ozone') ? 'o3' : parameter;
+
+                // Make sure we want the pollutant
+                if (!acceptableParameters.includes(parameter)) {
+                  return;
+                }
+
+                let m = {
+                  averagingPeriod: {unit: 'hours', value: 0.25},
+                  city: siteInfo.city,
+                  location: siteInfo.siteName,
+                  coordinates: coords,
+                  attribution: [{
+                    name: 'Central Pollution Control Board',
+                    url: 'https://app.cpcbccr.com/ccr/#/caaqm-dashboard-all/caaqm-landing'
+                  }],
+                  parameter: parameter,
+                  unit: p.unit,
+                  value: Number(p.concentration)
+                };
+
+                // Date
+                const date = moment.tz(`${p.date} ${p.time}`, 'DD MMM YYYY HH:mm', 'Asia/Kolkata');
+                m.date = {utc: date.toDate(), local: date.format()};
+
+                await measurements.whenWrote(m);
+              })
+              .run()
+          );
+        } catch (e) {
+          throw new FetchError(`Cannot fetch data for station id`, source, e);
+        }
+      },
+      new DataStream()
+    )
+  ;
+}
+
+// ---------------------------------------------------------------------------------------------------------
 
 export function fetchData (source, cb) {
   const requestOptions = {
