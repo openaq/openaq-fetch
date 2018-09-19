@@ -81,7 +81,9 @@ DataStream
   // run operations on each source, return stream of results
   .map(
     async ({name, adapter, active, country}) => {
+      console.error(`Starting test of adapter "${adapter}" on source "${name}"`);
       const outcome = await runSource({name});
+      console.error(`Done test of adapter "${adapter}" on source "${name}"`);
       return Object.assign({name, adapter, active, country}, outcome);
     }
   )

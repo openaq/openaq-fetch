@@ -1,4 +1,4 @@
-import {FetchError} from '../lib/errors';
+import {FetchError, DATA_URL_ERROR} from '../lib/errors';
 
 exports.fetchStream = function (source) {
   if (source.data) {
@@ -6,5 +6,5 @@ exports.fetchStream = function (source) {
     return source.data;
   }
 
-  throw new FetchError('Data not provided');
+  throw new FetchError(DATA_URL_ERROR);
 };
