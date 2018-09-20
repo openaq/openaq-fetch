@@ -6,6 +6,23 @@ process.env.LOG_LEVEL = 'important'; // mute non-important log messages in tests
 
 const expect = require('chai').expect;
 const {getCorrectedMeasurementsFromSource} = require('../../lib/measurement');
+const {AdapterError, FetchError, MeasurementValidationError, MEASUREMENT_ERROR} = require('../../lib/errors');
+
+function makeSourceFromData (data, org = {
+  name: 'test',
+  adapter: 'dummy',
+  country: 'VU',
+  city: 'Test',
+  description: 'Test adapter with test source',
+  sourceURL: 'http://example.org/',
+  type: 'research',
+  mobile: false,
+  url: 'http://example.org/data-url/',
+  contacts: ['info@openaq.org'],
+  attribution: [{ name: 'test', url: 'http://foo.com' }]
+}) {
+  return Object.assign(org, {data});
+}
 
 describe('Testing adapter operation', function () {
   describe('pruneMeasurements', function () {
@@ -111,20 +128,7 @@ describe('Testing adapter operation', function () {
     ];
 
     it('should correct measurements with good source', async function () {
-      var source = {
-        name: 'test',
-        adapter: 'dummy',
-        country: 'VU',
-        city: 'Test',
-        description: 'Test adapter with test source',
-        sourceURL: 'http://example.org/',
-        type: 'research',
-        mobile: false,
-        url: 'http://example.org/data-url/',
-        contacts: ['info@openaq.org'],
-        attribution: [{ name: 'test', url: 'http://foo.com' }],
-        data: [idealMeasurement, correctableMeasurement]
-      };
+      var source = makeSourceFromData([idealMeasurement, correctableMeasurement]);
 
       const measurements = await getCorrectedMeasurementsFromSource(source, {});
       const pruned = await measurements.stream.toArray();
@@ -134,11 +138,40 @@ describe('Testing adapter operation', function () {
       expect(pruned.length).to.equal(2);
     });
 
+    it('should crash on a runtime error', async function () {
+      // This will most certainly cause the adapter to crash... i think. ;)
+      var source = makeSourceFromData(new Error('test1'));
+      try {
+        const measurements = await getCorrectedMeasurementsFromSource(source, {});
+        await measurements.stream.toArray();
+
+        expect.to.fail('Should throw an error');
+      } catch (e) {
+        expect(e).to.be.instanceof(AdapterError, 'Should throw an AdapterError');
+      }
+    });
+
+    it('should handle measurement errors', async function () {
+      const cause = new MeasurementValidationError(null, 'test2', null);
+      const error1 = new FetchError(MEASUREMENT_ERROR, null, null, 'test3');
+
+      var source = makeSourceFromData([
+        idealMeasurement,
+        error1,
+        cause
+      ]);
+
+      const measurements = await getCorrectedMeasurementsFromSource(source, {});
+      const pruned = await measurements.stream.toArray();
+      expect(measurements.failures).to.be.deep.equal({
+        'test2': 1,
+        'Measurement error: test3': 1
+      });
+      expect(pruned.length).to.be.equal(1);
+    });
+
     it('should handle measurements properly', async function () {
-      var source = {
-        adapter: 'dummy',
-        data: errorData.concat(idealMeasurement)
-      };
+      var source = makeSourceFromData(errorData.concat(idealMeasurement), {adapter: 'dummy'});
 
       const expectedFailures = {
         'instance requires property "location"': 7,
