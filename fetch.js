@@ -9,17 +9,18 @@
 
 import { DataStream } from 'scramjet';
 
-import { getEnv } from './lib/env';
-import { getCorrectedMeasurementsFromSource } from './lib/measurement';
-import { streamMeasurementsToDBAndStorage } from './lib/db';
-import { handleProcessTimeout, handleUnresolvedPromises, handleFetchErrors, handleWarnings, forwardErrors } from './lib/errors';
-import { markSourceAs, chooseSourcesBasedOnEnv, prepareCompleteResultsMessage, reportAndRecordFetch } from './lib/adapters';
-
 import sources from './sources';
 import log from './lib/logger';
 
+import { getEnv } from './lib/env';
+import { getCorrectedMeasurementsFromSource } from './lib/measurement';
+import { streamMeasurementsToDBAndStorage } from './lib/db';
+import { handleProcessTimeout, handleUnresolvedPromises, handleFetchErrors, handleWarnings, handleSigInt } from './lib/errors';
+import { markSourceAs, chooseSourcesBasedOnEnv, prepareCompleteResultsMessage } from './lib/adapters';
+import { reportAndRecordFetch } from './lib/notification';
+
 const env = getEnv();
-const { bucketName, apiURL, webhookKey, processTimeout, doSaveToS3, maxParallelAdapters, strict } = env;
+const { bucketName, apiURL, webhookKey, processTimeout, maxParallelAdapters, strict } = env;
 
 const runningSources = {};
 
@@ -27,6 +28,7 @@ const runningSources = {};
  * Run all the data fetch tasks in parallel, simply logs out results
  */
 Promise.race([
+  handleSigInt(runningSources),
   handleProcessTimeout(processTimeout, runningSources),
   handleUnresolvedPromises(strict),
   handleWarnings(['MaxListenersExceededWarning'], strict),
@@ -58,15 +60,14 @@ Promise.race([
       // mark sources as started
       .do(markSourceAs('started', runningSources))
       // get measurements object from given source
-      .map(source => getCorrectedMeasurementsFromSource(source, env))
+      // all error handling should happen inside this call
+      .use(getCorrectedMeasurementsFromSource, env)
       // perform streamed save to DB and S3 on each source.
-      .do(streamMeasurementsToDBAndStorage(doSaveToS3, env, bucketName))
+      .do(streamMeasurementsToDBAndStorage(env, bucketName))
       // mark sources as finished
       .do(markSourceAs('finished', runningSources))
-      // handle adapter errors to be forwarded to main stream and well handled.
-      .use(forwardErrors, env)
       // convert to measurement report format for storage
-      .map(prepareCompleteResultsMessage(fetchReport))
+      .map(prepareCompleteResultsMessage(fetchReport, runningSources))
       // aggregate to Array
       .toArray()
       // save fetch log to DB and send a webhook if necessary.
