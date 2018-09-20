@@ -66,9 +66,13 @@ const generateTasks = (url, task, now) => {
             if (err || res.statusCode !== 200) {
               return cb(null, []);
             }
-            let $ = cheerio.load(body);
-            const data = formatData($, stations);
-            return cb(null, data);
+            try {
+              let $ = cheerio.load(body);
+              const data = formatData($, stations);
+              return cb(null, data);
+            } catch (e) {
+              return cb(err);
+            }
           }
         );
       },
@@ -79,9 +83,13 @@ const generateTasks = (url, task, now) => {
             if (err || res.statusCode !== 200) {
               return cb(null, []);
             }
-            let $ = cheerio.load(body);
-            const data = formatData($, stations);
-            cb(null, data);
+            try {
+              let $ = cheerio.load(body);
+              const data = formatData($, stations);
+              return cb(null, data);
+            } catch (e) {
+              return cb(err);
+            }
           }
         );
       }], (err, res) => {
