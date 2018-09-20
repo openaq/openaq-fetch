@@ -147,7 +147,7 @@ describe('Testing adapter operation', function () {
 
         expect.to.fail('Should throw an error');
       } catch (e) {
-        expect(e).to.be.instanceof(AdapterError, 'Should throw an AdapterError');
+        expect(e.cause).to.be.instanceof(AdapterError, 'Should throw an AdapterError');
       }
     });
 
@@ -161,7 +161,7 @@ describe('Testing adapter operation', function () {
         cause
       ]);
 
-      const measurements = await getCorrectedMeasurementsFromSource(source, {});
+      const measurements = await getCorrectedMeasurementsFromSource(source, {strict: 1});
       const pruned = await measurements.stream.toArray();
       expect(measurements.failures).to.be.deep.equal({
         'test2': 1,

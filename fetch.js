@@ -13,7 +13,7 @@ import sources from './sources';
 import log from './lib/logger';
 
 import { getEnv } from './lib/env';
-import { getCorrectedMeasurementsFromSource } from './lib/measurement';
+import { fetchCorrectedMeasurementsFromSourceStream } from './lib/measurement';
 import { streamMeasurementsToDBAndStorage } from './lib/db';
 import { handleProcessTimeout, handleUnresolvedPromises, handleFetchErrors, handleWarnings, handleSigInt } from './lib/errors';
 import { markSourceAs, chooseSourcesBasedOnEnv, prepareCompleteResultsMessage } from './lib/adapters';
@@ -61,7 +61,7 @@ Promise.race([
       .do(markSourceAs('started', runningSources))
       // get measurements object from given source
       // all error handling should happen inside this call
-      .use(getCorrectedMeasurementsFromSource, env)
+      .use(fetchCorrectedMeasurementsFromSourceStream, env)
       // perform streamed save to DB and S3 on each source.
       .do(streamMeasurementsToDBAndStorage(env, bucketName))
       // mark sources as finished
