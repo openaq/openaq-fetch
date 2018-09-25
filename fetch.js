@@ -63,11 +63,11 @@ Promise.race([
       // all error handling should happen inside this call
       .use(fetchCorrectedMeasurementsFromSourceStream, env)
       // perform streamed save to DB and S3 on each source.
-      .do(streamMeasurementsToDBAndStorage(env, bucketName))
+      .do(streamMeasurementsToDBAndStorage(fetchReport, env, bucketName))
       // mark sources as finished
       .do(markSourceAs('finished', runningSources))
       // convert to measurement report format for storage
-      .map(prepareCompleteResultsMessage(fetchReport, runningSources))
+      .use(prepareCompleteResultsMessage, fetchReport, env)
       // aggregate to Array
       .toArray()
       // save fetch log to DB and send a webhook if necessary.

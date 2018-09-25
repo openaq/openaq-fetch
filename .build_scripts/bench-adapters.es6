@@ -35,7 +35,7 @@ async function runSource ({ name }) {
   }).then(({exitCode, stdout, stderr}) => {
     const lines = stderr.split(/\n/);
     lines.pop();
-    const measurements = +(stdout.split(/\n/).find(x => x.indexOf('New measurements inserted') > -1) || '0').replace(/^.*\s(\d+)$/, '$1');
+    const measurements = +(stdout.split(/\n/).find(x => x.indexOf('New measurements found') > -1) || '0').replace(/^.*:\s(\d+)$/, '$1');
 
     const mline = lines.pop();
     const data = mline.split('\t').reduce((out, x) => {
