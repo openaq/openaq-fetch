@@ -30,6 +30,6 @@ CREATE DATABASE openaq OWNER openaq;
 CREATE EXTENSION postgis;
 \quit
 ```
-6. Create a local knexfile `cp knexfile.js knexfile.local.js && editor knexfile.local.js`
+6. Create a local knexfile `cp knexfile.js knexfile-local.js && editor knexfile-local.js`
 
 And you're set.
