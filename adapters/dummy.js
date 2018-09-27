@@ -5,11 +5,14 @@ exports.fetchStream = function (source) {
     if (!Array.isArray(source.data)) throw source.data;
 
     const ret = function * () {
-      for (let item of source.data) {
-        if (item instanceof Error) yield Promise.reject(item);
-        else yield item;
-      }
+      try {
+        for (let item of source.data) {
+          if (item instanceof Error) yield Promise.reject(item);
+          else yield item;
+        }
+      } catch (e) {}
     };
+
     return ret;
   }
 
