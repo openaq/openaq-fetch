@@ -4,7 +4,8 @@
 * `WEBHOOK_KEY` - webhook security key
 * `PROCESS_TIMEOUT` - maximum number of **milliseconds** the process can be run
 * `AWS_BUCKET_NAME` - the bucket name where the raw data should be saved
-* `SAVE_TO_S3` - toggle save to s3 (set this to `true` or `1`)
+* `SAVE_TO_DB` - toggle save to s3 (set this to `false` or `0`) - default: true
+* `SAVE_TO_S3` - toggle save to s3 (set this to `true` or `1`) - default: false
 * `STRICT` - toggle strict mode, i.e. die on all errors (set this to `true` or `1`)
 * `MAX_PARALLEL_ADAPTERS` - limit number of adapters running in parallel (default is practially all)
 * `PSQL_HOST`, `PSQL_PORT`, `PSQL_USER`, `PSQL_PASSWORD`, `PSQL_DATABASE`, `PSQL_POOL_MIN`, `PSQL_POOL_MAX` - Postgre connection data.
