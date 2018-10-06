@@ -15,7 +15,7 @@ import log from './lib/logger';
 import { getEnv } from './lib/env';
 import { fetchCorrectedMeasurementsFromSourceStream } from './lib/measurement';
 import { streamMeasurementsToDBAndStorage } from './lib/db';
-import { handleProcessTimeout, handleUnresolvedPromises, handleFetchErrors, handleWarnings, handleSigInt } from './lib/errors';
+import { handleProcessTimeout, handleUnresolvedPromises, handleFetchErrors, handleWarnings, handleSigInt, cleanup } from './lib/errors';
 import { markSourceAs, chooseSourcesBasedOnEnv, prepareCompleteResultsMessage } from './lib/adapters';
 import { reportAndRecordFetch } from './lib/notification';
 
@@ -80,6 +80,9 @@ Promise.race([
     handleFetchErrors(log, env)
   )
   .then(
-    exitCode => process.exit(exitCode || 0)
+    async exitCode => {
+      await cleanup();
+      process.exit(exitCode || 0);
+    }
   )
 ;
