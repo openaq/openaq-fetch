@@ -20,7 +20,7 @@ import { markSourceAs, chooseSourcesBasedOnEnv, prepareCompleteResultsMessage } 
 import { reportAndRecordFetch } from './lib/notification';
 
 const env = getEnv();
-const { bucketName, apiURL, webhookKey, processTimeout, maxParallelAdapters, strict } = env;
+const { apiURL, webhookKey, processTimeout, maxParallelAdapters, strict } = env;
 
 const runningSources = {};
 
@@ -63,7 +63,7 @@ Promise.race([
       // all error handling should happen inside this call
       .use(fetchCorrectedMeasurementsFromSourceStream, env)
       // perform streamed save to DB and S3 on each source.
-      .use(streamMeasurementsToDBAndStorage, env, bucketName)
+      .use(streamMeasurementsToDBAndStorage, env)
       // mark sources as finished
       .do(markSourceAs('finished', runningSources))
       // convert to measurement report format for storage
