@@ -14,6 +14,7 @@ export function fetchData (source, cb) {
   const limit = 1000;
   const url = `${source.url}?api-key=${process.env.DATA_GOV_IN_TOKEN}&limit=${limit}&fields=city,station,last_update,pollutant_id,pollutant_avg&format=json`;
   let results = [];
+
   const getResults = function (url) {
     return getData(url, (err, body) => {
       if (err) {

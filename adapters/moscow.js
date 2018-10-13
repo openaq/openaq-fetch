@@ -7,8 +7,9 @@ import { default as moment } from 'moment-timezone';
 import { flattenDeep, isFinite } from 'lodash';
 import { parallel } from 'async';
 import { acceptableParameters, convertUnits } from '../lib/utils';
+import Iconv from 'iconv';
+
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
-var Iconv = require('iconv').Iconv;
 
 export const name = 'moscow';
 

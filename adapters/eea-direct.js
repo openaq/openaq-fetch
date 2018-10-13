@@ -1,10 +1,12 @@
-import { acceptableParameters, convertUnits } from '../lib/utils';
+import { acceptableParameters } from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import tzlookup from 'tz-lookup';
 import { MultiStream, DataStream, StringStream } from 'scramjet';
 import { default as JSONStream } from 'JSONStream';
+import log from '../lib/logger';
+
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 const stationsLink = 'http://battuta.s3.amazonaws.com/eea-stations-all.json';
 
@@ -13,6 +15,8 @@ export const name = 'eea-direct';
 export function fetchStream (source) {
   const out = new DataStream();
   out.name = 'unused';
+
+  log.debug('Fetch stream called');
 
   fetchMetadata(source)
     .then((stations) => fetchPollutants(source, stations))
@@ -32,10 +36,20 @@ export async function fetchData (source, cb) {
   }
 }
 
+let _battuta = null;
+function getBattutaStream () {
+  if (!_battuta) {
+    _battuta = request({url: stationsLink})
+      .pipe(JSONStream.parse('*'))
+      .pipe(new DataStream())
+      .keep(Infinity);
+  }
+
+  return _battuta.rewind();
+}
+
 async function fetchMetadata (source) {
-  return request({url: stationsLink})
-    .pipe(JSONStream.parse('*'))
-    .pipe(new DataStream())
+  return getBattutaStream()
     .filter(({stationId}) => stationId.startsWith(source.country))
     .accumulate((acc, item) => (acc[item.stationId] = item), {});
 }
@@ -93,11 +107,7 @@ function fetchPollutants (source, stations) {
               value: 1
             }
           };
-        })
-        // TODO: a stream transform would be preferred - batch is used to increase efficiency
-        .batch(64)
-        .flatMap(convertUnits)
-      ;
+        });
     }))
     .mux()
   ;

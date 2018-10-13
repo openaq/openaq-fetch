@@ -21,8 +21,9 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
 # Install nvm with node and npm
 # http://stackoverflow.com/questions/25899912/install-nvm-in-docker
 ENV NVM_DIR /usr/local/nvm
-ENV NODE_VERSION 8.2
-RUN curl https://raw.githubusercontent.com/creationix/nvm/v0.26.0/install.sh | bash \
+ENV NODE_VERSION 8
+RUN mkdir -p ${NVM_DIR} \
+    && curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash \
     && source $NVM_DIR/nvm.sh \
     && nvm install $NODE_VERSION \
     && nvm alias default $NODE_VERSION \
