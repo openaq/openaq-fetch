@@ -9,7 +9,7 @@ import cheerio from 'cheerio';
 import log from '../lib/logger';
 import { acceptableParameters, convertUnits } from '../lib/utils';
 import { difference } from 'lodash';
-import { FetchError, SOURCE_URL_NOT_FOUND, SOURCE_URL_CANNOT_PARSE_DATA, MeasurementError } from '../lib/errors';
+import { FetchError, SOURCE_URL_NOT_FOUND, SOURCE_URL_CANNOT_PARSE_DATA } from '../lib/errors';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 exports.name = 'arpalazio';
