@@ -1,9 +1,10 @@
 node_modules
 .env
 npm-debug.log
-docs
 newrelic_agent.log
 dump
 local.env
 ecs-task-generated.json
 /.nvmrc
+.editorconfig
+knexfile-local.js

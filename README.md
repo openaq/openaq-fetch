@@ -1,14 +1,19 @@
 # OpenAQ Data Ingest Pipeline
+
 [![Build Status](https://travis-ci.org/openaq/openaq-fetch.svg?branch=master)](https://travis-ci.org/openaq/openaq-fetch)
 
 ## Overview
+
 This is the main data ingest pipeline for the [OpenAQ](https://openaq.org) project.
 
 Starting with `index.js`, there is an ingest mechanism to gather global air quality measurements from a variety of sources. This is currently run every 10 minutes and saves all unique measurements to a database.
 
 [openaq-api](https://github.com/openaq/openaq-api) powers the API and more information on the data format can be found in [openaq-data-format](https://github.com/openaq/openaq-data-format).
 
+For more info see the [OpenAQ-Fetch documentation index](docs/index.md).
+
 ## Installing & Running
+
 To run the API locally, you will need both [Node.js](https://nodejs.org) and [PostgreSQL](http://www.postgresql.org/) installed.
 
 Install necessary Node.js packages by running
@@ -20,6 +25,8 @@ Make sure you have a PostgreSQL database available (with PostGIS extension) and 
 Now you can get started with:
 
 `node index.js --help`
+
+For a full development quick start (with database setup etc.), please see the [dev-quick-start doc](docs/dev-quick-start.md).
 
 For production deployment, you will need to have certain environment variables set as in the table below
 
@@ -37,6 +44,8 @@ For production deployment, you will need to have certain environment variables s
 | EEA_ASYNC_RECHECK | How long to wait to recheck for EEA async results in seconds | 60 |
 | SAVE_TO_S3 | Does the process save the measurements to an AWS S3 Bucket | not set |
 
+For full list of environment variables and process arguments, see [environment documentation](docs/env.md).
+
 ### Pushing to AWS S3
 
 If you want to push results to an S3 bucket as well for further processing, the environment variable `SAVE_TO_S3` should be set to the value `true`. Additionally, you have to set the following environment variables (or be running in a process with a suitable IAM role):
@@ -50,6 +59,7 @@ If you want to push results to an S3 bucket as well for further processing, the 
 The measurements will be stored using the structure `bucket_name/fetches/yyyy-mm-dd/unixtime.ndjson` for each fetch.
 
 ## Tests
+
 To confirm that everything is working as expected, you can run the tests with
 
 `npm test`

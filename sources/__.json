@@ -1,0 +1,27 @@
+[
+  {
+    "url": "https://www.openaq.org/",
+    "adapter": "dummy",
+    "name": "test_adapter",
+    "location": "Test",
+    "city": "Test",
+    "country": "TS",
+    "description": "Test",
+    "sourceURL": "https://www.openaq.org/",
+    "contacts": ["info@openaq.org"],
+    "active": false,
+    "data": [
+      {"parameter": "pm25", "unit": "ppm", "value": 10, "date": {"local": "2016-01-24T19:00:00+00:00"}, "coordinates": {"latitude": -20, "longitude": 34}},
+      {"parameter": "pm25", "unit": "ppm", "value": 11, "date": {"local": "2016-01-24T19:00:01+00:00"}, "coordinates": {"latitude": -20, "longitude": 34}},
+      {"parameter": "pm25", "unit": "ppm", "value": 12, "date": {"local": "2016-01-24T19:00:02+00:00"}, "coordinates": {"latitude": -20, "longitude": 34}},
+      {"parameter": "pm25", "unit": "ppm", "value": 13, "date": {"local": "2016-01-24T19:00:03+00:00"}, "coordinates": {"latitude": -20, "longitude": 34}},
+      {"parameter": "pm25", "unit": "ppm", "value": 14, "date": {"local": "2016-01-24T19:00:04+00:00"}, "coordinates": {"latitude": -20, "longitude": 34}},
+      {"parameter": "pm25", "unit": "ppm", "value": 15, "date": {"local": "2016-01-24T19:00:05+00:00"}, "coordinates": {"latitude": -20, "longitude": 34}},
+      {"parameter": "pm25", "unit": "ppm", "value": 16, "date": {"local": "2016-01-24T19:00:06+00:00"}, "coordinates": {"latitude": -20, "longitude": 34}}
+    ],
+    "mobile": false,
+    "sourceType": "government",
+    "attribution": [{"name": "test", "url": "http://foo.com"}],
+    "averagingPeriod": {"value": 1, "unit": "hours"}
+  }
+]
