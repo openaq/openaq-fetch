@@ -66,6 +66,7 @@ const handleProvince = async function (name, url, averagingPeriod, source) {
   if (response.statusCode !== 200) {
     throw new FetchError(SOURCE_URL_CANNOT_PARSE_DATA, source, null);
   }
+  log.verbose(`Loading province information from ${url}`);
 
   const $ = cheerio.load(response.body);
   const pollutantURLs = $('a').map(function () {
@@ -79,7 +80,7 @@ const handleProvince = async function (name, url, averagingPeriod, source) {
 
   return new MultiStream(
     await Promise.all(
-      pollutantURLs.map(url => getStream(name, url, averagingPeriod, source))
+      pollutantURLs.map(dataUrl => getStream(name, dataUrl, averagingPeriod, source, url))
     )
   ).mux();
 };
@@ -95,7 +96,7 @@ const getParameters = function (averagingPeriod) {
   }
 };
 
-export const getStream = function (cityName, url, averagingPeriod, source) {
+export const getStream = function (cityName, url, averagingPeriod, source, orgUrl) {
   const { metadata } = source;
   const match = url.match(/[\w]{2}_([\w.]{2,})_([\d]{4})(?:_gg)?.txt/);
   const parameter = match[1].toLowerCase().replace('.', '');
@@ -110,18 +111,20 @@ export const getStream = function (cityName, url, averagingPeriod, source) {
   return StringStream.from(
     request(url)
   )
-    .map(x => x.replace(/[ ]+/g, ' ').replace(/\s+\n\s+/g, '\n').replace(/^\s+|\s+$/g, ''))
     .lines(StringStream.SPLIT_LINE)
-    .parse(row => row
-      .split(/\b\s+/g)
-      .map(x => x.trim())
+    .map(x => x.replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, ''))
+    .parse(
+      row =>
+        row
+          .trim()
+          .split(/\s+/g)
     )
     .shift(1, ([header]) => {
       header
         .slice(2)
         .forEach((x, i) => {
           if (+x) {
-            stations[i] = metadata[x];
+            stations[i] = Object.assign(metadata[x]);
           }
         });
     })
