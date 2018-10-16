@@ -3,9 +3,7 @@
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
-import { findIndex } from 'lodash';
-import { parallelLimit } from 'async';
-import { convertUnits, safeParse, acceptableParameters } from '../lib/utils';
+import { acceptableParameters } from '../lib/utils';
 import { join } from 'path';
 import JSONStream from 'JSONStream';
 import { DataStream } from 'scramjet';
