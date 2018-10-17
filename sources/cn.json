@@ -70,6 +70,20 @@
         "active": true
     },
     {
+        "url": "s3://openaq-chinaaqidata/airnow.json",
+        "adapter": "chinaaqidata",
+        "name": "ChinaAQIData",
+        "city": "",
+        "country": "CN",
+        "description": "Data from China National Environmental Monitoring Centre",
+        "resolution": "1 hr",
+        "sourceURL": "http://www.cnemc.cn/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340100",
         "adapter": "anhui",
         "name": "Hefei",
@@ -82,7 +96,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340600",
@@ -97,7 +111,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341600",
@@ -112,7 +126,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341300",
@@ -127,7 +141,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340300",
@@ -142,7 +156,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341200",
@@ -157,7 +171,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340400",
@@ -172,7 +186,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341100",
@@ -187,7 +201,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341500",
@@ -202,7 +216,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340500",
@@ -217,7 +231,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340200",
@@ -232,7 +246,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341800",
@@ -247,7 +261,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340700",
@@ -262,7 +276,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341700",
@@ -277,7 +291,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340800",
@@ -292,7 +306,7 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=341000",
@@ -307,6 +321,6 @@
             "elilitwack+openaq@gmail.com",
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     }
 ]
