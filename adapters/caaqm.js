@@ -3,10 +3,14 @@
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
-import { findIndex } from 'lodash';
-import { parallelLimit } from 'async';
-import { convertUnits, safeParse, acceptableParameters } from '../lib/utils';
+import { acceptableParameters } from '../lib/utils';
 import { join } from 'path';
+import log from '../lib/logger';
+import JSONStream from 'JSONStream';
+import { DataStream } from 'scramjet';
+import rp from 'request-promise-native';
+import { FetchError, DATA_URL_ERROR } from '../lib/errors';
+
 // Adding in certs to get around unverified connection issue
 require('ssl-root-cas/latest')
   .inject()
@@ -15,7 +19,7 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'caaqm';
 
-export function fetchData (source, cb) {
+export async function fetchStream (source) {
   const requestOptions = {
     method: 'POST',
     headers: {
@@ -29,131 +33,94 @@ export function fetchData (source, cb) {
     url: source.url,
     body: Buffer.from('{"region":"landing_dashboard"}').toString('base64')
   });
-  request(options, (err, res, body) => {
-    if (err || res.statusCode !== 200) {
-      return cb({message: 'Failure to load data url.'});
-    }
 
-    // Parse the response
-    body = safeParse(body);
-    if (body === undefined) {
-      return cb({message: 'Failure to parse data.'});
-    }
-
-    // Generate a list of site_ids we'll need to check based on parameters present
-    // and last updated dates
-    let sites = [];
-    body['map']['station_list'].forEach((s) => {
-      // At this point, check to make sure the parameters were last updated
-      // within the last 35 minutes
-      var fromDate = moment.tz(s['parameter_latest_update_date'], 'YYYY-MM-DD HH:mm:ss', 'Asia/Kolkata');
-      var minuteDiff = moment().utc().diff(fromDate.toDate(), 'minutes');
-      if (minuteDiff < 0 || minuteDiff > 35) {
-        return;
-      }
-
-      // Check if it has parameters we want
-      for (var i = 0; i < s['parameter_status'].length; i++) {
-        const p = s['parameter_status'][i];
-        if (['PM2.5', 'PM10', 'NO2', 'CO', 'SO2', 'NO2', 'BC', 'Ozone'].includes(p['parameter_name'])) {
-          sites.push({
-            station_id: s['station_id'],
-            station_name: s['station_name'],
-            coords: {latitude: Number(s['latitude']), longitude: Number(s['longitude'])}
-          });
-
-          // Short circuit the loop since we know we want this site
+  return DataStream
+    .from(
+      request(options)
+        .pipe(JSONStream.parse('map.station_list.*'))
+    )
+    .setOptions({maxParallel: 5})
+    .into(
+      (siteStream, site) => {
+        // At this point, check to make sure the parameters were last updated
+        // within the last 35 minutes
+        var fromDate = moment.tz(site['parameter_latest_update_date'], 'YYYY-MM-DD HH:mm:ss', 'Asia/Kolkata');
+        var minuteDiff = moment(Math.floor(Date.now() / 6e5) * 6e5).utc().diff(fromDate.toDate(), 'minutes');
+        if (minuteDiff < 0 || minuteDiff > 35) {
           return;
         }
-      }
-    });
 
-    // Generate async requests for all the individual sites
-    const tasks = sites.map((s) => {
-      return (done) => {
+        // Check if it has parameters we want
+        for (var i = 0; i < site['parameter_status'].length; i++) {
+          const p = site['parameter_status'][i];
+          if (['PM2.5', 'PM10', 'NO2', 'CO', 'SO2', 'NO2', 'BC', 'Ozone'].includes(p['parameter_name'])) {
+            return siteStream.whenWrote({
+              station_id: site['station_id'],
+              station_name: site['station_name'],
+              coords: {latitude: Number(site['latitude']), longitude: Number(site['longitude'])}
+            });
+          }
+        }
+      },
+      new DataStream()
+    )
+    .into(
+      async (measurements, {coords, station_id: stationId}) => {
         const options = Object.assign(requestOptions, {
           url: 'https://app.cpcbccr.com/caaqms/caaqms_view_data',
-          body: Buffer.from(`{"site_id":"${s['station_id']}"}`).toString('base64')
+          body: Buffer.from(`{"site_id":"${stationId}"}`).toString('base64'),
+          resolveWithFullResponse: true
         });
 
-        return request(options, (err, res, body) => {
-          if (err || !res.statusCode === 200) {
-            return done(null, {});
-          }
+        try {
+          const response = await rp(options);
+          const {siteInfo, tableData: {bodyContent}} = JSON.parse(response.body);
 
-          body = safeParse(body);
-          if (body === undefined) {
-            return done(null, {});
-          }
+          await (
+            DataStream
+              .from(bodyContent)
+              .each(async p => {
+                let parameter = p.parameters.toLowerCase().replace('.', '');
+                parameter = (parameter === 'ozone') ? 'o3' : parameter;
 
-          return done(null, body);
-        });
-      };
-    });
+                // Make sure we want the pollutant
+                if (!acceptableParameters.includes(parameter)) {
+                  return;
+                }
 
-    // Run the async requests
-    parallelLimit(tasks, 5, (err, results) => {
-      if (err) {
-        return cb({message: 'Failure to load data urls.'});
-      }
+                let m = {
+                  averagingPeriod: {unit: 'hours', value: 0.25},
+                  city: siteInfo.city,
+                  location: siteInfo.siteName,
+                  coordinates: coords,
+                  attribution: [{
+                    name: 'Central Pollution Control Board',
+                    url: 'https://app.cpcbccr.com/ccr/#/caaqm-dashboard-all/caaqm-landing'
+                  }],
+                  parameter: parameter,
+                  unit: p.unit,
+                  value: Number(p.concentration)
+                };
 
-      // Wrap everything in a try/catch in case something goes wrong
-      try {
-        // Format the data
-        const data = formatData({sites: sites, results: results});
-        // Make sure the data is valid
-        if (data === undefined) {
-          return cb({message: 'Failure to parse data.'});
+                // Date
+                const date = moment.tz(`${p.date} ${p.time}`, 'DD MMM YYYY HH:mm', 'Asia/Kolkata');
+                m.date = {utc: date.toDate(), local: date.format()};
+
+                await measurements.whenWrote(m);
+              })
+              .run()
+          );
+        } catch (e) {
+          const message = (e.statusCode)
+            ? `Status code ${e.statusCode} received on http request for station`
+            : `Error while parsing measurements for station`;
+
+          log.debug({message, stationId, code: e.statusCode});
+
+          throw new FetchError(DATA_URL_ERROR, source, e, message);
         }
-        cb(null, data);
-      } catch (e) {
-        return cb({message: 'Unknown adapter error.'});
-      }
-    });
-  });
+      },
+      new DataStream()
+    )
+  ;
 }
-
-const formatData = (data) => {
-  // Placeholder for measurements
-  let measurements = [];
-
-  // Loop over results from individual stations and start building up the measurements array
-  data.results.forEach((site) => {
-    // Make sure we have a valid site object
-    if (!site || !site.siteInfo || !site.siteInfo.siteId) {
-      return;
-    }
-
-    const coords = data.sites[findIndex(data.sites, {'station_id': site.siteInfo.siteId})].coords;
-    site.tableData.bodyContent.forEach((p) => {
-      let parameter = p.parameters.toLowerCase().replace('.', '');
-      parameter = (parameter === 'ozone') ? 'o3' : parameter;
-
-      // Make sure we want the pollutant
-      if (!acceptableParameters.includes(parameter)) {
-        return;
-      }
-
-      let m = {
-        averagingPeriod: {unit: 'hours', value: 0.25},
-        city: site.siteInfo.city,
-        location: site.siteInfo.siteName,
-        coordinates: coords,
-        attribution: [{name: 'Central Pollution Control Board', url: 'https://app.cpcbccr.com/ccr/#/caaqm-dashboard-all/caaqm-landing'}],
-        parameter: parameter,
-        unit: p.unit,
-        value: Number(p.concentration)
-      };
-
-      // Date
-      const date = moment.tz(`${p.date} ${p.time}`, 'DD MMM YYYY HH:mm', 'Asia/Kolkata');
-      m.date = {utc: date.toDate(), local: date.format()};
-
-      measurements.push(m);
-    });
-  });
-
-  measurements = convertUnits(measurements);
-
-  return {name: 'unused', measurements: measurements};
-};
