@@ -5,10 +5,11 @@ import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import { acceptableParameters } from '../lib/utils';
 import { join } from 'path';
+import log from '../lib/logger';
 import JSONStream from 'JSONStream';
 import { DataStream } from 'scramjet';
 import rp from 'request-promise-native';
-import { FetchError } from '../lib/errors';
+import { FetchError, DATA_URL_ERROR } from '../lib/errors';
 
 // Adding in certs to get around unverified connection issue
 require('ssl-root-cas/latest')
@@ -33,17 +34,18 @@ export async function fetchStream (source) {
     body: Buffer.from('{"region":"landing_dashboard"}').toString('base64')
   });
 
-  return DataStream.from(
-    request(options)
-      .pipe(JSONStream.parse('map.station_list.*'))
-  )
+  return DataStream
+    .from(
+      request(options)
+        .pipe(JSONStream.parse('map.station_list.*'))
+    )
     .setOptions({maxParallel: 5})
     .into(
       (siteStream, site) => {
         // At this point, check to make sure the parameters were last updated
         // within the last 35 minutes
         var fromDate = moment.tz(site['parameter_latest_update_date'], 'YYYY-MM-DD HH:mm:ss', 'Asia/Kolkata');
-        var minuteDiff = moment().utc().diff(fromDate.toDate(), 'minutes');
+        var minuteDiff = moment(Math.floor(Date.now() / 6e5) * 6e5).utc().diff(fromDate.toDate(), 'minutes');
         if (minuteDiff < 0 || minuteDiff > 35) {
           return;
         }
@@ -72,7 +74,6 @@ export async function fetchStream (source) {
 
         try {
           const response = await rp(options);
-
           const {siteInfo, tableData: {bodyContent}} = JSON.parse(response.body);
 
           await (
@@ -110,7 +111,13 @@ export async function fetchStream (source) {
               .run()
           );
         } catch (e) {
-          throw new FetchError(`Cannot fetch data for station id`, source, e);
+          const message = (e.statusCode)
+            ? `Status code ${e.statusCode} received on http request for station`
+            : `Error while parsing measurements for station`;
+
+          log.debug({message, stationId, code: e.statusCode});
+
+          throw new FetchError(DATA_URL_ERROR, source, e, message);
         }
       },
       new DataStream()
