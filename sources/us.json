@@ -1,8 +1,8 @@
 [
     {
         "url": "ftp.airnowapi.org",
-        "adapter": "airnow",
-        "name": "AirNow",
+        "adapter": "airnow-ftp",
+        "name": "AirNow FTP",
         "city": "",
         "country": "",
         "description": "",
@@ -10,7 +10,7 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://spartan-network.org/static/downloads/PM25_Hourly_Daily_SPARTAN.zip",

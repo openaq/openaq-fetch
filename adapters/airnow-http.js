@@ -10,7 +10,7 @@ import { MeasurementValidationError } from '../lib/errors';
 
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-export const name = 'airnow-ke';
+export const name = 'airnow-http';
 
 const getDate = (day, time, offset) => {
   // Grab date from page, add time string and convert to date

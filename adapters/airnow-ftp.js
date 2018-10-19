@@ -6,7 +6,7 @@ import { omit, merge, find, filter } from 'lodash';
 import { default as moment } from 'moment-timezone';
 import { convertUnits } from '../lib/utils';
 
-export const name = 'airnow';
+export const name = 'airnow-ftp';
 
 exports.fetchData = function (source, cb) {
   // A workaround to getting rate limited for 6 logins in 1 hr for AirNow
