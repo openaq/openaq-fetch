@@ -59,9 +59,14 @@ const formatData = function (results, cb) {
     return cb([]);
   }
 
+  // Catch case where time is not properly parsed
+  const time = getTime($($('.data-values .row')[0]).text());
+  if (!time) {
+    return cb([]);
+  }
   let base = {
     location: $('h2').text().split(' ').slice(2).join(' '),
-    date: getTime($($('.data-values .row')[0]).text()),
+    date: time,
     averagingPeriod: {unit: 'hours', value: 1},
     attribution: [{
       name: 'Tuzlanski Kanton',
@@ -98,7 +103,12 @@ const formatData = function (results, cb) {
 };
 
 const getTime = function (text) {
-  const s = /(\d{2}\.\d{2}\.\d{4} \d{2}:\d{2})/.exec(text)[0];
+  let s = /(\d{2}\.\d{2}\.\d{4} \d{2}:\d{2})/.exec(text);
+  if (!s) {
+    return undefined;
+  }
+
+  s = s[0];
   const date = moment.tz(s, 'DD/MM/YYYY HH:mm', 'Europe/Sarajevo');
 
   return {utc: date.toDate(), local: date.format()};
