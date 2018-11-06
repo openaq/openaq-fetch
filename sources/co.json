@@ -11,5 +11,18 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "http://siata.gov.co/",
+        "adapter": "medellin",
+        "name": "Medellin",
+        "city": "Medellin",
+        "country": "CO",
+        "description": "Sistema de Alerta Temprana de Medellín y el Valle de Aburrá - SIATA",
+        "sourceURL": "http://siata.gov.co/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
