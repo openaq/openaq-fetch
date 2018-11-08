@@ -7,43 +7,42 @@ import log from '../lib/logger';
 import { acceptableParameters } from '../lib/utils';
 import moment from 'moment-timezone';
 
-export const name = 'GIOS';
 const resolveParameter = (param) => param.toLowerCase().replace('c6h6', 'bc').replace('.', '');
-/** @returns Moment */
 const makeDate = (date) => moment.tz(date, 'Europe/Warsaw');
+
+export const name = 'gios-poland';
 
 export function fetchStream (source) {
   const {
     url, country, attribution, sourceType,
     mobile, averagingPeriod, hoursToFetch
   } = source;
-  const stationUrl = `${url}/station/findAll`;
 
+  const stationUrl = `${url}/station/findAll`;
   return DataStream
-    .from(request.get(stationUrl).pipe(JSONStream('*')))
+    .from(() => request.get(stationUrl).pipe(JSONStream('*')))
     .map(
       ({
         id,
         stationName,
         gegrLat, gegrLon,
         city: { name: city }
-      }) =>
-        ({
-          stationId: id,
-          base: {
-            location: stationName,
-            coordinates: {
-              latitude: +gegrLat,
-              longitude: +gegrLon
-            },
-            city,
-            country
+      }) => ({
+        stationId: id,
+        base: {
+          location: stationName,
+          coordinates: {
+            latitude: +gegrLat,
+            longitude: +gegrLon
           },
-          attribution,
-          averagingPeriod,
-          sourceType,
-          mobile
-        })
+          city,
+          country
+        },
+        attribution,
+        averagingPeriod,
+        sourceType,
+        mobile
+      })
     )
     .flatMap(
       async ({ stationId, base }) => {
@@ -64,7 +63,8 @@ export function fetchStream (source) {
               ({ parameter }) => acceptableParameters.includes(parameter)
             );
         } catch (e) {
-          throw new FetchError(`Cannot parse sensors information for station ${stationId}`);
+          log.debug(`Error while fetching data from ${_url}`);
+          throw new FetchError(DATA_URL_ERROR, source, e, `Error fetching or parsing data for station`);
         }
       }
     )
@@ -73,7 +73,6 @@ export function fetchStream (source) {
         const _url = `${url}/data/getData/${sensorId}`;
         try {
           const data = JSON.parse(await rp(_url));
-          log.debug(`Got data for sensor ${_url}`);
           const unit = 'µg/m³';
 
           const values = Array.from(data.values);
@@ -89,7 +88,8 @@ export function fetchStream (source) {
               )
             );
         } catch (e) {
-          throw new FetchError(DATA_URL_ERROR, source, e, `code: ${e.statusCode} url: ${_url}`);
+          log.debug(`Error while fetching data from ${_url}`);
+          throw new FetchError(DATA_URL_ERROR, source, e, `code: ${e.statusCode}`);
         }
       }
     )
