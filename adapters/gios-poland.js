@@ -2,7 +2,7 @@ import request from 'request';
 import rp from 'request-promise-native';
 import { parse as JSONStream } from 'JSONStream';
 import { DataStream } from 'scramjet';
-import { FetchError } from '../lib/errors';
+import { FetchError, DATA_URL_ERROR } from '../lib/errors';
 import log from '../lib/logger';
 import { acceptableParameters } from '../lib/utils';
 import moment from 'moment-timezone';
@@ -12,9 +12,11 @@ const resolveParameter = (param) => param.toLowerCase().replace('c6h6', 'bc').re
 /** @returns Moment */
 const makeDate = (date) => moment.tz(date, 'Europe/Warsaw');
 
-export function fetchStream ({
-  url, country, attribution, sourceType, mobile, averagingPeriod, hoursToFetch
-}) {
+export function fetchStream (source) {
+  const {
+    url, country, attribution, sourceType,
+    mobile, averagingPeriod, hoursToFetch
+  } = source;
   const stationUrl = `${url}/station/findAll`;
 
   return DataStream
@@ -23,7 +25,7 @@ export function fetchStream ({
       ({
         id,
         stationName,
-        gegrLat: latitude, gegrLon: longitude,
+        gegrLat, gegrLon,
         city: { name: city }
       }) =>
         ({
@@ -31,8 +33,8 @@ export function fetchStream ({
           base: {
             location: stationName,
             coordinates: {
-              latitude,
-              longitude
+              latitude: +gegrLat,
+              longitude: +gegrLon
             },
             city,
             country
@@ -45,19 +47,21 @@ export function fetchStream ({
     )
     .flatMap(
       async ({ stationId, base }) => {
+        const _url = `${url}/station/sensors/${stationId}`;
         log.debug(`Getting sensors for station ${stationId}`);
         try {
-          const sensors = JSON.parse(await rp(`${url}/station/sensors/${stationId}`));
+          const sensors = JSON.parse(await rp(_url));
 
           return sensors
             .map(
               ({ id: sensorId, param: { paramCode } }) => ({
                 sensorId,
+                parameter: resolveParameter(paramCode),
                 base
               })
             )
             .filter(
-              ({ parameter }) => parameter in acceptableParameters
+              ({ parameter }) => acceptableParameters.includes(parameter)
             );
         } catch (e) {
           throw new FetchError(`Cannot parse sensors information for station ${stationId}`);
@@ -65,23 +69,28 @@ export function fetchStream ({
       }
     )
     .flatMap(
-      async ({ sensorId, base }) => {
-        const data = JSON.parse(await rp(`${url}/getData/${sensorId}`));
-        const parameter = resolveParameter(data.key);
-        const unit = 'μg/m3';
+      async ({ sensorId, parameter, base }) => {
+        const _url = `${url}/data/getData/${sensorId}`;
+        try {
+          const data = JSON.parse(await rp(_url));
+          log.debug(`Got data for sensor ${_url}`);
+          const unit = 'µg/m³';
 
-        const values = Array.from(data.values);
-        const lastIndex = values.findIndex(item => {
-          item.tzDate = makeDate(item.date);
-          return item.tzDate.add(hoursToFetch, 'hours').isBefore();
-        });
+          const values = Array.from(data.values);
+          const lastIndex = values.findIndex(item => {
+            item.tzDate = makeDate(item.date);
+            return item.tzDate.add(hoursToFetch, 'hours').isBefore();
+          });
 
-        return values.slice(0, lastIndex)
-          .map(
-            ({tzDate, value}) => Object.assign(
-              {parameter, unit, value, date: {local: tzDate.format()}}, base
-            )
-          );
+          return values.slice(0, lastIndex)
+            .map(
+              ({tzDate, value}) => Object.assign(
+                {parameter, unit, value: +value, date: {local: tzDate.format()}}, base
+              )
+            );
+        } catch (e) {
+          throw new FetchError(DATA_URL_ERROR, source, e, `code: ${e.statusCode} url: ${_url}`);
+        }
       }
     )
   ;
