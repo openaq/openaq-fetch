@@ -12,5 +12,22 @@
             "info@openaq.org"
         ],
         "active": false
+    },
+    {
+        "url": "http://api.gios.gov.pl/pjp-api/rest",
+        "adapter": "gios-poland",
+        "name": "GIOS",
+        "city": "unused",
+        "country": "PL",
+        "description": "",
+        "resolution": "1 hr",
+        "sourceType": "government",
+        "averagingPeriod": {"unit": "hours", "value": 1},
+        "mobile": false,
+        "attribution": [{"name": "Portal Jakości Powietrza GIOŚ", "url": "http://powietrze.gios.gov.pl/pjp/home"}],
+        "sourceURL": "http://powietrze.gios.gov.pl/pjp/content/api",
+        "contacts": ["info@openaq.org"],
+        "hoursToFetch": 4,
+        "active": false
     }
 ]
