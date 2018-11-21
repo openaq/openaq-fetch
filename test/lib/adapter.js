@@ -2,7 +2,7 @@
 /* eslint no-unused-expressions: 0 */
 'use strict';
 
-process.env.LOG_LEVEL = 'important'; // mute non-important log messages in tests
+process.env.LOG_LEVEL = process.env.LOG_LEVEL || 'important'; // mute non-important log messages in tests
 
 const expect = require('chai').expect;
 const {getCorrectedMeasurementsFromSource} = require('../../lib/measurement');
@@ -141,6 +141,7 @@ describe('Testing adapter operation', function () {
     it('should crash on a runtime error', async function () {
       // This will most certainly cause the adapter to crash... i think. ;)
       var source = makeSourceFromData(new Error('test1'));
+      let wasThere = false;
       try {
         const measurements = await getCorrectedMeasurementsFromSource(source, {});
         await measurements.stream.toArray();
@@ -149,6 +150,7 @@ describe('Testing adapter operation', function () {
       } catch (e) {
         expect(e.cause).to.be.instanceof(AdapterError, 'Should throw an AdapterError');
       }
+      expect(wasThere).to.be.false;
     });
 
     it('should handle measurement errors', async function () {
