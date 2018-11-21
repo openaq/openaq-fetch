@@ -78,7 +78,7 @@ export function fetchStream (source) {
           const values = Array.from(data.values);
           const lastIndex = values.findIndex(item => {
             item.tzDate = makeDate(item.date);
-            return item.tzDate.add(hoursToFetch, 'hours').isBefore();
+            return item.tzDate.isBefore(moment().subtract(hoursToFetch, 'hours'));
           });
 
           return values.slice(0, lastIndex)
