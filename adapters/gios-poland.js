@@ -82,6 +82,7 @@ export function fetchStream (source) {
           });
 
           return values.slice(0, lastIndex)
+            .filter(({value}) => value !== null)
             .map(
               ({tzDate, value}) => Object.assign(
                 {parameter, unit, value: +value, date: {local: tzDate.format()}}, base
