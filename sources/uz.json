@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Tashkent/Tashkent-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Tashkent",
+        "city": "Tashkent",
+        "country": "UZ",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]

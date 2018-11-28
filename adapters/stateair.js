@@ -102,6 +102,8 @@ var formatData = function (data) {
           return 'Asia/Almaty';
         case 'Curacao':
           return 'America/Curacao';
+        case 'Tashkent':
+          return 'Asia/Tashkent';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -246,6 +248,11 @@ var formatData = function (data) {
           latitude: 12.1696,
           longitude: -68.99
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Tashkent':
+        return {
+          latitude: 41.3672,
+          longitude: 69.2725
+        }; // Coordinates from Google Maps for Embassy location
     }
   };
 
