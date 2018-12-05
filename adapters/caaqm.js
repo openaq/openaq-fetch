@@ -36,8 +36,16 @@ export async function fetchStream (source) {
 
   return DataStream
     .from(
-      request(options)
-        .pipe(JSONStream.parse('map.station_list.*'))
+      () => {
+        const response = request(options);
+        const parser = JSONStream.parse('map.station_list.*');
+        const output = new DataStream();
+
+        parser.on('error', (e) => output.raise(e));
+        response.on('error', (e) => output.raise(e));
+
+        return response.pipe(parser).pipe(output);
+      }
     )
     .setOptions({maxParallel: 5})
     .into(
