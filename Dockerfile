@@ -42,6 +42,7 @@ RUN apt-get update && apt-get install -y libkrb5-dev
 # Install NPM dependencies. Do this first so that if package.json hasn't
 # changed we don't have to re-run npm install during `docker build`
 COPY package.json /app/package.json
+COPY package-lock.json /app/package-lock.json
 WORKDIR /app
 RUN source $NVM_DIR/nvm.sh; npm install
 # Copy the app
