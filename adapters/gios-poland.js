@@ -19,17 +19,8 @@ export function fetchStream (source) {
   } = source;
 
   const stationUrl = `${url}/station/findAll`;
-  const requestObject = request.get(stationUrl);
   return DataStream
-    .pipeline(
-      requestObject,
-      JSONStream('*')
-    )
-    .catch(e => {
-      requestObject.abort();
-      e.stream.end();
-      throw e;
-    })
+    .from(() => request.get(stationUrl).pipe(JSONStream('*')))
     .map(
       ({
         id,

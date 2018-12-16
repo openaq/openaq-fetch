@@ -30,17 +30,10 @@ exports.fetchStream = function (source) {
     Key: 'airnow.json'
   };
 
-  const s3stream = s3.getObject(params).createReadStream();
-  return DataStream
-    .pipeline(
-      s3stream,
-      JSONStream.parse('features.*')
-    )
-    .catch(e => {
-      s3stream.abort();
-      e.stream.end();
-      throw e;
-    })
+  return s3.getObject(params)
+    .createReadStream()
+    .pipe(JSONStream.parse('features.*'))
+    .pipe(new DataStream())
     .use(stream => {
       stream.name = 'unused';
       return stream;
