@@ -5,10 +5,10 @@
 'use strict';
 
 const moment = require('moment-timezone');
-const fetch = require('node-fetch');
-const parse5 = require('parse5');
+const request = require('request-promise-native');
+const cheerio = require('cheerio');
 
-const debug = false;
+const log = require('../lib/logger');
 
 const openaq_parameters = ['pm25', 'pm10', 'no2', 'so2', 'o3', 'co', 'bc'];
 
@@ -73,40 +73,15 @@ const staticData = {
   }
 };
 
-function debugLog(...args) {
-  if (debug) console.log('KosovoAQ', ...args);
-}
-
 function getKosovoAQlatestRawJSON(html) {
-  return parse5.parse(html, { sourceCodeLocationInfo : false });
+  return cheerio.load(html);
 }
 
-function checkFetchStatus(response) {
-  debugLog('Headers', response.headers.raw());
-
-  debugLog('checkFetchStatus', response.ok, response.status, response.statusText);
-  if (response.ok) { // res.status >= 200 && res.status < 300
-      return response;
-  } else {
-      throw new Error(JSON.stringify({ status : response.status, statusText : response.statusText }));
-  }
-}
-
-function getKosovoAQHTML(url, options) {
+function getKosovoAQHTML(url) {
   return new Promise(function(resolve, reject) {
-    fetch(url, options)
-    .then(checkFetchStatus)
-    .then(responseBody => {
-      debugLog('openaqAPI', 'fetch responseBody', responseBody);
-      resolve(responseBody.text());
-    }, error => {
-      console.error('openaq.js', 'openaqAPI', 'Error in checkFetchStatus', error);
-      reject(error);
-    })
-    .catch(error => {
-      console.error('openaq.js', 'openaqAPI','catch error', error);
-      reject(error);
-    });
+  return request(url)
+    .then(html => resolve(html))
+    .catch(error => reject(error));
   });
 }
 
@@ -139,8 +114,8 @@ function getStation(rawStation, headers) {
 }
 
 function getRow(tr) {
-  const tds = tr.filter(column => column.nodeName === 'td');
-  const row = tds.map(td => td.childNodes && td.childNodes.length > 0 ? td.childNodes[0].value : null);
+  const tds = tr.filter(column => column.name === 'td');
+  const row = tds.map(td => td.children && td.children.length > 0 ? td.children[0].data : null);
   return row;
 }
 
@@ -176,23 +151,24 @@ function getMeasurements(rawStations, parameters) {
 }
 
 function getTable(rawData) {
-  const trs = rawData.childNodes.filter(child => child.nodeName === 'tr');
-  debugLog(trs);
+  const trs = rawData.children.filter(child => child.name === 'tr');
+  log.debug('--------------- raw rows -------------');
+  log.debug(trs);
   const rawHeaders = trs.shift();
-  let headers = getRow(rawHeaders.childNodes);
+  let headers = getRow(rawHeaders.children);
   headers.splice(0, 2); // Remove station and date header columns.
-  debugLog('--------------- headers -------------');
-  debugLog(headers);
+  log.debug('--------------- headers -------------');
+  log.debug(headers);
   const parameters = getParameters(headers);
-  debugLog('--------------- parameters -------------');
-  debugLog(parameters);
-  const rawStations = trs.map(tr => getRow(tr.childNodes));
-  debugLog('--------------- raw stations -------------');
-  debugLog(rawStations);
+  log.debug('--------------- parameters -------------');
+  log.debug(parameters);
+  const rawStations = trs.map(tr => getRow(tr.children));
+  log.debug('--------------- raw stations -------------');
+  log.debug(rawStations);
 
   const measurements = getMeasurements(rawStations, parameters)
-  debugLog('--------------- stations -------------');
-  debugLog(measurements);
+  log.debug('--------------- stations -------------');
+  log.debug(measurements);
   return measurements;
 }
 
@@ -200,16 +176,17 @@ async function getKosovoAQ(source) {
   return new Promise(function(resolve, reject) {
     getKosovoAQHTML(source.url)
     .then(html => {
-      debugLog('--------------- html -------------');
-      debugLog(html);
+      log.debug('--------------- html -------------');
+      log.debug(html);
       const rawJSON = getKosovoAQlatestRawJSON(html);
-      debugLog('--------------- raw JSON -------------');
-      debugLog(rawJSON);
+      log.debug('--------------- raw JSON -------------');
+      log.debug(rawJSON);
       // jo2: Probably should use JSONata or something similar to do a query for the root data object.
       // As long as the source HTML page structure is not modified, this should work.
-      const rawTable = rawJSON.childNodes[2].childNodes[2].childNodes[4].childNodes[1].childNodes[5].childNodes[1].childNodes[1].childNodes[1];
-      debugLog('--------------- raw JSON table -------------');
-      debugLog(rawTable);
+      const rawTable = rawJSON._root.children[2].children[2].children[4].children[1].children[5].children[1].children[1].children[1];
+
+      log.debug('--------------- raw JSON table -------------');
+      log.debug(rawTable);
       const table = getTable(rawTable).filter(measurement => openaq_parameters.includes(measurement.parameter));
       resolve({ name : module.exports.name, measurements : table });
     })
@@ -220,34 +197,13 @@ async function getKosovoAQ(source) {
 module.exports.name = 'kosovo';
 
 module.exports.fetchData = async function(source, callback) {
-  debugLog('fetchData', source);
+  log.debug('fetchData', source);
   try {
     var result = await getKosovoAQ(source);
-    debugLog(result);
+    log.debug(result);
     return callback(null, result);
   } catch (error) {
     console.error('Error: ' + error);
     return callback(error);
   }
 };
-
-/* For local & RunKit testing... */
-const kosovoAQurl = 'http://kosovo-airquality.com/secure/ValueTable.html';
-const testSource = { url : kosovoAQurl };
-
-const RunKit = false;
-if (RunKit) {
-   var endpoint = require("@runkit/runkit/json-endpoint/1.0.0");
-   endpoint(exports, async function() {
-     var result = await getKosovoAQ(testSource);
-     return result;
-   });
-}
-
-if (debug)
-   (async () => {
-     module.exports.fetchData(testSource, (error, data) => {
-       if (error) console.log(error);
-       else console.log(data.measurements, data.name, data.measurements.length);
-     });
-   })();
