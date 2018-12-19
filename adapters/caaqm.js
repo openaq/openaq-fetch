@@ -34,11 +34,18 @@ export async function fetchStream (source) {
     body: Buffer.from('{"region":"landing_dashboard"}').toString('base64')
   });
 
+  const requestObject = request(options);
+
   return DataStream
-    .from(
-      request(options)
-        .pipe(JSONStream.parse('map.station_list.*'))
+    .pipeline(
+      requestObject,
+      JSONStream.parse('map.station_list.*')
     )
+    .catch(e => {
+      requestObject.abort();
+      e.stream.end();
+      throw e;
+    })
     .setOptions({maxParallel: 5})
     .into(
       (siteStream, site) => {
