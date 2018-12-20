@@ -39,9 +39,17 @@ export async function fetchData (source, cb) {
 let _battuta = null;
 function getBattutaStream () {
   if (!_battuta) {
-    _battuta = request({url: stationsLink})
-      .pipe(JSONStream.parse('*'))
-      .pipe(new DataStream())
+    const requestObject = request({url: stationsLink});
+    _battuta = DataStream
+      .pipeline(
+        requestObject,
+        JSONStream.parse('*')
+      )
+      .catch(e => {
+        requestObject.abort();
+        e.stream.end();
+        throw e;
+      })
       .keep(Infinity);
   }
 
