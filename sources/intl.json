@@ -1,11 +1,11 @@
 [
     {
         "url": "http://files.airnowtech.org/",
-        "adapter": "airnow-ke",
-        "name": "AirNow Kenya",
+        "adapter": "airnow-http",
+        "name": "AirNow",
         "city": "",
-        "country": "KE",
-        "description": "AirNow adapter specifically for Kenya since data is provided differently",
+        "country": "",
+        "description": "AirNow adapter using files streamed over http",
         "sourceURL": "http://www.airnow.gov/",
         "contacts": [
             "info@openaq.org"

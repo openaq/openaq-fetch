@@ -226,6 +226,12 @@ const formatData = function (source, data, link, regionName, stationID, cb) {
       }
     });
   });
+
+  // Filter out older measurements to decrease amount getting sent to db
+  measurements = measurements.filter((m) => {
+    return moment().utc().diff(m.date.utc, 'hours') < 24;
+  });
+
   return cb(measurements);
 };
 

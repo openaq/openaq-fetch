@@ -34,40 +34,33 @@ export async function fetchStream (source) {
     body: Buffer.from('{"region":"landing_dashboard"}').toString('base64')
   });
 
+  const requestObject = request(options);
+
   return DataStream
-    .from(
-      request(options)
-        .pipe(JSONStream.parse('map.station_list.*'))
+    .pipeline(
+      requestObject,
+      JSONStream.parse('map.station_list.*')
     )
+    .catch(e => {
+      requestObject.abort();
+      e.stream.end();
+      throw e;
+    })
     .setOptions({maxParallel: 5})
     .into(
       (siteStream, site) => {
-        // At this point, check to make sure the parameters were last updated
-        // within the last 35 minutes
-        var fromDate = moment.tz(site['parameter_latest_update_date'], 'YYYY-MM-DD HH:mm:ss', 'Asia/Kolkata');
-        var minuteDiff = moment(Math.floor(Date.now() / 6e5) * 6e5).utc().diff(fromDate.toDate(), 'minutes');
-        if (minuteDiff < 0 || minuteDiff > 35) {
-          return;
-        }
-
-        // Check if it has parameters we want
-        for (var i = 0; i < site['parameter_status'].length; i++) {
-          const p = site['parameter_status'][i];
-          if (['PM2.5', 'PM10', 'NO2', 'CO', 'SO2', 'NO2', 'BC', 'Ozone'].includes(p['parameter_name'])) {
-            return siteStream.whenWrote({
-              station_id: site['station_id'],
-              station_name: site['station_name'],
-              coords: {latitude: Number(site['latitude']), longitude: Number(site['longitude'])}
-            });
-          }
-        }
+        return siteStream.whenWrote({
+          station_id: site['station_id'],
+          station_name: site['station_name'],
+          coords: {latitude: Number(site['latitude']), longitude: Number(site['longitude'])}
+        });
       },
       new DataStream()
     )
     .into(
       async (measurements, {coords, station_id: stationId}) => {
         const options = Object.assign(requestOptions, {
-          url: 'https://app.cpcbccr.com/caaqms/caaqms_view_data',
+          url: 'https://app.cpcbccr.com/caaqms/caaqms_viewdata_v2',
           body: Buffer.from(`{"site_id":"${stationId}"}`).toString('base64'),
           resolveWithFullResponse: true
         });
