@@ -1,6 +1,6 @@
 [
     {
-        "url": "http://agaar.mn/aqdata/stationlist?period=h&count=1&language=en",
+        "url": "http://agaar.mn/aqdata/stationlist?period=h&language=en",
         "adapter": "agaar_mn",
         "name": "Agaar.mn",
         "city": "Ulaanbaatar",

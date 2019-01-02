@@ -12,6 +12,12 @@ import { default as baseRequest } from 'request';
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import async from 'async';
+import { join } from 'path';
+
+// Adding in certs to get around unverified connection issue
+require('ssl-root-cas/latest')
+  .inject()
+  .addFile(join(__dirname, '..', '/certs/OrganizationSSL.crt.txt'));
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 exports.name = 'chile';
