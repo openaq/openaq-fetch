@@ -1,6 +1,6 @@
 [
     {
-        "url": "https://app.cpcbccr.com/caaqms/caaqms_landing_map",
+        "url": "https://app.cpcbccr.com/caaqms/caaqms_landing_map_all",
         "adapter": "caaqm",
         "name": "caaqm",
         "city": "",
