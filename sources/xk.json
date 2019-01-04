@@ -21,7 +21,8 @@
         "description": "Kosovo data from kosovo-airquality.com",
         "sourceURL": "http://kosovo-airquality.com/secure/index2.html",
         "contacts": [
-            "info@openaq.org"
+            "info@openaq.org",
+            "jo.torsmyr@gmail.com"
         ],
         "active": true
     }

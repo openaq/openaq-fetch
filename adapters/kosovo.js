@@ -1,73 +1,93 @@
 /**
  * This code is responsible for implementing all methods related to fetching
  * and returning data for a Kosovo sources (HTML page)
+ *
+ * Please note:
+ * There seems to be a discrepancy between the measurements value in the Web-pages for map and table.
+ * Here we use the data from the table Web-page.
  */
 'use strict';
 
 const moment = require('moment-timezone');
-const request = require('request-promise-native');
+import { REQUEST_TIMEOUT } from '../lib/constants';
+import { acceptableParameters } from '../lib/utils';
+const baseRequest = require('request-promise-native');
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 const cheerio = require('cheerio');
-
 const log = require('../lib/logger');
 
-const openaq_parameters = ['pm25', 'pm10', 'no2', 'so2', 'o3', 'co', 'bc'];
+module.exports.name = 'kosovo';
+
+module.exports.fetchData = async function(source, callback) {
+  log.debug('fetchData', source);
+  try {
+    var result = await getKosovoAQ(source);
+    log.debug(result);
+    return callback(null, result);
+  } catch (error) {
+    console.error('Error: ' + error);
+    return callback(error);
+  }
+};
 
 const averagingPeriod = { unit: 'hours', value: 1 };
 const attribution = [{ name: 'Kosovo AQ', url: 'http://kosovo-airquality.com/secure/index2.html' }];
+
+// geo locations source: http://kosovo-airquality.com/secure/Kosovo.html
 const staticData = {
   Drenas : {
-    coordinates : { // 42.62551717860738,20.896225734037785
-      latitude : 42.62552,
-      longitude : 20.89623
+    coordinates : {
+      latitude : 42.625568,
+      longitude : 20.89621
     },
     city : 'Drenas'
   },
   Gjilan : {
-    coordinates : { // 42.46100366178403,21.467255332788113
-      latitude : 42.46100,
-      longitude : 21.46726
+    coordinates : {
+      latitude : 42.461143,
+      longitude : 21.467201
     },
     city : 'Gjilan'
   },
   'Hani i Elezit' : {
-    coordinates : { // 42.153772879592786,21.296323467845127
-      latitude : 42.15377,
-      longitude : 21.29632
+    coordinates : {
+      latitude : 42.153961,
+      longitude : 21.29601
     },
     city : 'Hani i Elezit'
   },
   Mitrovice : {
-    coordinates : { //  42.89165029364315,20.868949929916425
-      latitude : 42.89165,
-      longitude : 20.86895
+    coordinates : {
+      latitude : 42.891794,
+      longitude : 20.868936
     },
     city : 'Mitrovice'
   },
   Peje : {
-    coordinates : { //  42.65959450714422,20.284551553936808
-      latitude : 42.65959,
-      longitude : 20.28455
+    coordinates : {
+      latitude : 42.659691,
+      longitude : 20.284598
     },
     city : 'Peje'
   },
   'Prishtine - IHMK' : {
-    coordinates : { // 42.64869532066342,21.1371357574585
-      latitude : 42.64869,
-      longitude : 21.13714
+    coordinates : {
+      latitude : 42.648872,
+      longitude : 21.137121
     },
     city : 'Prishtine'
   },
   'Prishtine, Rilindje' : {
-    coordinates : { // 42.65939498964757,21.157230867398084
-      latitude : 42.65939,
-      longitude : 21.157230
+    coordinates : {
+      latitude : 42.659656,
+      longitude : 21.157309
     },
     city : 'Prishtine'
   },
   Prizren : {
-    coordinates : { // 42.21585246455938,20.741575823942526
-      latitude : 42.215852,
-      longitude : 20.74158
+    coordinates : {
+      latitude : 42.215859,
+      longitude : 20.741556
     },
     city : 'Prizren'
   }
@@ -87,7 +107,6 @@ function getKosovoAQHTML(url) {
 
 function getParameterAndUnit(header) {
   const parunit = header.split('[');
-// header.substring(0, header.indexOf('['))
   const parameterUnit = {
     parameter : parunit[0].toLowerCase().replace('.', ''),
     unit : parunit[1].toLowerCase().replace(']', '')
@@ -187,23 +206,9 @@ async function getKosovoAQ(source) {
 
       log.debug('--------------- raw JSON table -------------');
       log.debug(rawTable);
-      const table = getTable(rawTable).filter(measurement => openaq_parameters.includes(measurement.parameter));
+      const table = getTable(rawTable).filter(measurement => acceptableParameters.includes(measurement.parameter));
       resolve({ name : module.exports.name, measurements : table });
     })
     .catch(error => reject(error));
   });
 }
-
-module.exports.name = 'kosovo';
-
-module.exports.fetchData = async function(source, callback) {
-  log.debug('fetchData', source);
-  try {
-    var result = await getKosovoAQ(source);
-    log.debug(result);
-    return callback(null, result);
-  } catch (error) {
-    console.error('Error: ' + error);
-    return callback(error);
-  }
-};
