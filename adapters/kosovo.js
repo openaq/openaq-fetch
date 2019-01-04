@@ -8,9 +8,10 @@
  */
 'use strict';
 
-const moment = require('moment-timezone');
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { acceptableParameters } from '../lib/utils';
+
+const moment = require('moment-timezone');
 const baseRequest = require('request-promise-native');
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 const cheerio = require('cheerio');
@@ -126,12 +127,6 @@ function getDate(rawDate) {
   };
 }
 
-function getStation(rawStation, headers) {
-  const station = {};
-  headers.forEach((property, index) => rawStation[index] ? station[property] = rawStation[index] : null);
-  return station;
-}
-
 function getRow(tr) {
   const tds = tr.filter(column => column.name === 'td');
   const row = tds.map(td => td.children && td.children.length > 0 ? td.children[0].data : null);
@@ -185,7 +180,7 @@ function getTable(rawData) {
   log.debug('--------------- raw stations -------------');
   log.debug(rawStations);
 
-  const measurements = getMeasurements(rawStations, parameters)
+  const measurements = getMeasurements(rawStations, parameters);
   log.debug('--------------- stations -------------');
   log.debug(measurements);
   return measurements;
