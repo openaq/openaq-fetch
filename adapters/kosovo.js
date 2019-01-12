@@ -195,9 +195,7 @@ async function getKosovoAQ(source) {
       const rawJSON = getKosovoAQlatestRawJSON(html);
       log.debug('--------------- raw JSON -------------');
       log.debug(rawJSON);
-      // jo2: Probably should use JSONata or something similar to do a query for the root data object.
-      // As long as the source HTML page structure is not modified, this should work.
-      const rawTable = rawJSON._root.children[2].children[2].children[4].children[1].children[5].children[1].children[1].children[1];
+      const rawTable = rawJSON('table[BORDER=2]').find('tbody').get(0);
 
       log.debug('--------------- raw JSON table -------------');
       log.debug(rawTable);
