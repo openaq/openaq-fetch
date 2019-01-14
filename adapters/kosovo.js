@@ -8,18 +8,24 @@
  */
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
-import { acceptableParameters } from '../lib/utils';
+import {
+  REQUEST_TIMEOUT
+} from '../lib/constants';
+import {
+  acceptableParameters
+} from '../lib/utils';
 
 const moment = require('moment-timezone');
 const baseRequest = require('request-promise-native');
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+const request = baseRequest.defaults({
+  timeout: REQUEST_TIMEOUT
+});
 const cheerio = require('cheerio');
 const log = require('../lib/logger');
 
 module.exports.name = 'kosovo';
 
-module.exports.fetchData = async function(source, callback) {
+module.exports.fetchData = async function (source, callback) {
   log.debug('fetchData', source);
   try {
     var result = await getKosovoAQ(source);
@@ -31,132 +37,139 @@ module.exports.fetchData = async function(source, callback) {
   }
 };
 
-const averagingPeriod = { unit: 'hours', value: 1 };
-const attribution = [{ name: 'Kosovo AQ', url: 'http://kosovo-airquality.com/secure/index2.html' }];
+const averagingPeriod = {
+  unit: 'hours',
+  value: 1
+};
+const attribution = [{
+  name: 'Kosovo AQ',
+  url: 'http://kosovo-airquality.com/secure/index2.html'
+}];
 
 // geo locations source: http://kosovo-airquality.com/secure/Kosovo.html
 const staticData = {
-  Drenas : {
-    coordinates : {
-      latitude : 42.625568,
-      longitude : 20.89621
+  Drenas: {
+    coordinates: {
+      latitude: 42.625568,
+      longitude: 20.89621
     },
-    city : 'Drenas'
+    city: 'Drenas'
   },
-  Gjilan : {
-    coordinates : {
-      latitude : 42.461143,
-      longitude : 21.467201
+  Gjilan: {
+    coordinates: {
+      latitude: 42.461143,
+      longitude: 21.467201
     },
-    city : 'Gjilan'
+    city: 'Gjilan'
   },
-  'Hani i Elezit' : {
-    coordinates : {
-      latitude : 42.153961,
-      longitude : 21.29601
+  'Hani i Elezit': {
+    coordinates: {
+      latitude: 42.153961,
+      longitude: 21.29601
     },
-    city : 'Hani i Elezit'
+    city: 'Hani i Elezit'
   },
-  Mitrovice : {
-    coordinates : {
-      latitude : 42.891794,
-      longitude : 20.868936
+  Mitrovice: {
+    coordinates: {
+      latitude: 42.891794,
+      longitude: 20.868936
     },
-    city : 'Mitrovice'
+    city: 'Mitrovice'
   },
-  Peje : {
-    coordinates : {
-      latitude : 42.659691,
-      longitude : 20.284598
+  Peje: {
+    coordinates: {
+      latitude: 42.659691,
+      longitude: 20.284598
     },
-    city : 'Peje'
+    city: 'Peje'
   },
-  'Prishtine - IHMK' : {
-    coordinates : {
-      latitude : 42.648872,
-      longitude : 21.137121
+  'Prishtine - IHMK': {
+    coordinates: {
+      latitude: 42.648872,
+      longitude: 21.137121
     },
-    city : 'Prishtine'
+    city: 'Prishtine'
   },
-  'Prishtine, Rilindje' : {
-    coordinates : {
-      latitude : 42.659656,
-      longitude : 21.157309
+  'Prishtine, Rilindje': {
+    coordinates: {
+      latitude: 42.659656,
+      longitude: 21.157309
     },
-    city : 'Prishtine'
+    city: 'Prishtine'
   },
-  Prizren : {
-    coordinates : {
-      latitude : 42.215859,
-      longitude : 20.741556
+  Prizren: {
+    coordinates: {
+      latitude: 42.215859,
+      longitude: 20.741556
     },
-    city : 'Prizren'
+    city: 'Prizren'
   }
 };
 
-function getKosovoAQlatestRawJSON(html) {
+function getKosovoAQlatestRawJSON (html) {
   return cheerio.load(html);
 }
 
-function getKosovoAQHTML(url) {
-  return new Promise(function(resolve, reject) {
-  return request(url)
-    .then(html => resolve(html))
-    .catch(error => reject(error));
+function getKosovoAQHTML (url) {
+  return new Promise(function (resolve, reject) {
+    return request(url)
+      .then(html => resolve(html))
+      .catch(error => reject(error));
   });
 }
 
-function getParameterAndUnit(header) {
+function getParameterAndUnit (header) {
   const parunit = header.split('[');
   const parameterUnit = {
-    parameter : parunit[0].toLowerCase().replace('.', ''),
-    unit : parunit[1].toLowerCase().replace(']', '')
+    parameter: parunit[0].toLowerCase().replace('.', ''),
+    unit: parunit[1].toLowerCase().replace(']', '')
   };
   return parameterUnit;
 }
 
-function getParameters(rawParameters) {
+function getParameters (rawParameters) {
   return rawParameters.map(rawParameter => getParameterAndUnit(rawParameter));
 }
 
-function getDate(rawDate) {
+function getDate (rawDate) {
   const dateMoment = moment.tz(rawDate, 'DD.MM.YYYY HH:mm:ss', 'Europe/Belgrade'); // No name for Pristina?
   return {
-    utc : dateMoment.toDate(),
-    local : dateMoment.format()
+    utc: dateMoment.toDate(),
+    local: dateMoment.format()
   };
 }
 
-function getRow(tr) {
+function getRow (tr) {
   const tds = tr.filter(column => column.name === 'td');
   const row = tds.map(td => td.children && td.children.length > 0 ? td.children[0].data : null);
   return row;
 }
 
-function getStationMeasurements(rawStation, parameters) {
+function getStationMeasurements (rawStation, parameters) {
   const location = rawStation.shift();
   const measurement = {
-    location : location,
-    city : staticData[location].city,
-    date : getDate(rawStation.shift()),
-    coordinates : staticData[location].coordinates,
-    attribution : attribution,
-    averagingPeriod : averagingPeriod
+    location: location,
+    city: staticData[location].city,
+    date: getDate(rawStation.shift()),
+    coordinates: staticData[location].coordinates,
+    attribution: attribution,
+    averagingPeriod: averagingPeriod
   };
 
   const stationMeasurements = [];
   rawStation.forEach((rawMeasurement, index) => {
-    if (rawMeasurement)
-        stationMeasurements.push(Object.assign({
-          parameter : parameters[index].parameter,
-          unit : parameters[index].unit,
-          value : Number(rawMeasurement.replace(',', '.'))
-        }, measurement));
+    if (rawMeasurement) {
+      stationMeasurements.push(Object.assign({
+        parameter: parameters[index].parameter,
+        unit: parameters[index].unit,
+        value: Number(rawMeasurement.replace(',', '.'))
+      }, measurement));
+    }
   });
   return stationMeasurements;
 }
 
-function getMeasurements(rawStations, parameters) {
+function getMeasurements (rawStations, parameters) {
   const measurements = [];
   rawStations.forEach((rawStation) =>
     measurements.push(...getStationMeasurements(rawStation, parameters))
@@ -164,7 +177,7 @@ function getMeasurements(rawStations, parameters) {
   return measurements;
 }
 
-function getTable(rawData) {
+function getTable (rawData) {
   const trs = rawData.children.filter(child => child.name === 'tr');
   log.debug('--------------- raw rows -------------');
   log.debug(trs);
@@ -186,22 +199,25 @@ function getTable(rawData) {
   return measurements;
 }
 
-async function getKosovoAQ(source) {
-  return new Promise(function(resolve, reject) {
+async function getKosovoAQ (source) {
+  return new Promise(function (resolve, reject) {
     getKosovoAQHTML(source.url)
-    .then(html => {
-      log.debug('--------------- html -------------');
-      log.debug(html);
-      const rawJSON = getKosovoAQlatestRawJSON(html);
-      log.debug('--------------- raw JSON -------------');
-      log.debug(rawJSON);
-      const rawTable = rawJSON('table[BORDER=2]').find('tbody').get(0);
+      .then(html => {
+        log.debug('--------------- html -------------');
+        log.debug(html);
+        const rawJSON = getKosovoAQlatestRawJSON(html);
+        log.debug('--------------- raw JSON -------------');
+        log.debug(rawJSON);
+        const rawTable = rawJSON('table[BORDER=2]').find('tbody').get(0);
 
-      log.debug('--------------- raw JSON table -------------');
-      log.debug(rawTable);
-      const table = getTable(rawTable).filter(measurement => acceptableParameters.includes(measurement.parameter));
-      resolve({ name : module.exports.name, measurements : table });
-    })
-    .catch(error => reject(error));
+        log.debug('--------------- raw JSON table -------------');
+        log.debug(rawTable);
+        const table = getTable(rawTable).filter(measurement => acceptableParameters.includes(measurement.parameter));
+        resolve({
+          name: module.exports.name,
+          measurements: table
+        });
+      })
+      .catch(error => reject(error));
   });
 }
