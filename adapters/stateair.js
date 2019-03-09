@@ -104,6 +104,8 @@ var formatData = function (data) {
           return 'America/Curacao';
         case 'Tashkent':
           return 'Asia/Tashkent';
+        case 'Bishkek':
+          return 'Asia/Bishkek';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -253,6 +255,11 @@ var formatData = function (data) {
           latitude: 41.3672,
           longitude: 69.2725
         }; // Coordinates from Google Maps for Embassy location
+      case 'Bishkek':
+        return {
+          latitude: 42.8273,
+          longitude: 74.5833
+        };
     }
   };
 
