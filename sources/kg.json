@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Bishkek/Bishkek-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Bishkek",
+        "city": "Bishkek",
+        "country": "KG",
+        "description": "",
+        "sourceURL": "https://airnow.gov/index.cfm?action=airnow.global_summary#U.S._Department_of_State$Bishkek",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
