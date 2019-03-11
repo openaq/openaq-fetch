@@ -107,7 +107,7 @@ var formatData = function (data) {
         case 'Bishkek':
           return 'Asia/Bishkek';
         case 'Baghdad':
-          return 'Asia/Baghdad';   
+          return 'Asia/Baghdad';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
