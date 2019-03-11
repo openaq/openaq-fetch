@@ -106,7 +106,7 @@ var formatData = function (data) {
           return 'Asia/Tashkent';
         case 'Bishkek':
           return 'Asia/Bishkek';
-        case 'Baghdad:
+        case 'Baghdad':
           return 'Asia/Baghdad';   
       }
     };
