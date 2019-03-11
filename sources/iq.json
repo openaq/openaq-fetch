@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Baghdad/Baghdad-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Baghdad",
+        "city": "Baghdad",
+        "country": "IQ",
+        "description": "",
+        "sourceURL": "https://airnow.gov/index.cfm?action=airnow.global_summary#Iraq$Baghdad",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
