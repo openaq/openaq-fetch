@@ -106,6 +106,8 @@ var formatData = function (data) {
           return 'Asia/Tashkent';
         case 'Bishkek':
           return 'Asia/Bishkek';
+        case 'Baghdad:
+          return 'Asia/Baghdad';   
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -247,19 +249,24 @@ var formatData = function (data) {
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
       case 'Curacao':
         return {
-          latitude: 12.1696,
-          longitude: -68.99
+          latitude: 12.16960,
+          longitude: -68.9900
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
       case 'Tashkent':
         return {
-          latitude: 41.3672,
-          longitude: 69.2725
+          latitude: 41.36720,
+          longitude: 69.27250
         }; // Coordinates from Google Maps for Embassy location
       case 'Bishkek':
         return {
           latitude: 42.8273,
           longitude: 74.5833
         };
+      case 'Baghdad':
+        return {
+          latitude: 33.298722,
+          longitude: 44.395917
+        }; // Coordinates from Google Maps for Embassy location
     }
   };
 
