@@ -11,7 +11,7 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://dosairnowdata.org/dos/RSS/Ulaanbaatar/Ulaanbaatar-PM2.5.xml",
