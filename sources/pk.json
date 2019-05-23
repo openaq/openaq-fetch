@@ -1,0 +1,41 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Islamabad/Islamabad-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Islamabad",
+        "city": "Islamabad",
+        "country": "PK",
+        "description": "",
+        "sourceURL": "https://airnow.gov/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Karachi/Karachi-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Karachi",
+        "city": "Karachi",
+        "country": "PK",
+        "description": "",
+        "sourceURL": "https://airnow.gov/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Lahore/Lahore-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Lahore",
+        "city": "Lahore",
+        "country": "PK",
+        "description": "",
+        "sourceURL": "https://airnow.gov/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
