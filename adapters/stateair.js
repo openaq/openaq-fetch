@@ -108,6 +108,10 @@ var formatData = function (data) {
           return 'Asia/Bishkek';
         case 'Baghdad':
           return 'Asia/Baghdad';
+        case 'Islamabad':
+        case 'Karachi':
+        case 'Lahore':
+          return 'Asia/Karachi';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -267,6 +271,21 @@ var formatData = function (data) {
           latitude: 33.298722,
           longitude: 44.395917
         }; // Coordinates from Google Maps for Embassy location
+      case 'Lahore':
+        return {
+          latitude: 31.560078,
+          longitude: 74.33589
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Karachi':
+        return {
+          latitude: 24.8415,
+          longitude: 67.0091
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Islamabad':
+        return {
+          latitude: 33.7235,
+          longitude: 73.11822
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
     }
   };
 
