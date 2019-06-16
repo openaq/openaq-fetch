@@ -37,5 +37,18 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Peshawar/Peshawar-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Peshawar",
+        "city": "Peshawar",
+        "country": "PK",
+        "description": "",
+        "sourceURL": "https://airnow.gov/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
