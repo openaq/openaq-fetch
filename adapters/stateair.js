@@ -111,7 +111,14 @@ var formatData = function (data) {
         case 'Islamabad':
         case 'Karachi':
         case 'Lahore':
+        case 'Peshawar':
           return 'Asia/Karachi';
+        case 'Vientiane':
+          return 'Asia/Vientiane';
+        case 'Algiers':
+          return 'Africa/Algiers';
+        case 'Rangoon':
+          return 'Asia/Rangoon';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -285,6 +292,26 @@ var formatData = function (data) {
         return {
           latitude: 33.7235,
           longitude: 73.11822
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Peshawar':
+        return {
+          latitude: 34.00585,
+          longitude: 71.53775
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Vientiane':
+        return {
+          latitude: 17.896122,
+          longitude: 102.64
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Algiers':
+        return {
+          latitude: 36.7558,
+          longitude: 3.039114
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Rangoon':
+        return {
+          latitude: 16.8256,
+          longitude: 96.1445
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
     }
   };
