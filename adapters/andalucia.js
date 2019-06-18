@@ -93,7 +93,10 @@ const generateTasks = (url, task, now) => {
           }
         );
       }], (err, res) => {
-      if (err) {
+      if (err ||
+          res === undefined ||
+          res[0] === undefined ||
+          res[1] === undefined) {
         return done(null, []);
       }
       res = res[0].concat(res[1]);
