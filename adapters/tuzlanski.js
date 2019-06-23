@@ -77,8 +77,14 @@ const formatData = function (results, cb) {
   let legends = $('.data-legend').last().find('div div');
   base.city = legends.eq(1).text().split(' ').reverse()[0];
 
-  let position = new Coordinates(legends.eq(3).text().split(':')[1] + ' ' +
+  let position;
+  try {
+    position = new Coordinates(legends.eq(3).text().split(':')[1] + ' ' +
                                  legends.eq(4).text().split(':')[1]);
+  } catch (error) {
+    // Catch error due to bad data in coords place
+    return cb([]);
+  }
 
   if (position.getLatitude() && position.getLongitude()) {
     base.coordinates = {
