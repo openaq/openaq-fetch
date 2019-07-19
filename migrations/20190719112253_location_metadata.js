@@ -32,10 +32,7 @@ exports.up = function (knex) {
     ) lm ON locations_metadata."locationId" = lm."locationId" AND locations_metadata."createdAt" = lm."updatedAt"
   `);
 
-  return Promise.all([
-    createLocationsMetadata,
-    createLatestLocationsView
-  ]);
+  return createLocationsMetadata.then(createLatestLocationsView);
 };
 
 exports.down = function (knex) {
