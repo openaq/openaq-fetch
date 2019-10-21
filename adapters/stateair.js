@@ -347,7 +347,7 @@ var formatData = function (data) {
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
       case 'Amman':
         return {
-          latitude: 31.945388, 
+          latitude: 31.945388,
           longitude: 35.880556
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
       case 'Dushanbe':
