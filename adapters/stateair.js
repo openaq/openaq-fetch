@@ -131,7 +131,6 @@ var formatData = function (data) {
           return 'Asia/Amman';
         case 'Dushanbe':
           return 'Asia/Dushanbe';
-          
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
