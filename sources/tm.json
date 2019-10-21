@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Ashgabat/Ashgabat-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Ashgabat",
+        "city": "Ashgabat",
+        "country": "TM",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]

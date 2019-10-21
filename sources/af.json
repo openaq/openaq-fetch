@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Kabul/Kabul-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Kabul",
+        "city": "Kabul",
+        "country": "AF",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]

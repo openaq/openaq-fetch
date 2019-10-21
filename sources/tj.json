@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Dushanbe/Dushanbe-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Dushanbe",
+        "city": "Dushanbe",
+        "country": "TJ",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]

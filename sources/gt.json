@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/GuatemalaCity/GuatemalaCity-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_GuatemalaCity",
+        "city": "Guatemala City",
+        "country": "GT",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
