@@ -119,6 +119,19 @@ var formatData = function (data) {
           return 'Africa/Algiers';
         case 'Rangoon':
           return 'Asia/Rangoon';
+        case 'Kabul':
+          return 'Asia/Kabul';
+        case 'Dharan':
+          return 'Asia/Aden';
+        case 'Ashgabat':
+          return 'Asia/Ashgabat';
+        case 'Guatemala City':
+          return 'America/Guatemala';
+        case 'Amman':
+          return 'Asia/Amman';
+        case 'Dushanbe':
+          return 'Asia/Dushanbe';
+          
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -312,6 +325,36 @@ var formatData = function (data) {
         return {
           latitude: 16.8256,
           longitude: 96.1445
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Kabul':
+        return {
+          latitude: 34.535812,
+          longitude: 69.190514
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Dharan':
+        return {
+          latitude: 26.304855,
+          longitude: 50.154302
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Ashgabat':
+        return {
+          latitude: 37.941857,
+          longitude: 58.387945
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Guatemala City':
+        return {
+          latitude: 14.607198,
+          longitude: -90.514255
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Amman':
+        return {
+          latitude: 31.945388, 
+          longitude: 35.880556
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Dushanbe':
+        return {
+          latitude: 38.579708,
+          longitude: 68.712176
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
     }
   };
