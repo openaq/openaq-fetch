@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Dharan/Dharan-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Dharan",
+        "city": "Dharan",
+        "country": "SA",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
