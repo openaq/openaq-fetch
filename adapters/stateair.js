@@ -131,6 +131,8 @@ var formatData = function (data) {
           return 'Asia/Amman';
         case 'Dushanbe':
           return 'Asia/Dushanbe';
+        case 'San Jose':
+          return 'America/Costa_Rica';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -354,6 +356,11 @@ var formatData = function (data) {
         return {
           latitude: 38.579708,
           longitude: 68.712176
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'San Jose':
+        return {
+          latitude: 9.949488,
+          longitude: -84.142876
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
     }
   };

@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/SanJose/SanJose-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_SanJose",
+        "city": "San Jose",
+        "country": "CR",
+        "description": "",
+        "sourceURL": "https://airnow.gov/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
