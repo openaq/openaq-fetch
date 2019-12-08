@@ -124,8 +124,8 @@ var formatData = function (data) {
           location: site,
           date: date,
           attribution: [{
-            name: 'NSW - Office of Environment & Heritage',
-            url: 'http://www.environment.nsw.gov.au/'
+            name: 'State of New South Wales (Department of Planning, Industry and Environment)',
+            url: 'https://www.dpie.nsw.gov.au/'
           }]
         };
 
