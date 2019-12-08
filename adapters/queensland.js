@@ -97,7 +97,7 @@ var formatData = function (data, source) {
     };
 
     // Add coordinates if they're available
-    if ($(this).parent().attr('latitude') && $(this).parent().attr('longitude')) {
+    if ($(this).parent().attr('latitude') && $(this).parent().attr('longitude') && Number($(this).parent().attr('latitude')) !== 0 && Number($(this).parent().attr('longitude')) !== 0) {
       m.coordinates = {
         latitude: Number($(this).parent().attr('latitude')),
         longitude: Number($(this).parent().attr('longitude'))
