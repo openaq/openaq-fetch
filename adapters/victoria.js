@@ -5,7 +5,6 @@ import { default as baseRequest } from 'request';
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import parallelLimit from 'async/parallelLimit';
-import { removeUnwantedParameters, convertUnits } from '../lib/utils';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'victoria';
@@ -14,7 +13,7 @@ export function fetchData (source, cb) {
   request({
     url: source.url,
     headers: {
-      'X-API-Key': ${process.env.EPA_VIC_TOKEN}
+      'X-API-Key': process.env.EPA_VIC_TOKEN
     }
   }, function (err, res, body) {
     if (err || res.statusCode !== 200) {
@@ -24,9 +23,9 @@ export function fetchData (source, cb) {
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-      formatData(body, function (data) {
+      formatData(body, function (err, data) {
         // Make sure the data is valid
-        if (data === undefined) {
+        if (err || data === undefined) {
           return cb({message: 'Failure to parse data.'});
         }
         cb(null, data);
@@ -61,7 +60,7 @@ var formatData = function (data, formatDataCB) {
       request({
         url: `https://gateway.api.epa.vic.gov.au/environmentMonitoring/v1/sites/${site.siteID}/parameters`,
         headers: {
-          'X-API-Key': ${process.env.EPA_VIC_TOKEN}
+          'X-API-Key': process.env.EPA_VIC_TOKEN
         }
       }, function (err, res, body) {
         var source = JSON.parse(body);
@@ -91,12 +90,12 @@ var formatData = function (data, formatDataCB) {
             measurement.parameter = parameters[parameter.name];
 
             // from the range of time series readings, find the 1HR_AV one
-            var 1hrAverageReadings = parameter.timeSeriesReadings.filter(function(timeSeriesReading) {
-              return timeseriesReading.timeSersieName === "1HR_AV";
+            var averageReadings = parameter.timeSeriesReadings.filter(function (timeSeriesReading) {
+              return timeSeriesReading.timeSeriesName === '1HR_AV';
             });
 
-            if (1hrAverageReadings.length && 1hrAverageReadings[0].length) {
-              var reading = 1hrAverageReadings[0][0];
+            if (averageReadings.length && averageReadings[0].length) {
+              var reading = averageReadings[0][0];
               if (reading.unit in units) {
                 measurement.unit = units[reading.unit];
                 measurement.averagingPeriod = { value: 1, unit: 'hours' };
@@ -118,11 +117,11 @@ var formatData = function (data, formatDataCB) {
         });
 
         cb(err, measurements);
-      })
+      });
     };
   });
 
   parallelLimit(tasks, 1, function (err, measurements) {
-    formatDataCB({name: 'unused', measurements: _.flatten(measurements)});
+    formatDataCB(err, {name: 'unused', measurements: _.flatten(measurements)});
   });
 };
