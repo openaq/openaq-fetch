@@ -112,7 +112,7 @@ var formatData = function (data, source) {
       city: 'Adelaide',
       country: 'AU',
       date: dateObject,
-      sourceName: 'AU_SA',
+      sourceName: 'au/sa',
       sourceType: 'government',
       mobile: false,
       coordinates: {
