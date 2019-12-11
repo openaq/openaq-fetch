@@ -27,7 +27,7 @@ exports.fetchData = function (source, cb) {
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-      var data = formatData(body, source);
+      var data = formatData(JSON.parse(body), source);
       if (data === undefined) {
         return cb({message: 'Failure to parse data.'});
       }
@@ -62,25 +62,19 @@ var formatData = function (data, source) {
 
   var measurements = [];
 
-  // parse the csv feed, exclude # lines
-  var rows = parse(data, {columns: true, trim: true, comment: '#'});
-
-  // loop through the csv rows
-  for (var i = 0; i < rows.length; i++) {
-    var row = rows[i];
-
+  data.forEach(function (row) {
     // base measurement properties
     const baseMeasurement = {
-      location: row.Name,
+      location: row.name,
       city: 'Canberra',
       country: 'AU',
-      date: parseDate(row.DateTime),
+      date: parseDate(row.datetime),
       sourceName: 'AU_ACT',
       sourceType: 'government',
       mobile: false,
       coordinates: {
-        latitude: Number(row.GPS.replace(/[ ()]/, '').split(',')[0]),
-        longitude: Number(row.GPS.replace(/[ ()]/, '').split(',')[1])
+        latitude: Number(row.gps.latitude),
+        longitude: Number(row.gps.longitude)
       },
       attribution: [{
         name: 'Health Protection Service, ACT Government',
@@ -92,6 +86,7 @@ var formatData = function (data, source) {
     Object.keys(types).forEach(function (type) {
       if (type in row) {
         var measurement = cloneDeep(baseMeasurement);
+
         measurement.parameter = types[type];
         measurement.value = Number(row[type]);
         measurement.unit = units[types[type]];
@@ -99,7 +94,7 @@ var formatData = function (data, source) {
         measurements.push(measurement);
       }
     });
-  }
+  });
 
   return {
     name: 'unused',
