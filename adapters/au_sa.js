@@ -48,7 +48,7 @@ var siteLocations = {
   'pta': [ 137.7868467, -32.5100065 ]
 };
 
-function parseValue(value) {
+function parseValue (value) {
   if (value === null || value === 'NM' || value === 'NA') {
     return null;
   }
