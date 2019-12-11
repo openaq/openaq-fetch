@@ -54,5 +54,19 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "https://www.data.act.gov.au/api/id/94a5-zqnn.json",
+        "adapter": "au_act",
+        "name": "Australia - ACT",
+        "city": "Canberra",
+        "country": "AU",
+        "description": "",
+        "resolution": "1 hr",
+        "sourceURL": "https://www.health.act.gov.au/about-our-health-system/population-health/environmental-monitoring/monitoring-and-regulating-air",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
