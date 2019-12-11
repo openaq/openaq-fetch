@@ -48,6 +48,7 @@ var siteLocations = {
   'pta': [ 137.7868467, -32.5100065 ]
 };
 
+// remove non numeric values
 function parseValue (value) {
   if (value === null || value === 'NM' || value === 'NA') {
     return null;
@@ -86,7 +87,12 @@ var formatData = function (data, source) {
   var year = rows[0][3];
   var time = rows[0][4];
 
-  var date = moment.tz(`${day} ${month} ${year} ${time}`, 'DD MMMM YYYY HH:mm', 'Australia/Adelaide');
+  // according to https://data.sa.gov.au/data/dataset/recent-air-quality/resource/d8abf079-9c51-4a0c-b827-dca926c4e95b
+  // "Times shown ... are Australian Central Standard Time (ACST). During
+  // daylight savings an hour will need to be added to the times shown."
+  // Hence we specifiy the date time is in +09:30 ie. ACST, this then gets
+  // correctly formatted to local time in Australia/Adelaide
+  var date = moment.tz(`${day} ${month} ${year} ${time} +09:30`, 'DD MMMM YYYY HH:mm ZZ', 'Australia/Adelaide');
   var dateObject = {utc: date.toDate(), local: date.format()};
 
   // loop through the remaining csv rows, which each contain a location
