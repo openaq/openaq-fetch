@@ -6,7 +6,7 @@ import { flatten, cloneDeep } from 'lodash';
 import { default as moment } from 'moment-timezone';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'act';
+exports.name = 'au_act';
 
 exports.fetchData = function (source, cb) {
   // get the time 1 day ago in AEST
