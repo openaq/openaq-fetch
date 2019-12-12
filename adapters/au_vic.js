@@ -103,7 +103,7 @@ var formatData = function (data, formatDataCB) {
         // list of all measurements at this site
         var measurements = [];
         if (source && source.parameters) {
-          source.parameters.map(function (parameter) {
+          measurements = source.parameters.map(function (parameter) {
             if (parameter.name in parameters) {
               var measurement = baseProperties;
               measurement.parameter = parameters[parameter.name];
@@ -113,8 +113,8 @@ var formatData = function (data, formatDataCB) {
                 return timeSeriesReading.timeSeriesName === '1HR_AV';
               });
 
-              if (averageReadings.length && averageReadings[0].length) {
-                var reading = averageReadings[0][0];
+              if (averageReadings.length && averageReadings[0].readings.length) {
+                var reading = averageReadings[0].readings[0];
                 if (reading.unit in units) {
                   measurement.unit = units[reading.unit];
                   measurement.averagingPeriod = { value: 1, unit: 'hours' };
