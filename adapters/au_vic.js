@@ -5,12 +5,25 @@ import { default as baseRequest } from 'request';
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import parallelLimit from 'async/parallelLimit';
+import Bottleneck from 'bottleneck';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+
+// Default rate limiting on API is set to 5 requests/sec.
+// > Please send an email to Tools.support@epa.vic.gov.au with subject
+// > 'EPA API Access Request: Increase rate-limiting' and a justified
+// > reason if you want to get it increased for your subscriptions.
+var limiter = new Bottleneck({
+  reservoir: 5, // allow 5 requests
+  reservoirRefreshAmount: 5,
+  reservoirRefreshInterval: 1000, // every 1000ms
+  maxConcurrent: 1,
+  minTime: 200 + 50 // to stagger requests out throught each second (1000 / 5) adding a 50ms buffer
+});
 
 export const name = 'victoria';
 
 export function fetchData (source, cb) {
-  request({
+  limiter.submit(request, {
     url: source.url,
     headers: {
       'X-API-Key': process.env.EPA_VIC_TOKEN
@@ -57,12 +70,16 @@ var formatData = function (data, formatDataCB) {
   // request measurements from each site
   var tasks = sites.map(function (site) {
     return function (cb) {
-      request({
+      limiter.submit(request, {
         url: `https://gateway.api.epa.vic.gov.au/environmentMonitoring/v1/sites/${site.siteID}/parameters`,
         headers: {
           'X-API-Key': process.env.EPA_VIC_TOKEN
         }
       }, function (err, res, body) {
+        if (err || res.statusCode !== 200) {
+          console.error(err, res);
+          return cb({message: 'Failure to load data url.'});
+        }
         var source = JSON.parse(body);
 
         // base properties shared for all measurements at this site
@@ -84,39 +101,42 @@ var formatData = function (data, formatDataCB) {
         };
 
         // list of all measurements at this site
-        var measurements = source.parameters.map(function (parameter) {
-          if (parameter.name in parameters) {
-            var measurement = baseProperties;
-            measurement.parameter = parameters[parameter.name];
+        var measurements = [];
+        if (source && source.parameters) {
+          source.parameters.map(function (parameter) {
+            if (parameter.name in parameters) {
+              var measurement = baseProperties;
+              measurement.parameter = parameters[parameter.name];
 
-            // from the range of time series readings, find the 1HR_AV one
-            var averageReadings = parameter.timeSeriesReadings.filter(function (timeSeriesReading) {
-              return timeSeriesReading.timeSeriesName === '1HR_AV';
-            });
+              // from the range of time series readings, find the 1HR_AV one
+              var averageReadings = parameter.timeSeriesReadings.filter(function (timeSeriesReading) {
+                return timeSeriesReading.timeSeriesName === '1HR_AV';
+              });
 
-            if (averageReadings.length && averageReadings[0].length) {
-              var reading = averageReadings[0][0];
-              if (reading.unit in units) {
-                measurement.unit = units[reading.unit];
-                measurement.averagingPeriod = { value: 1, unit: 'hours' };
-                measurement.value = Number(reading.averageValue);
+              if (averageReadings.length && averageReadings[0].length) {
+                var reading = averageReadings[0][0];
+                if (reading.unit in units) {
+                  measurement.unit = units[reading.unit];
+                  measurement.averagingPeriod = { value: 1, unit: 'hours' };
+                  measurement.value = Number(reading.averageValue);
 
-                var date = moment.tz(reading.since, 'Australia/Melbourne');
+                  var date = moment.tz(reading.since, 'Australia/Melbourne');
 
-                measurement.date = {
-                  utc: date.toDate(),
-                  local: date.format()
-                };
+                  measurement.date = {
+                    utc: date.toDate(),
+                    local: date.format()
+                  };
 
-                return measurement;
+                  return measurement;
+                }
               }
             }
-          }
-        }).filter(function (measurement) {
-          return measurement !== null;
-        });
+          }).filter(function (measurement) {
+            return measurement !== null;
+          });
+        }
 
-        cb(err, measurements);
+        cb(null, measurements);
       });
     };
   });
