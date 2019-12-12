@@ -42,6 +42,7 @@ var formatData = function (data, source) {
     return {utc: date.toDate(), local: date.format()};
   };
 
+  // mapping of types from source data into OpenAQ format
   var types = {
     'no2': 'no2',
     'o3_1hr': 'o3',
