@@ -4,8 +4,6 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { flatten, cloneDeep } from 'lodash';
 import { default as moment } from 'moment-timezone';
-// note: this is the 'synchronous' version (lost hours to this!)
-import { default as parse } from 'csv-parse/lib/sync';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 exports.name = 'act';
@@ -13,12 +11,11 @@ exports.name = 'act';
 exports.fetchData = function (source, cb) {
   // Fetch the data
   // FIXME ensure this timeAgo is in Australia/Canberra local time
-  var timeAgo = moment().subtract(2, 'days').format("YYYY-MM-DDTHH:mm:ss");
-  console.log(timeAgo);
+  var timeAgo = moment().subtract(2, 'days').format('YYYY-MM-DDTHH:mm:ss');
   request({
     uri: source.url,
     qs: {
-      query: "select *, :id where ('datetime' > '" + timeAgo + "') order by `datetime` desc limit 100"
+      '$query': `select *, :id where ('datetime' > '${timeAgo}') order by \`datetime\` desc limit 100`
     }
   }, function (err, res, body) {
     if (err || res.statusCode !== 200) {
@@ -40,20 +37,20 @@ exports.fetchData = function (source, cb) {
 
 var formatData = function (data, source) {
   var parseDate = function (string) {
-    var date = moment.tz(string, 'DD/MM/YYYY hh:mm:ss A', 'Australia/Sydney');
+    var date = moment.tz(string, 'Australia/Sydney');
     return {utc: date.toDate(), local: date.format()};
   };
 
   var types = {
-    'NO2': 'no2',
-    'O3_1hr': 'o3',
-    'CO': 'co',
-    'PM10': 'pm10',
-    'PM2.5': 'pm25'
+    'no2': 'no2',
+    'o3_1hr': 'o3',
+    'co': 'co',
+    'pm10': 'pm10',
+    'pm2.5': 'pm25'
   };
 
   var units = {
-    'no2': 'nppm',
+    'no2': 'ppm',
     'o3': 'ppm',
     'co': 'ppm',
     'pm10': 'µg/m³',
