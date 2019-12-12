@@ -8,7 +8,7 @@ import { default as moment } from 'moment-timezone';
 import { default as parse } from 'csv-parse/lib/sync';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'act';
+exports.name = 'au_sa';
 
 exports.fetchData = function (source, cb) {
   // Fetch the data
