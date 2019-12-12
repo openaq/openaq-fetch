@@ -9,13 +9,14 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 exports.name = 'act';
 
 exports.fetchData = function (source, cb) {
-  // Fetch the data
-  // FIXME ensure this timeAgo is in Australia/Canberra local time
-  var timeAgo = moment().subtract(2, 'days').format('YYYY-MM-DDTHH:mm:ss');
+  // get the time 1 day ago in AEST
+  var timeAgo = moment().tz('Australia/Sydney').subtract(1, 'days').format('YYYY-MM-DDTHH:mm:ss');
+
+  // Fetch the data, for the last 24 hours
   request({
     uri: source.url,
     qs: {
-      '$query': `select *, :id where ('datetime' > '${timeAgo}') order by \`datetime\` desc limit 100`
+      '$query': `select *, :id where ('datetime' > '${timeAgo}') order by \`datetime\` desc limit 10000`
     }
   }, function (err, res, body) {
     if (err || res.statusCode !== 200) {
