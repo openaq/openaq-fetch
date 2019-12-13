@@ -185,6 +185,7 @@ var formatData = function (data) {
 // site coordinates are available at https://www.environment.nsw.gov.au/topics/air/monitoring-air-quality
 // within the network site information XLSX file. This content is
 // © State of New South Wales and Office of Environment and Heritage and licensed CC BY 4.0.
+// also available at https://datasets.seed.nsw.gov.au/dataset/air-quality-monitoring-network2b91e
 export const coordinates = {
   Bargo: {
     latitude: -34.3075,
