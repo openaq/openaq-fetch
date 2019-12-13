@@ -82,15 +82,15 @@ is an ever-evolving process that is shaped by its community: your
 feedback and questions are actively invited on the criteria listed in
 this section.
 
-(1) Data must be of one of these pollutant types: PM10, PM2.5, sulfur dioxide (SO2), carbon monoxide (CO), nitrogen dioxide (NO2), ozone (O3), and black carbon (BC).
+1. Data must be of one of these pollutant types: PM10, PM2.5, sulfur dioxide (SO2), carbon monoxide (CO), nitrogen dioxide (NO2), ozone (O3), and black carbon (BC).
 
-(2) Data must be from an official-level outdoor air quality source, as defined as data produced by a government entity or international organization. We do not, at this stage, include data from low-cost, temporary, and/or indoor sensors. 
+2. Data must be from an official-level outdoor air quality source, as defined as data produced by a government entity or international organization. We do not, at this stage, include data from low-cost, temporary, and/or indoor sensors. 
 
-(3) Data must be ‘raw’ and reported in physical concentrations on their originating site. Data cannot be shared in an 'Air Quality Index' or equivalent (e.g. AQI, PSI, API) format.
+3. Data must be ‘raw’ and reported in physical concentrations on their originating site. Data cannot be shared in an 'Air Quality Index' or equivalent (e.g. AQI, PSI, API) format.
 
-(4) Data must be at the ‘station-level,’ associable with geographic coordinates, not aggregated into a higher (e.g. city) level.
+4. Data must be at the ‘station-level,’ associable with geographic coordinates, not aggregated into a higher (e.g. city) level.
 
-(5) Data must be from measurements averaged between 10 minutes and 24 hours.
+5. Data must be from measurements averaged between 10 minutes and 24 hours.
 
 
 ## Contributing
