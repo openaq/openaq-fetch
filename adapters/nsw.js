@@ -182,6 +182,10 @@ var formatData = function (data) {
   return {name: 'unused', measurements: finalMeasurements};
 };
 
+// site coordinates are available at https://www.environment.nsw.gov.au/topics/air/monitoring-air-quality
+// within the network site information XLSX file. This content is
+// © State of New South Wales and Office of Environment and Heritage and licensed CC BY 4.0.
+// also available at https://datasets.seed.nsw.gov.au/dataset/air-quality-monitoring-network2b91e
 export const coordinates = {
   Bargo: {
     latitude: -34.3075,
@@ -294,5 +298,41 @@ export const coordinates = {
   Singleton: {
     latitude: -32.5297222,
     longitude: 151.1497222
+  },
+  'Cook And Phillip': {
+    latitude: -33.872500,
+    longitude: 151.213333
+  },
+  'Macquarie Park': {
+    latitude: -33.765278,
+    longitude: 151.117806
+  },
+  'Parramatta North': {
+    latitude: -33.799444,
+    longitude: 150.997778
+  },
+  'Rouse Hill': {
+    latitude: -33.682778,
+    longitude: 150.903611
+  },
+  Orange: {
+    latitude: -33.274444,
+    longitude: 149.094444
+  },
+  Armidale: {
+    latitude: -30.508333,
+    longitude: 151.661389
+  },
+  Gunnedah: {
+    latitude: -30.981667,
+    longitude: 150.260556
+  },
+  Narrabri: {
+    latitude: -30.318333,
+    longitude: 149.829167
+  },
+  Goulburn: {
+    latitude: -34.734444,
+    longitude: 149.724167
   }
 };
