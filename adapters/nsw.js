@@ -329,5 +329,9 @@ export const coordinates = {
   Narrabri: {
     latitude: -30.318333,
     longitude: 149.829167
+  },
+  Goulburn: {
+    latitude: -34.734444,
+    longitude: 149.724167
   }
 };
