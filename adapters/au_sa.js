@@ -127,7 +127,7 @@ var formatData = function (data, source) {
       },
       attribution: [{
         name: "Environment Protection Authority (EPA), South Australia",
-        url: "https://data.sa.gov.au/data/dataset/recent-air-quality"
+        url: source.sourceURL
       }],
       averagingPeriod: {'value': 1, 'unit': 'hours'}
     };
