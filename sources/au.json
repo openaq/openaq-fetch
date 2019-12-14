@@ -50,10 +50,6 @@
         "country": "AU",
         "resolution": "1 hr",
         "sourceURL": "https://data.sa.gov.au/data/dataset/recent-air-quality",
-        "attribution": [{
-            "name": "Environment Protection Authority (EPA), South Australia",
-            "url": "https://data.sa.gov.au/data/dataset/recent-air-quality"
-        }],
         "contacts": [
             "info@openaq.org"
         ],

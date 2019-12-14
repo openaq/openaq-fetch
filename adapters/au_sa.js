@@ -125,7 +125,10 @@ var formatData = function (data, source) {
         latitude: siteLocations[siteRef][1],
         longitude: siteLocations[siteRef][0]
       },
-      attribution: source.attribution,
+      attribution: [{
+        name: "Environment Protection Authority (EPA), South Australia",
+        url: "https://data.sa.gov.au/data/dataset/recent-air-quality"
+      }],
       averagingPeriod: {'value': 1, 'unit': 'hours'}
     };
 
