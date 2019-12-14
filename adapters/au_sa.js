@@ -126,7 +126,7 @@ var formatData = function (data, source) {
         longitude: siteLocations[siteRef][0]
       },
       attribution: [{
-        name: "Environment Protection Authority (EPA), South Australia",
+        name: 'Environment Protection Authority (EPA), South Australia',
         url: source.sourceURL
       }],
       averagingPeriod: {'value': 1, 'unit': 'hours'}
