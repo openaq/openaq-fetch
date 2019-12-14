@@ -16,7 +16,7 @@ exports.fetchData = function (source, cb) {
   request({
     uri: source.url,
     qs: {
-      '$query': `select *, :id where ('datetime' > '${timeAgo}') order by \`datetime\` desc limit 10000`
+      '$query': `select *, :id where (\`datetime\` > '${timeAgo}') order by \`datetime\` desc limit 1000`
     }
   }, function (err, res, body) {
     if (err || res.statusCode !== 200) {
