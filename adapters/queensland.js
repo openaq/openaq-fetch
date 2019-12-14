@@ -87,10 +87,10 @@ var formatData = function (data, source) {
       unit: getParameterUnit(param),
       city: $(this).parent().parent().attr('name'),
       attribution: [{
-        name: 'The State of Queensland',
+        name: 'The State of Queensland (Department of Environment and Science)',
         url: source.sourceURL
       }, {
-        name: 'The State of Queensland',
+        name: 'The State of Queensland (Department of Environment and Science)',
         url: $(this).parent().attr('information')
       }],
       averagingPeriod: {'value': 1, 'unit': 'hours'}

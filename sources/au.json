@@ -5,9 +5,9 @@
         "name": "Australia - New South Wales",
         "city": "",
         "country": "AU",
-        "description": "Measurements from the Office of Environment & Heritage of the New South Wales government.",
+        "description": "Measurements from the State of New South Wales (Department of Planning, Industry and Environment).",
         "resolution": "1 hr",
-        "sourceURL": "http://www.environment.nsw.gov.au/AQMS/hourlydata.htm",
+        "sourceURL": "https://www.dpie.nsw.gov.au/air-quality/air-quality-concentration-data-updated-hourly",
         "contacts": [
             "info@openaq.org",
             "olaf@developmentseed.org"
@@ -15,12 +15,12 @@
         "active": true
     },
     {
-        "url": "http://www.ehp.qld.gov.au/cgi-bin/air/xml.php?category=1&region=ALL",
+        "url": "https://apps.des.qld.gov.au/air-quality/xml/feed.php?category=1&region=ALL",
         "adapter": "queensland",
         "name": "Australia - Queensland",
         "city": "",
         "country": "AU",
-        "description": "Measurements from Department of Environment and Heritage Protection of Queensland Government.",
+        "description": "Measurements from The State of Queensland (Department of Environment and Science).",
         "resolution": "1 hr",
         "sourceURL": "https://data.qld.gov.au/dataset/air-quality-monitoring-live-data-feed/resource/50410fbe-8766-45cd-a259-c4c1f3c89dd1",
         "contacts": [
