@@ -85,19 +85,18 @@ var formatData = function (data, formatDataCB) {
         // base properties shared for all measurements at this site
         var baseProperties = {
           location: source.siteName,
-          country: 'AU',
           city: 'Victoria',
-          attribution: [
-            {
-              name: '',
-              url: ''
-            }
-          ],
+          country: 'AU',
+          sourceName: source.name,
+          sourceType: 'government',
+          attribution: [{
+            name: 'EPA Victoria State Government of Victoria',
+            url: 'https://www.epa.vic.gov.au/EPAAirWatch'
+          }],
           coordinates: {
             latitude: source.geometry.coordinates[0],
             longitude: source.geometry.coordinates[1]
-          },
-          sourceType: 'government'
+          }
         };
 
         // list of all measurements at this site
