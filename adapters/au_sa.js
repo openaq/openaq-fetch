@@ -48,6 +48,22 @@ var siteLocations = {
   'pta': [ 137.7868467, -32.5100065 ]
 };
 
+var siteCities = {
+  'chr': 'Adelaide',
+  'eli': 'Adelaide',
+  'ken': 'Adelaide',
+  'lef1': 'Adelaide',
+  'net': 'Adelaide',
+  'nor': 'Adelaide',
+  'ptp_o': 'Port Pirie',
+  'why_s': 'Whyalla',
+  'lef2': 'Adelaide',
+  'cbd': 'Adelaide',
+  'ptp_t': 'Port Pirie',
+  'why_w': 'Whyalla',
+  'pta': 'Port Augusta'
+};
+
 // remove non numeric values
 function parseValue (value) {
   if (value === null || value === 'NM' || value === 'NA') {
@@ -115,7 +131,7 @@ var formatData = function (data, source) {
     // base measurement properties
     var baseMeasurement = {
       location: siteName,
-      city: 'Adelaide',
+      city: siteCities[siteRef],
       country: 'AU',
       date: dateObject,
       sourceName: source.name,
