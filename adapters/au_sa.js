@@ -2,7 +2,7 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-import { flatten, cloneDeep } from 'lodash';
+import { cloneDeep } from 'lodash';
 import { default as moment } from 'moment-timezone';
 // note: this is the 'synchronous' version (lost hours to this!)
 import { default as parse } from 'csv-parse/lib/sync';
@@ -119,7 +119,7 @@ var formatData = function (data, source) {
 
     var siteRef = row[3].replace(/_dm.jpg$/, '');
 
-    var paramaterValues = {
+    var parameterValues = {
       'o3': parseValue(row[4]),
       'co': parseValue(row[5]),
       'no2': parseValue(row[6]),
@@ -148,11 +148,11 @@ var formatData = function (data, source) {
       averagingPeriod: {'value': 1, 'unit': 'hours'}
     };
 
-    Object.keys(paramaterValues).forEach(function (parameter) {
-      if (paramaterValues[parameter] !== null) {
+    Object.keys(parameterValues).forEach(function (parameter) {
+      if (parameterValues[parameter] !== null) {
         var measurement = cloneDeep(baseMeasurement);
         measurement.parameter = parameter;
-        measurement.value = paramaterValues[parameter];
+        measurement.value = parameterValues[parameter];
         measurement.unit = units[parameter];
 
         measurements.push(measurement);
@@ -162,6 +162,6 @@ var formatData = function (data, source) {
 
   return {
     name: 'unused',
-    measurements: flatten(measurements)
+    measurements: measurements
   };
 };
