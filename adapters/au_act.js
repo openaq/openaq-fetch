@@ -68,7 +68,7 @@ var formatData = function (data, source) {
       city: 'Canberra',
       country: 'AU',
       date: parseDate(row.datetime),
-      sourceName: 'AU_ACT',
+      sourceName: source.name,
       sourceType: 'government',
       mobile: false,
       coordinates: {
