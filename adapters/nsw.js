@@ -10,6 +10,18 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'nsw';
 
+/*
+ * There are two pages for live air quality data
+ *
+ * Index Values:
+ * https://airquality.environment.nsw.gov.au/aquisnetnswphp/getPage.php?reportid=1
+ *
+ * Data Readings:
+ * https://airquality.environment.nsw.gov.au/aquisnetnswphp/getPage.php?reportid=2
+ *
+ * This source uses the second report since it contains the raw data readings
+ * instead of index values.
+ */
 export function fetchData (source, cb) {
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
