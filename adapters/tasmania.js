@@ -36,63 +36,23 @@ var formatData = function (data, source) {
     var date = moment.tz(string, 'HHmmss', 'Australia/Hobart');
     return {utc: date.toDate(), local: date.format()};
   };
-  // manually retrieved list of station names
-  // new stations should be checked for naming on this map:
-  // http://epa.tas.gov.au/_layouts/15/Lightbox.aspx?url=http%3A%2F%2Fepa.tas.gov.au%2FAir%2FLive%2Flatest_air_data_on_map.jpg
-
-  var stations = {
-    'ST': 'Smithton',
-    'WY': 'Wynyard',
-    'ER': 'Emu River',
-    'WU': 'West Ulverstone',
-    'DT': 'Devonport',
-    'SF': 'Sheffield',
-    'DL': 'Deloraine',
-    'WE': 'Westbury',
-    'HA': 'Hadspen',
-    'LF': 'Longford',
-    'PE': 'Perth',
-    'GB': 'George Town',
-    'EX': 'Exeter',
-    'TI': 'Ti Tree Bend',
-    'SL': 'South Launceston',
-    'LD': 'Lilydale',
-    'SC': 'Scottsdale',
-    'DE': 'Derby',
-    'SH': 'St Helens',
-    'FI': 'Fingal',
-    'PO': 'Poatina',
-    'CT': 'Campbell Town',
-    'OL': 'Oatlands',
-    'TR': 'Triabunna',
-    'BC': 'Bream Creek',
-    'GR': 'Gretna',
-    'NN': 'New Norfolk',
-    'GO': 'Glenorchy',
-    'HT': 'Hobart',
-    'MT': 'Mornington',
-    'JB': 'Judbury',
-    'HV': 'Huonville',
-    'CY': 'Cygnet',
-    'GV': 'Geeveston'
-  };
 
   var output = [];
   var measurements = [];
 
   // parse the csv feed, exclude # lines
-  output = parse(data, {trim: true, comment: '#'});
+  output = parse(data, {trim: true, comment: ' #'});
 
   // loop through the csv rows
   for (var k = 0; k < output.length; k++) {
-    // Station, hhmmss(AEST), PM2.5(ug/m^3), PM10(ug/m^3), lat(deg), long(degE), alt(m)
+    // Station, hhmmss(AEST), PM2.5(ug/m^3), PM10(ug/m^3), lat(deg), long(degE), alt(m), Station name
     var value = output[k];
     var currentDate = value[1];
 
     // Tasmania stations seem to use hhmmss = 999999 when the station
     // is not available. check for and ignore these records
     // also check the name matched in the locations list, otherwise this is a new station
-    var location = stations[value[0]];
+    var location = value[7];
     if (currentDate === '999999' || location === 'undefined') {
       continue;
     }
