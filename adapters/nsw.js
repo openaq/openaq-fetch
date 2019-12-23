@@ -10,6 +10,18 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'nsw';
 
+/*
+ * There are two pages for live air quality data
+ *
+ * Index Values:
+ * https://airquality.environment.nsw.gov.au/aquisnetnswphp/getPage.php?reportid=1
+ *
+ * Data Readings:
+ * https://airquality.environment.nsw.gov.au/aquisnetnswphp/getPage.php?reportid=2
+ *
+ * This source uses the second report since it contains the raw data readings
+ * instead of index values.
+ */
 export function fetchData (source, cb) {
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
@@ -116,6 +128,11 @@ var formatData = function (data) {
         var regionString = $('.region', this).text();
         region = regionString || region;
 
+        // if not a region row, increment col counter to account for the missing column
+        if (!$(this).find('.region').length) {
+          colCounter++;
+        }
+
         var site = $('.site', this).text();
 
         // Store the main properties for this measuring station
@@ -124,8 +141,8 @@ var formatData = function (data) {
           location: site,
           date: date,
           attribution: [{
-            name: 'NSW - Office of Environment & Heritage',
-            url: 'http://www.environment.nsw.gov.au/'
+            name: 'State of New South Wales (Department of Planning, Industry and Environment)',
+            url: 'https://www.dpie.nsw.gov.au/'
           }]
         };
 
@@ -182,6 +199,10 @@ var formatData = function (data) {
   return {name: 'unused', measurements: finalMeasurements};
 };
 
+// site coordinates are available at https://www.environment.nsw.gov.au/topics/air/monitoring-air-quality
+// within the network site information XLSX file. This content is
+// © State of New South Wales and Office of Environment and Heritage and licensed CC BY 4.0.
+// also available at https://datasets.seed.nsw.gov.au/dataset/air-quality-monitoring-network2b91e
 export const coordinates = {
   Bargo: {
     latitude: -34.3075,
@@ -294,5 +315,41 @@ export const coordinates = {
   Singleton: {
     latitude: -32.5297222,
     longitude: 151.1497222
+  },
+  'Cook And Phillip': {
+    latitude: -33.872500,
+    longitude: 151.213333
+  },
+  'Macquarie Park': {
+    latitude: -33.765278,
+    longitude: 151.117806
+  },
+  'Parramatta North': {
+    latitude: -33.799444,
+    longitude: 150.997778
+  },
+  'Rouse Hill': {
+    latitude: -33.682778,
+    longitude: 150.903611
+  },
+  Orange: {
+    latitude: -33.274444,
+    longitude: 149.094444
+  },
+  Armidale: {
+    latitude: -30.508333,
+    longitude: 151.661389
+  },
+  Gunnedah: {
+    latitude: -30.981667,
+    longitude: 150.260556
+  },
+  Narrabri: {
+    latitude: -30.318333,
+    longitude: 149.829167
+  },
+  Goulburn: {
+    latitude: -34.734444,
+    longitude: 149.724167
   }
 };
