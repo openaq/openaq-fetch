@@ -48,7 +48,7 @@ var formatData = function (data, source) {
     'o3_1hr': 'o3',
     'co': 'co',
     'pm10': 'pm10',
-    'pm2.5': 'pm25'
+    'pm2_5': 'pm25'
   };
 
   var units = {
