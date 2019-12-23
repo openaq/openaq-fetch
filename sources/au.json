@@ -42,5 +42,17 @@
             "bryce@esonica.com"
         ],
         "active": true
+    },
+    {
+        "url": "http://www.epa.sa.gov.au/air_quality/pi.txt",
+        "adapter": "au_sa",
+        "name": "Australia - South Australia",
+        "country": "AU",
+        "resolution": "1 hr",
+        "sourceURL": "https://data.sa.gov.au/data/dataset/recent-air-quality",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
