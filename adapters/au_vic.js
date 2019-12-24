@@ -12,12 +12,13 @@ const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 // > Please send an email to Tools.support@epa.vic.gov.au with subject
 // > 'EPA API Access Request: Increase rate-limiting' and a justified
 // > reason if you want to get it increased for your subscriptions.
+var maxRequestsPerSecond = 5;
 var limiter = new Bottleneck({
-  reservoir: 5, // allow 5 requests
-  reservoirRefreshAmount: 5,
+  reservoir: maxRequestsPerSecond, // allow 5 requests
+  reservoirRefreshAmount: maxRequestsPerSecond,
   reservoirRefreshInterval: 1000, // every 1000ms
   maxConcurrent: 1,
-  minTime: 200 + 50 // to stagger requests out throught each second (1000 / 5) adding a 50ms buffer
+  minTime: (1000 / maxRequestsPerSecond) + 50 // to stagger requests out throught each second adding a 50ms buffer
 });
 
 export const name = 'victoria';
