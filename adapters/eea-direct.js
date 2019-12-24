@@ -89,6 +89,9 @@ function fetchPollutants (source, stations) {
         .map(o => header.reduce((a, c, i) => { a[c] = o[i]; return a; }, {}))
         // TODO: it would be good to provide the actual last fetch time so that we can filter already inserted items in a better way
         .filter(o => moment(o.value_datetime_inserted).utc().isAfter(timeLastInsert))
+        // eslint-disable-next-line eqeqeq
+        .filter(o => o.value_validity == 1) // Purposefully using '==' in case the 1 is a string or number
+        .filter(o => o.value_numeric.trim() !== '') // Catch emptry string
         .filter(o => o.station_code in stations)
         .map(record => {
           const matchedStation = stations[record.station_code];
