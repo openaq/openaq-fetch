@@ -68,7 +68,7 @@ const getParameterUnit = function (parameter) {
 
 // hardcoded coordinates for locations with no coordinates from source
 var locationCoordinates = {
-  'Miles Airport':  { latitude: -26.8088, longitude: 150.1799 },
+  'Miles Airport': { latitude: -26.8088, longitude: 150.1799 },
   'Hopeland': { latitude: -26.8637, longitude: 150.5028 }
 };
 
