@@ -67,6 +67,24 @@ var units = {
   'ppb': 'ppb'
 };
 
+// hardcoded mapping of location name -> city
+var cities = {
+  'Coolaroo': 'Melbourne',
+  'Dallas': 'Melbourne',
+  'Macleod': 'Melbourne',
+  'Alphington': 'Melbourne',
+  'Footscray': 'Melbourne',
+  'Brooklyn': 'Melbourne',
+  'Melbourne CBD': 'Melbourne',
+  'Box Hill': 'Melbourne',
+  'Brighton': 'Melbourne',
+  'Dandenong': 'Melbourne',
+  'Mooroolbark': 'Melbourne',
+  'Geelong South': 'Geelong',
+  'Morwell South': 'Morwell',
+  'Morwell East': 'Morwell'
+};
+
 var formatData = function (data, formatDataCB) {
   var sites = JSON.parse(data).records;
 
@@ -88,7 +106,7 @@ var formatData = function (data, formatDataCB) {
         // base properties shared for all measurements at this site
         var baseProperties = {
           location: source.siteName,
-          city: 'Victoria',
+          city: cities[source.siteName] || source.siteName,
           country: 'AU',
           sourceName: source.name,
           sourceType: 'government',
