@@ -7,30 +7,34 @@ export const name = 'ust-ist';
 
 export async function fetchData (source, cb) {
   try {
-    const data = JSON.parse(await promiseRequest(source.url));
+    const allData = JSON.parse(await promiseRequest(source.url));
+    const allMeta = JSON.parse(await promiseRequest('https://api.ust.is/aq/a/getStations'));
 
-    // Generate an array of station ID
-    const stations = Object.keys(data);
+    // Generate an array of station IDs there is data for.
+    const stations = Object.keys(allData);
 
     const measurements = stations.reduce((acc, stationId) => {
-      const station = data[stationId];
+      const stationData = allData[stationId];
+      const stationMeta = allMeta.find(s => s.local_id === stationData.local_id);
 
       // Only interested in 1 hour resolution.
-      if (station.resolution !== '1h') return acc;
+      if (stationData.resolution !== '1h') return acc;
 
       const baseMeta = {
-        location: station.name,
-        city: '',
+        location: stationData.name,
+        city: stationMeta.municipality,
         averagingPeriod: { value: 1, unit: 'hours' },
-        coordinates: { latitude: 0, longitude: 0 }
+        coordinates: {
+          latitude: Number(stationMeta.latitude),
+          longitude: Number(stationMeta.longitude)
+        }
       };
 
-      const latestMeasurements = parseParams(station.parameters);
+      const latestMeasurements = parseParams(stationData.parameters);
 
-      return acc.concat(latestMeasurements
-        .map(m => ({ ...baseMeta, ...m }))
-      );
+      return acc.concat(latestMeasurements.map(m => ({ ...baseMeta, ...m })));
     }, []);
+
     cb(null, {name: 'unused', measurements});
   } catch (e) {
     cb(e);
