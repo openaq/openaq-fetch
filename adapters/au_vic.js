@@ -122,7 +122,7 @@ var formatData = function (data, formatDataCB) {
                   measurement.averagingPeriod = { value: 1, unit: 'hours' };
                   measurement.value = Number(reading.averageValue);
 
-                  var date = moment.tz(reading.since, 'Australia/Melbourne');
+                  var date = moment.tz(reading.until, 'Australia/Melbourne');
 
                   measurement.date = {
                     utc: date.toDate(),
