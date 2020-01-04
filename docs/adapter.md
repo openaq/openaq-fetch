@@ -119,12 +119,12 @@ and in legacy version (due to memory limitations the version above is preferred)
 }
 ```
 
-Valid parameter values are pm25, pm10, so2, no2, co, o3, and bc (black carbon).
-These are available internally via utils.acceptableParameters
+Valid parameter values are `pm25`, `pm10`, `so2`, `no2`, `co`, `o3`, and `bc` (black carbon).
+These are available internally via `utils.acceptableParameters`
 All other values will be ignored.
 
-Date should be provided as UTC and local. moment.js can be used to handle time zone
-conversions. List of valid zone names at
+Date should be provided as UTC and local, and should be the end of the averaging period.
+[moment.js](http://momentjs.com/) can be used to handle time zone conversions. List of valid zone names at
 https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.
 
 ### Benchmark
