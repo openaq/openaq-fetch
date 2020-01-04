@@ -107,7 +107,7 @@ var formatData = function (data, formatDataCB) {
         if (source && source.parameters) {
           measurements = source.parameters.map(function (parameter) {
             if (parameter.name in parameters) {
-              var measurement = baseProperties;
+              var measurement = _.cloneDeep(baseProperties);
               measurement.parameter = parameters[parameter.name];
 
               // from the range of time series readings, find the 1HR_AV one
