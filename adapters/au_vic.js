@@ -6,6 +6,7 @@ import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import parallelLimit from 'async/parallelLimit';
 import Bottleneck from 'bottleneck';
+import { unifyMeasurementUnits } from '../lib/utils';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 // Default rate limiting on API is set to 5 requests/sec.
@@ -62,7 +63,8 @@ var parameters = {
 
 var units = {
   '&micro;g/m&sup3;': 'µg/m³',
-  'ppm': 'ppm'
+  'ppm': 'ppm',
+  'ppb': 'ppb'
 };
 
 var formatData = function (data, formatDataCB) {
@@ -127,7 +129,7 @@ var formatData = function (data, formatDataCB) {
                     local: date.format()
                   };
 
-                  return measurement;
+                  return unifyMeasurementUnits(measurement);
                 }
               }
             }
