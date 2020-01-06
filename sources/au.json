@@ -68,5 +68,19 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "https://gateway.api.epa.vic.gov.au/environmentMonitoring/v1/sites?environmentalSegment=air",
+        "adapter": "au_vic",
+        "name": "Australia - Victoria",
+        "country": "AU",
+        "description": "EPA AirWatch, Victoria, Australia's air quality information.",
+        "resolution": "1 hr",
+        "type": "government",
+        "sourceURL": "https://www.epa.vic.gov.au/EPAAirWatch",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
