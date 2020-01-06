@@ -28,7 +28,7 @@ export function fetchData (source, cb) {
   limiter.submit(request, {
     url: source.url,
     headers: {
-      'X-API-Key': process.env.EPA_VIC_TOKEN
+      'X-API-Key': process.env.EPA_VICTORIA_TOKEN
     }
   }, function (err, res, body) {
     if (err || res.statusCode !== 200) {
@@ -94,7 +94,7 @@ var formatData = function (data, formatDataCB) {
       limiter.submit(request, {
         url: `https://gateway.api.epa.vic.gov.au/environmentMonitoring/v1/sites/${site.siteID}/parameters`,
         headers: {
-          'X-API-Key': process.env.EPA_VIC_TOKEN
+          'X-API-Key': process.env.EPA_VICTORIA_TOKEN
         }
       }, function (err, res, body) {
         if (err || res.statusCode !== 200) {
