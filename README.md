@@ -40,6 +40,7 @@ For production deployment, you will need to have certain environment variables s
 | AIRNOW_FTP_PASSWORD | Password for AirNow FTP | not set |
 | EEA_TOKEN | API token for EEA API | not set |
 | DATA_GOV_IN_TOKEN | API token for data.gov.in | not set |
+| EPA_VICTORIA_TOKEN | API token for portal.api.epa.vic.gov.au | not set |
 | EEA_GLOBAL_TIMEOUT | How long to check for EEA async results before quitting in seconds | 360 |
 | EEA_ASYNC_RECHECK | How long to wait to recheck for EEA async results in seconds | 60 |
 | SAVE_TO_S3 | Does the process save the measurements to an AWS S3 Bucket | not set |
