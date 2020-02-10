@@ -63,7 +63,7 @@ export async function fetchData (source, cb) {
 
 function parseParams (params) {
   // Array with the valid parameters in the object
-  const validParams = Object.keys(params).filter(p => acceptableParameters.includes(p.toLowerCase()));
+  const validParams = Object.keys(params).filter(p => acceptableParameters.includes(p.toLowerCase().replace('.', '')));
 
   return validParams.map(p => {
     // Assumes that '0' is always latest
@@ -81,7 +81,7 @@ function parseParams (params) {
         utc: date.toDate(), // 2020-01-03T04:00:00.000Z
         local: date.format('YYYY-MM-DDTHH:mm:ssZ') // '2020-01-03T04:00:00+00:00'
       },
-      parameter: p.toLowerCase(),
+      parameter: p.toLowerCase().replace('.', ''),
       value: Number(latestM.value),
       unit: params[p].unit,
       averagingPeriod: resolution
