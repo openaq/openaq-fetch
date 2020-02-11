@@ -36,8 +36,8 @@ const formatData = function (results) {
   // We're looking for the script tag with the locations in it
   let scriptText;
   $('script').each((i, elem) => {
-    if ($(elem).text().indexOf('var locations =') !== -1) {
-      scriptText = $(elem).text();
+    if ($(elem).contents().get(0) && $(elem).contents().get(0).data.indexOf('var locations =') !== -1) {
+      scriptText = $(elem).contents().get(0).data;
     }
   });
 
