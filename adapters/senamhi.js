@@ -36,8 +36,8 @@ const formatData = function (results) {
   // We're looking for the script tag with the locations in it
   let scriptText;
   $('script').each((i, elem) => {
-    if ($(elem).text().indexOf('var locations =') !== -1) {
-      scriptText = $(elem).text();
+    if ($(elem).contents().get(0) && $(elem).contents().get(0).data.indexOf('var locations =') !== -1) {
+      scriptText = $(elem).contents().get(0).data;
     }
   });
 
@@ -91,12 +91,21 @@ const formatData = function (results) {
         return;
       }
 
+      // Helper function to handle empty strings
+      const getNumber = function (string) {
+        if (string === '') {
+          return NaN;
+        }
+
+        return Number(string);
+      };
+
       // Build the datetime
       const dt = moment.tz(`${html('td', m).eq(0).text().trim()} ${html('td', m).eq(1).text().trim()}`, 'DD/MM/YYYY HH:mm', 'America/Lima');
 
       // pm25
       let pm25 = Object.assign({
-        value: Number(html('td', m).eq(2).text().trim()),
+        value: getNumber(html('td', m).eq(2).text().trim()),
         parameter: 'pm25',
         date: {
           utc: dt.toDate(),
@@ -107,7 +116,7 @@ const formatData = function (results) {
 
       // pm10
       let pm10 = Object.assign({
-        value: Number(html('td', m).eq(3).text().trim()),
+        value: getNumber(html('td', m).eq(3).text().trim()),
         parameter: 'pm10',
         date: {
           utc: dt.toDate(),
@@ -118,7 +127,7 @@ const formatData = function (results) {
 
       // so2
       let so2 = Object.assign({
-        value: Number(html('td', m).eq(4).text().trim()),
+        value: getNumber(html('td', m).eq(4).text().trim()),
         parameter: 'so2',
         date: {
           utc: dt.toDate(),
@@ -129,7 +138,7 @@ const formatData = function (results) {
 
       // no2
       let no2 = Object.assign({
-        value: Number(html('td', m).eq(5).text().trim()),
+        value: getNumber(html('td', m).eq(5).text().trim()),
         parameter: 'no2',
         date: {
           utc: dt.toDate(),
@@ -140,7 +149,7 @@ const formatData = function (results) {
 
       // o3
       let o3 = Object.assign({
-        value: Number(html('td', m).eq(6).text().trim()),
+        value: getNumber(html('td', m).eq(6).text().trim()),
         parameter: 'o3',
         date: {
           utc: dt.toDate(),
@@ -151,7 +160,7 @@ const formatData = function (results) {
 
       // co
       let co = Object.assign({
-        value: Number(html('td', m).eq(7).text().trim().replace(',', '')),
+        value: getNumber(html('td', m).eq(7).text().trim().replace(',', '')),
         parameter: 'co',
         date: {
           utc: dt.toDate(),

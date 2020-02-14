@@ -26,13 +26,13 @@
         "active": false
     },
     {
-        "url": "http://www.senamhi.gob.pe/site/sea/www/site/sea/maps/map_data_ca_2.php",
+        "url": "https://www.senamhi.gob.pe/mapas/mapa-ca-monitoreo/map_data_ca.php",
         "adapter": "senamhi",
         "name": "Senamhi",
         "city": "Lima",
         "country": "PE",
         "description": "",
-        "sourceURL": "http://www.senamhi.gob.pe/?p=calidad-de-aire",
+        "sourceURL": "http://www.senamhi.gob.pe/?p=calidad-del-aire",
         "contacts": [
             "info@openaq.org"
         ],
