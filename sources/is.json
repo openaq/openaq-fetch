@@ -1,0 +1,14 @@
+[
+  {
+    "url": "https://api.ust.is/aq/a/getLatest",
+    "adapter": "ust-ist",
+    "name": "Umhverfisstofnun",
+    "country": "IS",
+    "description": "Environment Agency of Iceland",
+    "sourceURL": "https://ust.is",
+    "contacts": [
+      "loftgaedi@umhverfisstofnun.is"
+    ],
+    "active": true
+  }
+]
