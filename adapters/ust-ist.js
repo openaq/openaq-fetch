@@ -23,7 +23,11 @@ export async function fetchData (source, cb) {
         coordinates: {
           latitude: Number(stationMeta.latitude),
           longitude: Number(stationMeta.longitude)
-        }
+        },
+        attribution: [{
+          name: source.name,
+          url: source.sourceURL
+        }]
       };
       const latestMeasurements = parseParams(stationData.parameters);
 
