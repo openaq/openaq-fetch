@@ -66,6 +66,12 @@ const getParameterUnit = function (parameter) {
   }
 };
 
+// hardcoded coordinates for locations with no coordinates from source
+var locationCoordinates = {
+  'Miles Airport': { latitude: -26.8088, longitude: 150.1799 },
+  'Hopeland': { latitude: -26.8637, longitude: 150.5028 }
+};
+
 var formatData = function (data, source) {
   var $ = cheerio.load(data, {xmlMode: true});
 
@@ -97,11 +103,15 @@ var formatData = function (data, source) {
     };
 
     // Add coordinates if they're available
-    if ($(this).parent().attr('latitude') && $(this).parent().attr('longitude')) {
+    if ($(this).parent().attr('latitude') && $(this).parent().attr('longitude') && Number($(this).parent().attr('latitude')) !== 0 && Number($(this).parent().attr('longitude')) !== 0) {
       m.coordinates = {
         latitude: Number($(this).parent().attr('latitude')),
         longitude: Number($(this).parent().attr('longitude'))
       };
+    }
+
+    if (!m.coordinates && locationCoordinates[m.location]) {
+      m.coordinates = locationCoordinates[m.location];
     }
 
     measurements.push(m);
