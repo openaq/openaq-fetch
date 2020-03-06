@@ -133,6 +133,10 @@ var formatData = function (data) {
           return 'Asia/Dushanbe';
         case 'San Jose':
           return 'America/Costa_Rica';
+        case 'Bamako':
+          return 'Africa/Bamako';
+        case 'Abidjan':
+          return 'Africa/Abidjan';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -361,6 +365,16 @@ var formatData = function (data) {
         return {
           latitude: 9.949488,
           longitude: -84.142876
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Bamako':
+        return {
+          latitude: 12.629813,
+          longitude: -8.018847
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Abidjan':
+        return {
+          latitude: 5.335049,
+          longitude: -3.976023
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
     }
   };
