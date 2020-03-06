@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Abidjan/Abidjan-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Abidjan",
+        "city": "Abidjan",
+        "country": "CI",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
