@@ -140,8 +140,7 @@ var formatData = function (data) {
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
-
-    return {utc: date.toDate(), local: date.format()};
+    return { utc: date.toDate(), local: date.format('YYYY-MM-DDTHH:mm:ssZ') };
   };
 
   var getCoordinates = function (location) {
