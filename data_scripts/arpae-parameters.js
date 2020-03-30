@@ -19,7 +19,7 @@ request(csvUrl, (err, res, data) => {
   let parameters = {};
   parsed.forEach((el) => {
     parameters[el.IdParametro] = {
-      parameter: el.PARAMETRO.split('(')[0].toLowerCase().trim(),
+      parameter: el.PARAMETRO.split('(')[0].toLowerCase().trim().replace('.', ''),
       unit: el.UM
     };
   });
