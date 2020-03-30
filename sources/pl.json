@@ -27,7 +27,7 @@
         "attribution": [{"name": "Portal Jakości Powietrza GIOŚ", "url": "http://powietrze.gios.gov.pl/pjp/home"}],
         "sourceURL": "http://powietrze.gios.gov.pl/pjp/content/api",
         "contacts": ["info@openaq.org"],
-        "hoursToFetch": 4,
+        "hoursToFetch": 2,
         "active": true
     }
 ]
