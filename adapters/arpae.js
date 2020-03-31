@@ -83,7 +83,7 @@ const parameters = {
   '21': { parameter: 'c6h5-ch3', unit: 'ug/m3' },
   '38': { parameter: 'no', unit: 'ug/m3' },
   '82': { parameter: 'o-xylene', unit: 'ug/m3' },
-  '111': { parameter: 'pm2.5', unit: 'ug/m3' }
+  '111': { parameter: 'pm25', unit: 'ug/m3' }
 };
 
 const locations = {
