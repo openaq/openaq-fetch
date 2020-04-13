@@ -10,7 +10,7 @@
     "contacts": [
       "info@openaq.org"
     ],
-    "active": true,
+    "active": false,
     "--comment1": "// metadata generated with ../data_scripts/arpalazio.js",
     "metadata": {
       "2": { "name": "Preneste", "latitude": 41.886018, "longitude": 12.541614 },
