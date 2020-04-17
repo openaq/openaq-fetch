@@ -76,6 +76,7 @@ const formatData = function (data) {
       attribution: [{name: 'Luftkvalitet.info', url: 'http://www.luftkvalitet.info/home.aspx'}],
       averagingPeriod: {unit: 'hours', value: 1}
     };
+
     return template;
   };
 

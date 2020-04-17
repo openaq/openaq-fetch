@@ -22,7 +22,7 @@ export function fetchStream (source) {
     .then((stations) => fetchPollutants(source, stations))
     .then(stream => stream.pipe(out))
   ;
-  
+
   return out;
 }
 
@@ -30,7 +30,6 @@ export async function fetchData (source, cb) {
   try {
     const stream = await fetchStream(source);
     const measurements = await stream.toArray();
-    Console.log(measurements);
     cb(null, {name: stream.name, measurements});
   } catch (e) {
     cb(e);
