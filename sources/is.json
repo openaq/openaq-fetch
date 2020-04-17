@@ -10,5 +10,18 @@
       "loftgaedi@umhverfisstofnun.is"
     ],
     "active": true
-  }
+  },
+  {
+    "url": "http://discomap.eea.europa.eu/map/fme/latest/",
+    "adapter": "eea-direct",
+    "name": "EEA Iceland",
+    "city": "",
+    "country": "IS",
+    "description": "Icelandic data from UTD service",
+    "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
+    "contacts": [
+        "info@openaq.org"
+    ],
+    "active": true
+}
 ]

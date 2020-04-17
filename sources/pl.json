@@ -29,5 +29,18 @@
         "contacts": ["info@openaq.org"],
         "hoursToFetch": 2,
         "active": true
+    },
+    {
+        "url": "http://discomap.eea.europa.eu/map/fme/latest/",
+        "adapter": "eea-direct",
+        "name": "EEA Poland",
+        "city": "",
+        "country": "PL",
+        "description": "Polish data from UTD service",
+        "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
