@@ -3,7 +3,7 @@
     {
         "url": "http://discomap.eea.europa.eu/map/fme/latest/",
         "adapter": "eea-direct",
-        "name": "EEA Servia",
+        "name": "EEA Serbia",
         "city": "",
         "country": "RS",
         "description": "Serbian data from EEA Direct service",

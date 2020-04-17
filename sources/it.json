@@ -81,5 +81,18 @@
       "info@openaq.org"
     ],
     "active": true
-  }
+  },
+  {
+    "url": "http://discomap.eea.europa.eu/map/fme/latest/",
+    "adapter": "eea-direct",
+    "name": "EEA Italy",
+    "city": "",
+    "country": "IT",
+    "description": "Italian data from UTD service",
+    "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
+    "contacts": [
+        "info@openaq.org"
+    ],
+    "active": true
+}
 ]
