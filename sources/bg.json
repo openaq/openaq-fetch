@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://discomap.eea.europa.eu/map/fme/latest/",
+        "adapter": "eea-direct",
+        "name": "EEA Bulgaria",
+        "city": "",
+        "country": "BG",
+        "description": "Bulgarian data from UTD service",
+        "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
