@@ -1,0 +1,9 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "openaq-fetch"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1g6jo31b18upy"
+s3_prefix = "openaq-fetch"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"

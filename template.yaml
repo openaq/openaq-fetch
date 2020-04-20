@@ -1,0 +1,147 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  openaq-fetch
+
+  Sample SAM Template for openaq-fetch
+
+Resources:
+  FetchFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .dist/
+      Handler: fetch-lambda.lambdaHandler
+      Runtime: nodejs12.x
+      Timeout: 30
+      MemorySize: 192
+      EventInvokeConfig:
+        MaximumEventAgeInSeconds: 60
+        MaximumRetryAttempts: 0
+      Role: !GetAtt FetchFunctionRole.Arn
+  FetchFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+
+  FetchStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      DefinitionString:
+        Fn::Sub: |
+          {
+            "StartAt": "RunFetches",
+            "States": {
+              "RunFetches": {
+                "Type": "Map",
+                "MaxConcurrency": 0,
+                "ItemsPath": "$.sourceNames",
+                "Iterator": {
+                  "StartAt": "Fetch",
+                  "States": {
+                    "Fetch": {
+                      "Type": "Task",
+                      "Resource": "${FetchFunction.Arn}",
+                      "End": true,
+                      "Catch": [
+                        {
+                          "ErrorEquals": [
+                            "States.ALL"
+                          ],
+                          "Next": "Error"
+                        }
+                      ]
+                    },
+                    "Error": {
+                       "Type": "Pass",
+                       "Result": "There was an error.",
+                       "End": true
+                    }
+                  }
+                },
+                "Next": "Results"
+              },
+              "Results": {
+                "Type": "Pass",
+                "End": true
+              }
+            }
+          }
+      StateMachineName: openaq-fetch
+      StateMachineType: STANDARD
+      RoleArn: !GetAtt FetchStateMachineRole.Arn
+  FetchStateMachineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - states.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: openaq-fetch-lambda-invoke
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - lambda:InvokeFunction
+              Resource:
+                - !Sub ${FetchFunction.Arn}
+                - !Sub ${FetchFunction.Arn}:*
+
+
+  RunStateMachineFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .dist/
+      Handler: fetch-lambda.runStepFunction
+      Runtime: nodejs12.x
+      Timeout: 10
+      Environment:
+        Variables:
+          STEP_FUNCTION_ARN: !Ref FetchStateMachine
+      Role: !GetAtt RunStateMachineFunctionRole.Arn
+  RunStateMachineFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: openaq-fetch-start-state-machine
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - states:startExecution
+              Resource: !Ref FetchStateMachine
+
+
+Outputs:
+  FetchFunction:
+    Description: "Run State Machine Lambda"
+    Value: !Ref RunStateMachineFunction

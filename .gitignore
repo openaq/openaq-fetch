@@ -8,3 +8,5 @@ ecs-task-generated.json
 /.nvmrc
 .editorconfig
 knexfile-local.js
+/.dist
+/.aws-sam
