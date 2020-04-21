@@ -111,7 +111,7 @@ const formatData = function (data) {
       });
     });
     return results;
-  };
+  }
   const measurements = concatAll(Object.values(data.map(aqRepack)));
   return {name: 'unused', measurements: measurements};
 };
