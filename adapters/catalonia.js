@@ -5,7 +5,7 @@
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
-import { default as baseRequest, forever } from 'request';
+import { default as baseRequest} from 'request';
 import { default as moment } from 'moment-timezone';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
@@ -17,10 +17,8 @@ exports.name = 'catalonia';
  * @param {function} cb A callback of the form cb(err, data)
  */
 exports.fetchData = function (source, cb) {
-  //due to the catalonian datesource being massive and unsorted, 
-  //I believe it is best to only fetch the date for the current month
-  //Could be improved with the floating timestampfilter
-  const fetchURL = (source.url+"?any="+moment().year().toString()+"&mes="+(moment().month()+1).toString()+"&dia="+(moment().date()).toString());
+  // Due to the catalonian datesource being massive and unsorted, only fetches for current day
+  const fetchURL = (source.url + "?any=" + moment().year().toString() + "&mes=" + (moment().month()+1).toString() + "&dia=" + (moment().date()).toString());
   request(fetchURL, function (err, res, body) {
     if (err || res.statusCode !== 200) {
       return cb({message: 'Failure to load data url.'});
@@ -61,20 +59,17 @@ const formatData = function (data) {
    */
   
   const aqRepack = (item) => {
-
     var aq = [];
     var dateMoment = moment.tz(item.data, 'YYYY-MM-DD HH:mm', 'Europe/Madrid'); 
-    const param= item.contaminant.toLowerCase().replace('.', '');
-    //filtering out params that are not requested, this filter can be removed if desired
-
-    if((String(param).localeCompare("nox")!=0&&
-        String(param).localeCompare("h2s")!=0&&
-        String(param).localeCompare("no")!=0)&&
-        String(param).localeCompare("c6h6")!=0&&
-        String(param).localeCompare("cl2")!=0&&
-        String(param).localeCompare("hg")!=0&&
-        String(param).localeCompare("pm1")!=0) {
-
+    const param = item.contaminant.toLowerCase().replace('.', '');
+    // Filtering out params that are not requested, this filter can be removed if desired
+    if(String(param).localeCompare("nox") !== 0 &&
+        String(param).localeCompare("h2s") !== 0 &&
+        String(param).localeCompare("no") !== 0 &&
+        String(param).localeCompare("c6h6") !== 0 &&
+        String(param).localeCompare("cl2") !== 0 &&
+        String(param).localeCompare("hg") !== 0 &&
+        String(param).localeCompare("pm1") !== 0) {
         const template = {
           location: ("nom_estaci" in item) ? item.nom_estaci:item.municipi,
           city: item.municipi,
@@ -87,8 +82,8 @@ const formatData = function (data) {
           attribution: [{name: 'GENCAT', url: 'http://mediambient.gencat.cat/ca/05_ambits_dactuacio/atmosfera/qualitat_de_laire/vols-saber-que-respires/visor-de-dades/'}],
           averagingPeriod: {unit: 'hours', value: 1}
         };
-        //loop through all hours and check if there is any data for that day
-      for(var i = 1; i < 25;i++) {
+        // Loop through all hours and check if there is any data for that hour on that day
+      for( var i = 1; i < 25; i++) {
         dateMoment = moment(dateMoment).add(1,'hours').format('YYYY-MM-DD HH:mm');
         dateMoment = moment.tz(dateMoment, 'YYYY-MM-DD HH:mm', 'Europe/Madrid'); 
         var valueKey = (i<10) ? ("h0"+i.toString()):("h"+i.toString());
@@ -99,20 +94,23 @@ const formatData = function (data) {
               utc: dateMoment.toDate(),
               local: dateMoment.format()
             },
-          },template);
+          }, template);
+
           aq.push(temp);
         }
       }
     }
-    //returning all values for that day
+    // Returning all values for that day
     return aq;
   };
-  //needed to make all the lists from each day into one big array instead of multiple lists
+  // Needed to make all the lists from each day into one big array instead of multiple lists
   Array.prototype.concatAll = function() {
     var results = [];
     this.forEach(function(subArray) {
       subArray.forEach(function(subArrayValue) {
+
         results.push(subArrayValue);
+        
       });
     });
     return results;
