@@ -59,7 +59,7 @@ const formatData = function (data) {
    */
   const aqRepack = (item) => {
     var aq = [];
-    var dateMoment = moment.tz(item.data, 'YYYY-MM-DD HH:mm', 'Europe/Madrid'); 
+    var dateMoment = moment.tz(item.data, 'YYYY-MM-DD HH:mm', 'Europe/Madrid');
     const param = item.contaminant.toLowerCase().replace('.', '');
     // Filtering out params that are not requested, this filter can be removed if desired
     if (String(param).localeCompare('nox') !== 0 &&
@@ -69,9 +69,8 @@ const formatData = function (data) {
         String(param).localeCompare('cl2') !== 0 &&
         String(param).localeCompare('hg') !== 0 &&
         String(param).localeCompare('pm1') !== 0) {
-
       const template = {
-        location: ('nom_estaci' in item) ? item.nom_estaci:item.municipi,
+        location: ('nom_estaci' in item) ? item.nom_estaci : item.municipi,
         city: item.municipi,
         parameter: param,
         coordinates: {
@@ -84,10 +83,9 @@ const formatData = function (data) {
       };
         // Loop through all hours and check if there is any data for that hour on that day
       for (var i = 1; i < 25; i++) {
-
         dateMoment = moment(dateMoment).add(1, 'hours').format('YYYY-MM-DD HH:mm');
-        dateMoment = moment.tz(dateMoment, 'YYYY-MM-DD HH:mm', 'Europe/Madrid'); 
-        var valueKey = (i < 10) ? ('h0' + i.toString()):('h' + i.toString());
+        dateMoment = moment.tz(dateMoment, 'YYYY-MM-DD HH:mm', 'Europe/Madrid');
+        var valueKey = (i < 10) ? ('h0' + i.toString()) : ('h' + i.toString());
         if (valueKey in item) {
           var temp = Object.assign({
             value: Number(item[valueKey]),
@@ -105,15 +103,15 @@ const formatData = function (data) {
     return aq;
   };
   // Needed to make all the lists from each day into one big array instead of multiple lists
-  Array.prototype.concatAll = function() {
+  function concatAll (list) {
     var results = [];
-    this.forEach( function(subArray) {
-      subArray.forEach( function(subArrayValue) {
+    list.forEach(function (subArray) {
+      subArray.forEach(function (subArrayValue) {
         results.push(subArrayValue);
       });
     });
     return results;
   };
-  const measurements = Object.values(data.map(aqRepack)).concatAll();
+  const measurements = concatAll(Object.values(data.map(aqRepack)));
   return {name: 'unused', measurements: measurements};
 };
