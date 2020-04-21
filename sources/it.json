@@ -69,6 +69,7 @@
     }
   },
   {
+
     "url": "https://dati.arpae.it/dataset/qualita-dell-aria-rete-di-monitoraggio/resource/a1c46cfe-46e5-44b4-9231-7d9260a38e68",
     "adapter": "arpae",
     "name": "Arpae Emilia-Romagna",
@@ -79,6 +80,19 @@
     "sourceURL": "https://dati.arpae.it/",
     "contacts": [
       "info@openaq.org"
+    ],
+    "active": true
+  },
+  {
+    "url": "http://discomap.eea.europa.eu/map/fme/latest/",
+    "adapter": "eea-direct",
+    "name": "EEA Italy",
+    "city": "",
+    "country": "IT",
+    "description": "Italian data from UTD service",
+    "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
+    "contacts": [
+        "info@openaq.org"
     ],
     "active": true
   }
