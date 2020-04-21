@@ -5,7 +5,7 @@
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
-import { default as baseRequest} from 'request';
+import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
@@ -18,7 +18,7 @@ exports.name = 'catalonia';
  */
 exports.fetchData = function (source, cb) {
   // Due to the catalonian datesource being massive and unsorted, only fetches for current day
-  const fetchURL = (source.url + "?any=" + moment().year().toString() + "&mes=" + (moment().month()+1).toString() + "&dia=" + (moment().date()).toString());
+  const fetchURL = (source.url + '?any=' + moment().year().toString() + '&mes=' + (moment().month() + 1).toString() + '&dia=' + (moment().date()).toString());
   request(fetchURL, function (err, res, body) {
     if (err || res.statusCode !== 200) {
       return cb({message: 'Failure to load data url.'});
@@ -33,7 +33,7 @@ exports.fetchData = function (source, cb) {
         return cb({message: 'Failure to parse data.'});
       }
       cb(null, data);
-   } catch (e) {
+    } catch (e) {
       return cb({message: 'Unknown adapter error.'});
     }
   });
@@ -57,43 +57,44 @@ const formatData = function (data) {
    * @param {json object} item coming from source data
    * @return {object} a repacked object
    */
-  
   const aqRepack = (item) => {
     var aq = [];
     var dateMoment = moment.tz(item.data, 'YYYY-MM-DD HH:mm', 'Europe/Madrid'); 
     const param = item.contaminant.toLowerCase().replace('.', '');
     // Filtering out params that are not requested, this filter can be removed if desired
-    if(String(param).localeCompare("nox") !== 0 &&
-        String(param).localeCompare("h2s") !== 0 &&
-        String(param).localeCompare("no") !== 0 &&
-        String(param).localeCompare("c6h6") !== 0 &&
-        String(param).localeCompare("cl2") !== 0 &&
-        String(param).localeCompare("hg") !== 0 &&
-        String(param).localeCompare("pm1") !== 0) {
-        const template = {
-          location: ("nom_estaci" in item) ? item.nom_estaci:item.municipi,
-          city: item.municipi,
-          parameter: param,
-          coordinates: {
-            latitude: Number(item.latitud),
-            longitude: Number(item.longitud)
-          },
-          unit: item.unitats,
-          attribution: [{name: 'GENCAT', url: 'http://mediambient.gencat.cat/ca/05_ambits_dactuacio/atmosfera/qualitat_de_laire/vols-saber-que-respires/visor-de-dades/'}],
-          averagingPeriod: {unit: 'hours', value: 1}
-        };
+    if (String(param).localeCompare('nox') !== 0 &&
+        String(param).localeCompare('h2s') !== 0 &&
+        String(param).localeCompare('no') !== 0 &&
+        String(param).localeCompare('c6h6') !== 0 &&
+        String(param).localeCompare('cl2') !== 0 &&
+        String(param).localeCompare('hg') !== 0 &&
+        String(param).localeCompare('pm1') !== 0) {
+
+      const template = {
+        location: ('nom_estaci' in item) ? item.nom_estaci:item.municipi,
+        city: item.municipi,
+        parameter: param,
+        coordinates: {
+          latitude: Number(item.latitud),
+          longitude: Number(item.longitud)
+        },
+        unit: item.unitats,
+        attribution: [{name: 'GENCAT', url: 'http://mediambient.gencat.cat/ca/05_ambits_dactuacio/atmosfera/qualitat_de_laire/vols-saber-que-respires/visor-de-dades/'}],
+        averagingPeriod: {unit: 'hours', value: 1}
+      };
         // Loop through all hours and check if there is any data for that hour on that day
-      for( var i = 1; i < 25; i++) {
-        dateMoment = moment(dateMoment).add(1,'hours').format('YYYY-MM-DD HH:mm');
+      for (var i = 1; i < 25; i++) {
+
+        dateMoment = moment(dateMoment).add(1, 'hours').format('YYYY-MM-DD HH:mm');
         dateMoment = moment.tz(dateMoment, 'YYYY-MM-DD HH:mm', 'Europe/Madrid'); 
-        var valueKey = (i<10) ? ("h0"+i.toString()):("h"+i.toString());
-        if(valueKey in item) {
+        var valueKey = (i < 10) ? ('h0' + i.toString()):('h' + i.toString());
+        if (valueKey in item) {
           var temp = Object.assign({
-            value:  Number(item[valueKey]),
+            value: Number(item[valueKey]),
             date: {
               utc: dateMoment.toDate(),
               local: dateMoment.format()
-            },
+            }
           }, template);
 
           aq.push(temp);
@@ -106,16 +107,13 @@ const formatData = function (data) {
   // Needed to make all the lists from each day into one big array instead of multiple lists
   Array.prototype.concatAll = function() {
     var results = [];
-    this.forEach(function(subArray) {
-      subArray.forEach(function(subArrayValue) {
-
+    this.forEach( function(subArray) {
+      subArray.forEach( function(subArrayValue) {
         results.push(subArrayValue);
-        
       });
     });
     return results;
   };
-  
   const measurements = Object.values(data.map(aqRepack)).concatAll();
   return {name: 'unused', measurements: measurements};
 };
