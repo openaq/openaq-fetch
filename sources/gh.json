@@ -11,7 +11,7 @@
             "info@openaq.org"
         ],
         "active": false
-    }
+    },
     {
         "url": "http://dosairnowdata.org/dos/RSS/Bishkek/Bishkek-PM2.5.xml",
         "adapter": "stateair",
