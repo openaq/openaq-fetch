@@ -382,7 +382,7 @@ var formatData = function (data) {
        case 'Conakry':
         return {
           latitude: 9.594805,
-          longitude: --13.636629
+          longitude: -13.636629
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
        case 'Accra':
         return {
