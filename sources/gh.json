@@ -12,4 +12,17 @@
         ],
         "active": false
     }
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Bishkek/Bishkek-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Accra",
+        "city": "Accra",
+        "country": "GH",
+        "description": "",
+        "sourceURL": "http://dosairnowdata.org/dos/RSS/Accra/Accra-PM2.5.xml",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
 ]
