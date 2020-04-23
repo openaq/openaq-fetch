@@ -379,12 +379,12 @@ var formatData = function (data) {
           latitude: 5.335049,
           longitude: -3.976023
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
-       case 'Conakry':
+      case 'Conakry':
         return {
           latitude: 9.594805,
           longitude: -13.636629
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
-       case 'Accra':
+      case 'Accra':
         return {
           latitude: 5.579447,
           longitude: -0.170699
