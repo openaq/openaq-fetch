@@ -29,7 +29,7 @@ exports.name = 'arpaeL';
  */
 exports.fetchData = function (source, cb) {
   // Fetch both the measurements and meta-data about the locations
-  var sources = [source.url+'nicp-bhqi.json', source.url+'ib47-atvt.json'];
+  var sources = [source.url +'nicp-bhqi.json', source.url + 'ib47-atvt.json'];
   var tasks = [];
 
   _.forEach(sources, function (e) {
@@ -51,16 +51,16 @@ exports.fetchData = function (source, cb) {
     }
 
     // Wrap everything in a try/catch in case something goes wrong
-   try {
+    try {
       // Format the data
       var data = formatData(results);
       if (data === undefined) {
         return cb({message: 'Failure to parse data.'});
       }
       cb(null, data);
-      } catch (e) {
-       return cb({message: 'Unknown adapter error.'});
-      }
+    } catch (e) {
+      return cb({message: 'Unknown adapter error.'});
+    }
   });
 };
 
@@ -75,11 +75,11 @@ var formatData = function (results) {
     var meta = JSON.parse(results[1]);
   } catch (e) {
     return undefined;
-  } 
+  }
   /* source has a lot of extra polutants
     'Cadmio':'cd',
     'Piombo':'pb',
-    'Benzo(a)pirene': 
+    'Benzo(a)pirene':
     'Benzene':'c6h6',
     'Ammoniaca': 'nh3',
     'Arsenico': 'as',
@@ -87,29 +87,25 @@ var formatData = function (results) {
     'Ossidi di Azoto':'nox',
         'Particolato Totale Sospeso': 'pm10', //not sure what type of value this is pm10 or pm25, seem to be all kinds of pms
   */
-
   var paramMap = {
     'Biossido di Azoto': 'no2',
     'PM10 (SM2005)': 'pm10',
     'Ozono': 'o3',
     'Monossido di Carbonio': 'co',
     'Biossido di Zolfo': 'so2',
-    'Particelle sospese PM2.5':'pm25',
+    'Particelle sospese PM2.5': 'pm25',
     'BlackCarbon': 'bc',
-    'PM10': 'pm10',
+    'PM10': 'pm10'
   };
-
-  //filters out data that is invalid
-  data = data.filter(function (el) {
-    return (String(el.stato).localeCompare('VA')===0)});
-  
+  // filters out data that is invalid
+  data = data.filter(function (el) {return (String(el.stato).localeCompare('VA') === 0); });
   /**
    * Passing through id from data and getting the sensor it is associated with
    * @param {string} id sensorid from data, to compare with the sensors
    * @return {object} object of the sensor with matching id
    */
   var getSensor = function(id) {
-    return _.find(meta, function(s) { return (String(s.idsensore).localeCompare(String(id))===0)});
+    return _.find(meta, function(s) { return (String(s.idsensore).localeCompare(String(id)) === 0)});
   };
   /**
    * Given a measurement object, convert to system appropriate times.
@@ -117,8 +113,8 @@ var formatData = function (results) {
    * @return {object} An object containing both UTC and local times
    */
   var parseDate = function (date) {
-    var date = moment.tz(date, 'YYYY-MM-DDHH:mm', 'Europe/Vaduz');
-    return {utc: date.toDate(), local: date.format()};
+    date = moment.tz(date, 'YYYY-MM-DDHH:mm', 'Europe/Vaduz');
+    return {utc: date.toDate(), local: date.format() };
   };
   /**
    * Make 'µg/m³' pretty
@@ -131,7 +127,7 @@ var formatData = function (results) {
   var measurements = [];
   _.forEach(data, function (s) {
     var sensor = getSensor(s.idsensore);
-    if(typeof paramMap[sensor.nometiposensore] !== 'undefined') {
+    if (typeof paramMap[sensor.nometiposensore] !== 'undefined') {
       var m = {
         date: parseDate(s.data),
         value: Number(s.valore),
@@ -144,7 +140,7 @@ var formatData = function (results) {
           longitude: Number(sensor.location.longitude)
         },
         attribution: [
-          {name: 'Arpae Lombardia', url: 'https://www.arpalombardia.it/Pages/ARPA_Home_Page.aspx'},
+          {name: 'Arpae Lombardia', url: 'https://www.arpalombardia.it/Pages/ARPA_Home_Page.aspx'}
         ]
       };
       measurements.push(m);
