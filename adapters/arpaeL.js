@@ -29,7 +29,7 @@ exports.name = 'arpaeL';
  */
 exports.fetchData = function (source, cb) {
   // Fetch both the measurements and meta-data about the locations
-  var sources = [source.url +'nicp-bhqi.json', source.url + 'ib47-atvt.json'];
+  var sources = [source.url + 'nicp-bhqi.json', source.url + 'ib47-atvt.json'];
   var tasks = [];
 
   _.forEach(sources, function (e) {
@@ -98,14 +98,14 @@ var formatData = function (results) {
     'PM10': 'pm10'
   };
   // filters out data that is invalid
-  data = data.filter(function (el) {return (String(el.stato).localeCompare('VA') === 0); });
+  data = data.filter(function (el) { return (String(el.stato).localeCompare('VA') === 0); });
   /**
    * Passing through id from data and getting the sensor it is associated with
    * @param {string} id sensorid from data, to compare with the sensors
    * @return {object} object of the sensor with matching id
    */
-  var getSensor = function(id) {
-    return _.find(meta, function(s) { return (String(s.idsensore).localeCompare(String(id)) === 0)});
+  var getSensor = function (id) {
+    return _.find(meta, function (s) { return (String(s.idsensore).localeCompare(String(id)) === 0); });
   };
   /**
    * Given a measurement object, convert to system appropriate times.
@@ -114,7 +114,7 @@ var formatData = function (results) {
    */
   var parseDate = function (date) {
     date = moment.tz(date, 'YYYY-MM-DDHH:mm', 'Europe/Vaduz');
-    return {utc: date.toDate(), local: date.format() };
+    return {utc: date.toDate(), local: date.format()};
   };
   /**
    * Make 'µg/m³' pretty
