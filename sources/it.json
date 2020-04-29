@@ -81,5 +81,19 @@
       "info@openaq.org"
     ],
     "active": true
+  },  
+  {
+    "url": "https://bollettino.appa.tn.it/aria/opendata/json/last/",
+    "adapter": "arpaeT",
+    "name": "Arpae Trento",
+    "country": "IT",
+    "region": "Trento",
+    "timezone": "Etc/GMT-1",
+    "description": "Air quality data from Trento region, Italy",
+    "sourceURL": "http://www.appa.provincia.tn.it/",
+    "contacts": [
+      "info@openaq.org"
+    ],
+    "active": true
   }
 ]
