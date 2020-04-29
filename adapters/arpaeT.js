@@ -69,33 +69,32 @@ const formatData = function (data) {
    * @return {object} object with city, and geolocation
    */
   const getLocation = function (location) {
-    switch(location) {
-      case('Parco S. Chiara') :
-        return {city:'Trento', latitude: 46.063461, longitude: 11.126197};
-      case('Via Bolzano') :
-        return {city:'Trento', latitude: 46.104802, longitude: 11.109822};
-      case('Piana Rotaliana') :
-        return {city:'Mezzocorona', latitude: 46.228022, longitude: 11.132869};
-      case('Rovereto') :
-        return {city:'Rovereto', latitude: 45.891171, longitude:  11.041173};
-      case('Borgo Valsugana') :
-        return {city:'Borgo Valsugana', latitude: 46.051657, longitude:  11.454880};
-      case('Riva del Garda') :
-        return {city:'Riva del Garda', latitude: 45.893034, longitude:  10.847765};
-      case('A22 (Avio)') :
-        return {city:'Avio', latitude: 45.730380, longitude:  10.943382};
-      case('Monte Gaza') :
-        return {city:'Monte Gaza', latitude: 46.086309, longitude: 10.991845};
+    switch (location) {
+      case ('Parco S. Chiara') :
+        return {city: 'Trento', latitude: 46.063461, longitude: 11.126197};
+      case ('Via Bolzano') :
+        return {city: 'Trento', latitude: 46.104802, longitude: 11.109822};
+      case ('Piana Rotaliana') :
+        return {city: 'Mezzocorona', latitude: 46.228022, longitude: 11.132869};
+      case ('Rovereto') :
+        return {city: 'Rovereto', latitude: 45.891171, longitude: 11.041173};
+      case ('Borgo Valsugana') :
+        return {city: 'Borgo Valsugana', latitude: 46.051657, longitude: 11.454880};
+      case ('Riva del Garda') :
+        return {city: 'Riva del Garda', latitude: 45.893034, longitude: 10.847765};
+      case ('A22 (Avio)') :
+        return {city: 'Avio', latitude: 45.730380, longitude: 10.943382};
+      case ('Monte Gaza') :
+        return {city: 'Monte Gaza', latitude: 46.086309, longitude: 10.991845};
     }
-  }
-  
+  };
   var measurements = [];
-  //loop through all stations
+  // loop through all stations
   data.forEach(station => {
     const loc = getLocation(station.nome);
-    //the base object for the stationinfo
+    // the base object for the stationinfo
     const base = {
-      location: (station.indirizzo!==null&&String(station.indirizzo).length>0)? station.indirizzo:loc.city,
+      location: (station.indirizzo !== null && String(station.indirizzo).length > 0) ? station.indirizzo : loc.city,
       city: loc.city,
       coordinates: {
         latitude: loc.latitude,
@@ -105,17 +104,17 @@ const formatData = function (data) {
       attribution: [{name: 'Arpae Trento', url: 'http://www.appa.provincia.tn.it/'}],
       averagingPeriod: {unit: 'hours', value: 1}
     };
-    //the date + hour to get when the data was recorded, the latest are often the day after the date given
+    // the date + hour to get when the data was recorded, the latest are often the day after the date given
     const date = Object.getOwnPropertyNames(station.dati)[0];
     for (let i = 0; i < 24; i++) {
       const values = station.dati[date][i];
-      const dateMoment = moment(date).add(Number(Object.getOwnPropertyNames(station.dati[date])[i]),'hours');
+      const dateMoment = moment(date).add(Number(Object.getOwnPropertyNames(station.dati[date])[i]), 'hours');
       for (var key in values) {
         if (values.hasOwnProperty(key)) {
           var m = Object.assign({
             parameter: key,
             value: values[key],
-            date: parseDate(dateMoment),
+            date: parseDate(dateMoment)
           }, base);
           measurements.push(m);
         }
@@ -123,5 +122,5 @@ const formatData = function (data) {
     }
   });
 
- return {name: 'unused', measurements: measurements};
+  return {name: 'unused', measurements: measurements};
 };
