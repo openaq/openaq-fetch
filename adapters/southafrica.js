@@ -52,7 +52,7 @@ const formatData = function (data) {
     return undefined;
   }
   /**
-   * Convertor for pollutant, to make it look like the standard for the program, returns null if it is not an acceptable pollutant 
+   * Convertor for pollutant, to make it look like the standard for the program, returns null if it is not an acceptable pollutant
    * @param {String} pollutant that is going to be converted to the right format
    * @returns {String} if pollutant is acceptable, null if not
    */
@@ -69,11 +69,11 @@ const formatData = function (data) {
       case 'CO':
         return 'co';
       case 'SO2':
-        return 'so2';  
+        return 'so2';
       default:
         return null;
     }
-  }
+  };
   /**
    * Given a measurement object, convert to system appropriate times.
    * @param {object} m A source measurement object
@@ -85,7 +85,7 @@ const formatData = function (data) {
   };
   /**
    * Converts PPB to µg/m3, depending of the type of pollutant
-   * @param {String} pollutant that is going to be used to determine convertion 
+   * @param {String} pollutant that is going to be used to determine convertion
    * @param {String} value Number to be converted
    * @returns {Number} converted value of pollutant
    */
@@ -100,31 +100,31 @@ const formatData = function (data) {
       case 'co' :
         return Number(value) * 1.145;
     }
-  }
+  };
   const measurements = [];
   _.forEach(data, function (s) {
     const base = {
-        location: s.location,
-        city: s.city,
-        coordinates: {
-          latitude: Number(s.latitude),
-          longitude: Number(s.longitude)
-        },
-        attribution: [{name: 'South African Air Quality Informationsystem', url: 'http://saaqis.environment.gov.za'}],
-        averagingPeriod: {unit: 'hours', value: 1}
-    }
- _.forOwn(s.monitors, function (v, key) {
+      location: s.location,
+      city: s.city,
+      coordinates: {
+        latitude: Number(s.latitude),
+        longitude: Number(s.longitude)
+      },
+      attribution: [{name: 'South African Air Quality Informationsystem', url: 'http://saaqis.environment.gov.za'}],
+      averagingPeriod: {unit: 'hours', value: 1}
+    };
+    _.forOwn(s.monitors, function (v, key) {
       const pollutant = getPollutant(v.Pollutantname);
-      if (v.value>0 && v.value !== null && pollutant !== null) {
+      if (v.value > 0 && v.value !== null && pollutant !== null) {
         var m = _.clone(base);
         m.parameter = pollutant;
         if (String(v.unit).localeCompare('ppb') === 0) {
-          m.value = Number(convertPPB(pollutant,v.value));
+          m.value = Number(convertPPB(pollutant, v.value));
           m.unit = 'µg/m3';
         } else {
           m.value = Number(v.value);
           m.unit = v.unit;
-        }        
+        }
         m.date = parseDate(v.DateVal);
         measurements.push(m);
       }
