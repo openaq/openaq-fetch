@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/Conakry/Conakry-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_Conakry",
+        "city": "Conakry",
+        "country": "GN",
+        "description": "",
+        "sourceURL": "http://dosairnowdata.org/dos/RSS/Conakry/Conakry-PM2.5.xml",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
