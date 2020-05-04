@@ -80,7 +80,7 @@
     "contacts": [
       "info@openaq.org"
     ],
-    "active": true
+    "active": false
   },
   {
     "url": "http://discomap.eea.europa.eu/map/fme/latest/",
