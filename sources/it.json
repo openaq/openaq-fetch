@@ -81,5 +81,18 @@
       "info@openaq.org"
     ],
     "active": true
+  },
+  {
+    "url": "https://dati.arpae.it/dataset/qualita-dell-aria-rete-di-monitoraggio/resource/a1c46cfe-46e5-44b4-9231-7d9260a38e68",
+    "adapter": "arpaeSI",
+    "name": "Arpae Sicily",
+    "country": "IT",
+    "region": "Sicily",
+    "description": "Air quality data from Sicily region, Italy",
+    "sourceURL": "https://dati.arpae.it/",
+    "contacts": [
+      "info@openaq.org"
+    ],
+    "active": true
   }
 ]

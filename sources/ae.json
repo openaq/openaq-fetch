@@ -24,5 +24,17 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "https://www.adairquality.ae/AirQualityService/RestServiceImpl.svc/Json/EAD_",
+        "adapter": "adair-uae",
+        "name": "ADAir UAE",
+        "country": "AE",
+        "description": "",
+        "sourceURL": "https://www.adairquality.ae/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
