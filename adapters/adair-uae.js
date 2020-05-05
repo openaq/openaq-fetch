@@ -29,9 +29,9 @@ exports.fetchData = function (source, cb) {
     const sourceName = source.url + s.urlName;
     var task = function (cb) {
       request({
-        "rejectUnauthorized": false,
-        "url": sourceName,
-        "method": "GET"
+        'rejectUnauthorized': false,
+        'url': sourceName,
+        'method': 'GET'
       }, function (err, res, body) {
         if (err || res.statusCode !== 200) {
           return cb(err || res);
@@ -41,14 +41,13 @@ exports.fetchData = function (source, cb) {
           cb(null, Object.assign({
             data
           }, s));
-        } catch(e) {
+        } catch (e) {
           return cb({message: 'Failure to load data'});
         }
       });
     };
     tasks.push(task);
   });
-  
   async.parallel(tasks, function (err, results) {
     if (err) {
       console.log(err);
@@ -77,10 +76,10 @@ var formatData = function (results) {
   var paramMap = {
     'PM25': 'pm25',
     'PM10': 'pm10',
-    'SO2': 'so2', 
-    'NO2': 'no2', 
-    'CO': 'co', 
-    'O3': 'o3' 
+    'SO2': 'so2',
+    'NO2': 'no2',
+    'CO': 'co',
+    'O3': 'o3'
   };
   /**
    * Given a measurement object, convert to system appropriate times.
@@ -101,25 +100,24 @@ var formatData = function (results) {
       location: s.location,
       coordinates: s.coordinates,
       attribution: [
-        {name: 'Environment Agency - Abu Dabhi', url: 'https://www.adairquality.ae/'},
+        {name: 'Environment Agency - Abu Dabhi', url: 'https://www.adairquality.ae/'}
       ],
       unit: 'µg/m³'
     };
     // Loop over the parameters measured by this station
-     for (var i in s.data) {
+    for (var i in s.data) {
       const date = parseDate(s.data[i].DateTime);
-      for(let [key, value] of Object.entries(s.data[i])) {
+      for (let [key, value] of Object.entries(s.data[i])) {
         const param = paramMap[key];
-        if(value != 0 && typeof param !== 'undefined') {
+        if (typeof param !== 'undefined') {
           var m = _.clone(base);
           m.parameter = param;
           m.date = date;
-          m.value = (param == 'co') ? (Number(value) * 1000) : Number(value);
+          m.value = (param === 'co') ? (Number(value) * 1000) : Number(value);
           measurements.push(m);
         }
       }
-      }
-
+    }
   });
   return {
     name: 'unused',
@@ -127,7 +125,7 @@ var formatData = function (results) {
   };
 };
 
-const stations= [
+const stations = [
   {
     urlName: 'AlAinSchool',
     location: 'Al Ain Islamic Institute',
@@ -187,7 +185,7 @@ const stations= [
     location: 'Khadeeja School',
     city: 'Abu Dhabi',
     coordinates: {
-      latitude: 24.48207, 
+      latitude: 24.48207,
       longitude: 54.36895
     }
   },
@@ -196,8 +194,8 @@ const stations= [
     location: 'Khalifa City A',
     city: 'Khalifa City',
     coordinates: {
-      latitude: 24.42005, 
-      longitude:  54.57817
+      latitude: 24.42005,
+      longitude: 54.57817
     }
   },
   {
@@ -205,7 +203,7 @@ const stations= [
     location: 'Khalifa Bin Zayed Secondary School',
     city: 'Abu Dhabi',
     coordinates: {
-      latitude: 24.43007, 
+      latitude: 24.43007,
       longitude: 54.40690
     }
   },
@@ -214,7 +212,7 @@ const stations= [
     location: 'Mussafah',
     city: 'Abu Dhabi',
     coordinates: {
-      latitude: 24.34689, 
+      latitude: 24.34689,
       longitude: 54.50265
     }
   },
@@ -250,8 +248,8 @@ const stations= [
     location: 'Sweihan',
     city: 'Al Ain',
     coordinates: {
-      latitude: 24.46684, 
-      longitude: 55.32829,
+      latitude: 24.46684,
+      longitude: 55.32829
     }
   },
   {
@@ -268,8 +266,8 @@ const stations= [
     location: 'Bida Zayed',
     city: 'Bida Zayed',
     coordinates: {
-      latitude: 23.65065, 
-      longitude: 53.70369,
+      latitude: 23.65065,
+      longitude: 53.70369
     }
   },
   {
@@ -277,7 +275,7 @@ const stations= [
     location: 'Gayathi',
     city: 'Gayathi',
     coordinates: {
-      latitude: 23.83111, 
+      latitude: 23.83111,
       longitude: 52.81086
     }
   },
@@ -295,7 +293,7 @@ const stations= [
     location: 'Ruwais',
     city: 'Ruwais',
     coordinates: {
-      latitude: 24.09085, 
+      latitude: 24.09085,
       longitude: 52.75504
     }
   },
@@ -304,8 +302,8 @@ const stations= [
     location: 'E11Road',
     city: 'Abu Dhabi',
     coordinates: {
-      latitude: 24.03296, 
+      latitude: 24.03296,
       longitude: 53.88497
     }
   }
-]
+];
