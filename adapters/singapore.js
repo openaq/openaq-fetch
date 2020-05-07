@@ -6,7 +6,6 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import { default as rp } from 'request-promise-native';
 
@@ -20,10 +19,10 @@ exports.name = 'singapore';
  * @param {function} cb A callback of the form cb(err, data)
  */
 exports.fetchData = async function (source, cb) {
-  //getting timestamp key for the rest of the data
+  // Getting timestamp key for the rest of the data
   const timeRp = await rp({method: 'GET', uri: 'https://www.haze.gov.sg/api/UnixTime/GetTime/8a4b67b6-27d9-f2ec-a203-a45178ecefa8', resolveWithFullResponse: true});
   const time = JSON.parse(timeRp.body);
-  request(source.url+time, function (err, res, body) {
+  request(source.url + time, function (err, res, body) {
     if (err || res.statusCode !== 200) {
       return cb({message: 'Failure to load data url.'});
     }
@@ -59,9 +58,9 @@ var formatData = function (result) {
    * @return {object} An object containing both UTC and local times
    */
   var parseDate = function (m) {
-    var hour = (String(m).substring(m.length-2)==='AM') ? Number(String(m).substring(m.length-2,m.length-4)) : (12+Number(String(m).substring(m.length-2,m.length-4)));
-    m = String(m).substring(0,m.length-4);
-    m = moment(new Date(m)).add(hour,'hours');
+    var hour = (String(m).substring(m.length - 2) === 'AM') ? Number(String(m).substring(m.length - 2, m.length - 4)) : (12+Number(String(m).substring(m.length - 2, m.length - 4)));
+    m = String(m).substring(0, m.length - 4);
+    m = moment(new Date(m)).add(hour, 'hours');
     var date = moment.tz(m, 'YYYY-MM-DDHH:mm', 'Asia/Singapore');
     return {utc: date.toDate(), local: date.format()};
   };
@@ -72,16 +71,16 @@ var formatData = function (result) {
    * @return {Number} trasformed value into 'µg/m³'
    */
   var parseValue = function (v, params) {
-    // All data except pm25 is converted used a specific formula, 
+    // All data except pm25 is converted used a specific formula,
     // luckily it was provided, so we can revers engineer it and get the value wanted
     var index = [[0, 50], [50, 100], [100, 200], [200, 300], [300, 400], [400, 500]];
     for (var i = 0; i < index.length; i++) {
-      if(v > index[i][0] && v <= index[i][1]) {
+      if (v > index[i][0] && v <= index[i][1]) {
         return ((v - index[i][0]) * ((params[i][1] - params[i][0]) / (index[i][1] - index[i][0])) + params[i][0]);
       }
     }
     return -1;
-  }
+  };
   var measurements = [];
   sensorTypes.forEach(sensor => {
     stations.forEach(station => {
@@ -90,15 +89,15 @@ var formatData = function (result) {
         location: station.location,
         parameter: sensor.parameter,
         unit: 'µg/m³',
-        coordinates : station.coordinates,
+        coordinates: station.coordinates,
         attribution: [
-          {name: 'NEA Singapore', url: 'https://www.nea.gov.sg/our-services/pollution-control'},
+          {name: 'NEA Singapore', url: 'https://www.nea.gov.sg/our-services/pollution-control'}
         ]
       };
       data[sensor.sensorName][station.stationName].Data.forEach(d => {
         // It seems that some of the sensor are inactive, because they only register the value 0
         // does look to mainly be the NO2 sensor
-        if(d.value !== 0) {
+        if (d.value !== 0) {
           var v = (sensor.parameter === 'pm25') ? d.value : parseValue(d.value, sensor.index);
           if (sensor.parameter === 'co') v *= 1000;
           measurements.push(Object.assign({
@@ -109,7 +108,7 @@ var formatData = function (result) {
       });
     });
   });
- return {
+  return {
     name: 'unused',
     measurements: measurements
   };
@@ -117,7 +116,7 @@ var formatData = function (result) {
 var sensorTypes = [
   {
     sensorName: 'Chart1HRPM25',
-    parameter: 'pm25',
+    parameter: 'pm25'
   },
   {
     sensorName: 'ChartPM10',
@@ -143,7 +142,7 @@ var sensorTypes = [
     sensorName: 'ChartNO2',
     parameter: 'no2',
     index: [[0, 0], [0, 0], [0, 0], [1130, 2260], [2260, 3000], [3000, 3750]]
-  },
+  }
 ];
 var stations = [
   {
@@ -166,7 +165,7 @@ var stations = [
     stationName: 'East',
     location: 'East Singapore',
     coordinates: {
-      latitude: 1.36430, 
+      latitude: 1.36430,
       longitude: 103.94814
     }
   },
@@ -175,7 +174,7 @@ var stations = [
     location: 'West Singapore',
     coordinates: {
       latitude: 1.38861,
-      longitude: 103.69934,
+      longitude: 103.69934
     }
   },
   {
@@ -183,8 +182,7 @@ var stations = [
     location: 'Central Singapore',
     coordinates: {
       latitude: 1.36680,
-      longitude: 103.79973,
+      longitude: 103.79973
     }
   }
 ];
-
