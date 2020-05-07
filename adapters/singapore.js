@@ -58,7 +58,7 @@ var formatData = function (result) {
    * @return {object} An object containing both UTC and local times
    */
   var parseDate = function (m) {
-    var hour = (String(m).substring(m.length - 2) === 'AM') ? Number(String(m).substring(m.length - 2, m.length - 4)) : (12+Number(String(m).substring(m.length - 2, m.length - 4)));
+    var hour = (String(m).substring(m.length - 2) === 'AM') ? Number(String(m).substring(m.length - 2, m.length - 4)) : (12 + Number(String(m).substring(m.length - 2, m.length - 4)));
     m = String(m).substring(0, m.length - 4);
     m = moment(new Date(m)).add(hour, 'hours');
     var date = moment.tz(m, 'YYYY-MM-DDHH:mm', 'Asia/Singapore');
@@ -126,7 +126,7 @@ var sensorTypes = [
   {
     sensorName: 'ChartSO2',
     parameter: 'so2',
-    index: [[0, 80] ,[80, 365], [365, 800], [800, 1600], [1600, 2100], [2100, 2620]]
+    index: [[0, 80], [80, 365], [365, 800], [800, 1600], [1600, 2100], [2100, 2620]]
   },
   {
     sensorName: 'ChartCO',
