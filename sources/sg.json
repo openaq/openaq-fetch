@@ -1,0 +1,16 @@
+[
+    {
+        "url": "https://www.haze.gov.sg/api/airquality/jsondata/",
+        "adapter": "singapore",
+        "name": "Singapore",
+        "city": "Singapore",
+        "country": "SG",
+        "description": "",
+        "resolution": "",
+        "sourceURL": "https://www.haze.gov.sg/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
