@@ -5,8 +5,7 @@
         "name": "Singapore",
         "city": "Singapore",
         "country": "SG",
-        "description": "",
-        "resolution": "",
+        "description": "Airquality data for Singapore from a National Enviroment Agency",
         "sourceURL": "https://www.haze.gov.sg/",
         "contacts": [
             "info@openaq.org"

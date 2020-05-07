@@ -1,8 +1,6 @@
 /**
  * This code is responsible for implementing all methods related to fetching
  * and returning data from Singapore
- * 
- * data.
  */
 'use strict';
 
