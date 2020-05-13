@@ -6,7 +6,12 @@ import tzlookup from 'tz-lookup';
 import { MultiStream, DataStream, StringStream } from 'scramjet';
 import { default as JSONStream } from 'JSONStream';
 import log from '../lib/logger';
+import { join } from 'path';
 
+// Adding in certs to get around unverified certificates issue
+require('ssl-root-cas/latest')
+  .inject()
+  .addFile(join(__dirname, '..', '/certs/discomap-eea-europa-eu-chain.pem'));
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 const stationsLink = 'http://battuta.s3.amazonaws.com/eea-stations-all.json';
 
