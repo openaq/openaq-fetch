@@ -83,7 +83,7 @@
     "active": false
   },
   {
-    "url": "http://discomap.eea.europa.eu/map/fme/latest/",
+    "url": "https://discomap.eea.europa.eu/map/fme/latest/",
     "adapter": "eea-direct",
     "name": "EEA Italy",
     "city": "",
@@ -91,8 +91,8 @@
     "description": "Italian data from EEA Direct service",
     "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
     "contacts": [
-        "info@openaq.org"
+      "info@openaq.org"
     ],
     "active": true
-}
+  }
 ]

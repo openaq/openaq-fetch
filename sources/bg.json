@@ -1,6 +1,6 @@
 [
     {
-        "url": "http://discomap.eea.europa.eu/map/fme/latest/",
+        "url": "https://discomap.eea.europa.eu/map/fme/latest/",
         "adapter": "eea-direct",
         "name": "EEA Bulgaria",
         "city": "",
