@@ -1,6 +1,6 @@
 [
     {
-        "url": "http://discomap.eea.europa.eu/map/fme/latest/",
+        "url": "https://discomap.eea.europa.eu/map/fme/latest/",
         "adapter": "eea-direct",
         "name": "EEA Spain",
         "city": "",
@@ -20,7 +20,7 @@
         "description": "Data for Andalucia from its Ministry of Environmental and Spatial Planning",
         "sourceURL": "http://www.juntadeandalucia.es/medioambiente/atmosfera/informes_siva/",
         "contacts": [
-          "info@openaq.org"
+            "info@openaq.org"
         ],
         "active": true
     }
