@@ -1,0 +1,14 @@
+[
+    {
+        "url": "http://apims.doe.gov.my/data/public_v2/CAQM/last24hours.json",
+        "adapter": "malaysia",
+        "name": "Malaysia",
+        "country": "MY",
+        "description": "Air quality data for Malaysia from Official Department of Environment",
+        "sourceURL": "https://www.doe.gov.my/portalv1/en/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]

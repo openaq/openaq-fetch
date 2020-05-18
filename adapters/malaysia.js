@@ -46,18 +46,17 @@ exports.fetchData = function (source, cb) {
     if (err) {
       return cb({message: 'Failure to load data urls.'});
     }
-
     // Wrap everything in a try/catch in case something goes wrong
-    //try {
+    try {
       // Format the data
       var data = formatData(results);
       if (data === undefined) {
         return cb({message: 'Failure to parse data.'});
       }
       cb(null, data);
-    //} catch (e) {
-    //  return cb({message: 'Unknown adapter error.'});
-    //}
+    } catch (e) {
+      return cb({message: 'Unknown adapter error.'});
+    }
   });
 };
 
@@ -67,24 +66,31 @@ exports.fetchData = function (source, cb) {
  * @return {object} Parsed and standarized data our system can use
  */
 var formatData = function (results) {
+  /**
+   * A method for parsing and combining the metadata and dataset, into a readable JSON object
+   * @param {object} dataset Dataset from the source
+   * @param {object} metadata Metadata from the source
+   * @return {object} A parsed list of objects of stations, and their data
+   */
   var parseData = function (dataset, metadata) {
     dataset= JSON.parse(dataset);
     metadata = JSON.parse(metadata);
     var stations = [];
-    for(let i = 0; i < metadata.station_info_apims.length;i += 4) {
+    for (let i = 0; i < metadata.station_info_apims.length; i += 4) {
       const station = {
         Location : metadata.station_info_apims[i],
-        latitude : Number((metadata.station_info_apims[i+3])),
-        longitude : Number((metadata.station_info_apims[i+2]))
+        latitude : Number((metadata.station_info_apims[i + 3])),
+        longitude : Number((metadata.station_info_apims[i + 2]))
       };
       stations.push(station);
     }
     var stationData = [];
-    for(let i = 1; i < dataset['24hour_api_apims'].length;i++) {
+    for (let i = 1; i < dataset['24hour_api_apims'].length; i++) {
       var dataObject = {};
+      // The JSON data from the source is just a list of strings, and the timestamps for the data varies, data has to be parsed before it is read 
       var time = {};
-      for(let j = 0; j < dataset['24hour_api_apims'][0].length;j++) {
-        if(dataset['24hour_api_apims'][0][j] == 'State' || dataset['24hour_api_apims'][0][j] == 'Location') {
+      for (let j = 0; j < dataset['24hour_api_apims'][0].length; j++) {
+        if (dataset['24hour_api_apims'][0][j] == 'State' || dataset['24hour_api_apims'][0][j] == 'Location') {
           dataObject[dataset['24hour_api_apims'][0][j]] = dataset['24hour_api_apims'][i][j];
         } else {
           time[dataset['24hour_api_apims'][0][j]] = dataset['24hour_api_apims'][i][j];
@@ -92,7 +98,7 @@ var formatData = function (results) {
       }
       dataObject.data = time;
       var stationMetaData = stations.filter(
-        function(s){return s.Location == dataObject.Location;}
+        function (s) {return s.Location == dataObject.Location;}
       );
       dataObject = {...stationMetaData[0], ...dataObject};
       stationData.push(dataObject);
@@ -113,6 +119,11 @@ var formatData = function (results) {
     var date = moment.tz(m, 'YYYY-MM-DDHH:mm', 'Asia/Kuala_Lumpur');
     return {utc: date.toDate(), local: date.format()};
   };
+  /**
+   * Given a string which contains value and a symbol for unit and parameter
+   * @param {String} v value to be parsed
+   * @return {object} An object containing units, parameters and values of the data
+   */
   var parseValue = function (v) {
     const types = [
       {
@@ -152,7 +163,7 @@ var formatData = function (results) {
         unit : 'ppm'
       },
     ]
-    for(let i = 0; i < types.length; i++) {
+    for (let i = 0; i < types.length; i++) {
       if(String(v).search(String(types[i].marker)) != -1) {
         return {...types[i], value : Number(String(v).replace(types[i].marker2, ''))}
       }
@@ -160,7 +171,6 @@ var formatData = function (results) {
     return null;
   }
   var measurements = [];
-
   _.forEach(data, function (s) {
     var base = {
       city: s.Location,
@@ -173,17 +183,16 @@ var formatData = function (results) {
         {name: 'APIMS', url: 'http://apims.doe.gov.my/public_v2/home.html'},
       ]
     };
-    var startTime = String(Object.keys(s.data)[0]).replace('AM',' AM').replace('PM',' PM');
+    var startTime = String(Object.keys(s.data)[0]).replace('AM', ' AM').replace('PM', ' PM');
     var date = (startTime == '12:00 AM') ? 
     moment(moment().startOf('day').format('YYYY-MM-DD') + ' ' + startTime).format('YYYY-MM-DD HH:mm')
     :
     moment(moment().subtract(1, 'days').startOf('day').format('YYYY-MM-DD') + ' ' + startTime).format('YYYY-MM-DD HH:mm');
-  
-    for(let i = 0; i < 24; i++) {
+    for (let i = 0; i < 24; i++) {
       var m =  _.clone(base);
       m.date = parseDate(date);
       var parseVal = parseValue(Object.values(s.data)[i]);
-      if(parseVal != null) {
+      if (parseVal != null) {
         m.parameter = parseVal.parameter;
         m.value = parseVal.value;
         m.unit = parseVal.unit;
@@ -192,8 +201,6 @@ var formatData = function (results) {
       date = moment(date).add(1, 'hours');
     }
   }); 
-  console.log(measurements);
-
   return {
     name: 'unused',
     measurements: measurements
