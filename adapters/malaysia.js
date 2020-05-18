@@ -183,21 +183,21 @@ var formatData = function (results) {
       ]
     };
     var startTime = String(Object.keys(s.data)[0]).replace('AM', ' AM').replace('PM', ' PM');
-    var date = (startTime === '12:00 AM') 
+    var date = (startTime === '12:00 AM')
       ? moment(moment().startOf('day').format('YYYY-MM-DD') + ' ' + startTime, 'YYYY-MM-DD HH:mm')
       : moment(moment().subtract(1, 'days').startOf('day').format('YYYY-MM-DD') + ' ' + startTime, 'YYYY-MM-DD HH:mm');
-      for (let i = 0; i < 24; i++) {
-        var m = _.clone(base);
-        m.date = parseDate(date);
-        var parseVal = parseValue(Object.values(s.data)[i]);
-        if (parseVal != null) {
-          m.parameter = parseVal.parameter;
-          m.value = parseVal.value;
-          m.unit = parseVal.unit;
-          measurements.push(m);
-        }
-        date = moment(date).add(1, 'hours');
+    for (let i = 0; i < 24; i++) {
+      var m = _.clone(base);
+      m.date = parseDate(date);
+      var parseVal = parseValue(Object.values(s.data)[i]);
+      if (parseVal != null) {
+        m.parameter = parseVal.parameter;
+        m.value = parseVal.value;
+        m.unit = parseVal.unit;
+        measurements.push(m);
       }
+      date = moment(date).add(1, 'hours');
+    }
   });
   return {
     name: 'unused',
