@@ -116,7 +116,7 @@ var formatData = function (results) {
    * @return {object} An object containing both UTC and local times
    */
   var parseDate = function (m) {
-    var date = moment.tz(m, 'YYYY-MM-DDHH:mm', 'Asia/Kuala_Lumpur');
+    var date = moment.tz(m, 'YYYY-MM-DD HH:mm', 'Asia/Kuala_Lumpur');
     return {utc: date.toDate(), local: date.format()};
   };
   /**
@@ -180,14 +180,14 @@ var formatData = function (results) {
         longitude: s.longitude
       },
       attribution: [
-        {name: 'APIMS', url: 'http://apims.doe.gov.my/public_v2/home.html'},
+        {name: 'DOE Malaysia', url: 'http://apims.doe.gov.my/public_v2/home.html'},
       ]
     };
     var startTime = String(Object.keys(s.data)[0]).replace('AM', ' AM').replace('PM', ' PM');
     var date = (startTime == '12:00 AM') ? 
-    moment(moment().startOf('day').format('YYYY-MM-DD') + ' ' + startTime).format('YYYY-MM-DD HH:mm')
+    moment(moment().startOf('day').format('YYYY-MM-DD') + ' ' + startTime, 'YYYY-MM-DD HH:mm')
     :
-    moment(moment().subtract(1, 'days').startOf('day').format('YYYY-MM-DD') + ' ' + startTime).format('YYYY-MM-DD HH:mm');
+    moment(moment().subtract(1, 'days').startOf('day').format('YYYY-MM-DD') + ' ' + startTime, 'YYYY-MM-DD HH:mm');
     for (let i = 0; i < 24; i++) {
       var m =  _.clone(base);
       m.date = parseDate(date);
