@@ -1,6 +1,6 @@
 /**
  * This code is responsible for implementing all methods related to fetching
- * and returning data for the United Arab Emirate data sources.
+ * and returning data from Abu Dhabi in the United Arab Emirates
  *
  * This is a two-stage adapter requiring loading multiple urls before parsing
  * data.
