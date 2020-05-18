@@ -12,7 +12,6 @@ import { default as baseRequest } from 'request';
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import async from 'async';
-import { join } from 'path';
 
 // Adding in certs to get around unverified connection issue
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
@@ -73,24 +72,24 @@ var formatData = function (results) {
    * @return {object} A parsed list of objects of stations, and their data
    */
   var parseData = function (dataset, metadata) {
-    dataset= JSON.parse(dataset);
+    dataset = JSON.parse(dataset);
     metadata = JSON.parse(metadata);
     var stations = [];
     for (let i = 0; i < metadata.station_info_apims.length; i += 4) {
       const station = {
-        Location : metadata.station_info_apims[i],
-        latitude : Number((metadata.station_info_apims[i + 3])),
-        longitude : Number((metadata.station_info_apims[i + 2]))
+        Location: metadata.station_info_apims[i],
+        latitude: Number((metadata.station_info_apims[i + 3])),
+        longitude: Number((metadata.station_info_apims[i + 2]))
       };
       stations.push(station);
     }
     var stationData = [];
     for (let i = 1; i < dataset['24hour_api_apims'].length; i++) {
       var dataObject = {};
-      // The JSON data from the source is just a list of strings, and the timestamps for the data varies, data has to be parsed before it is read 
+      // The JSON data from the source is just a list of strings, and the timestamps for the data varies, data has to be parsed before it is read
       var time = {};
       for (let j = 0; j < dataset['24hour_api_apims'][0].length; j++) {
-        if (dataset['24hour_api_apims'][0][j] == 'State' || dataset['24hour_api_apims'][0][j] == 'Location') {
+        if (dataset['24hour_api_apims'][0][j] === 'State' || dataset['24hour_api_apims'][0][j] === 'Location') {
           dataObject[dataset['24hour_api_apims'][0][j]] = dataset['24hour_api_apims'][i][j];
         } else {
           time[dataset['24hour_api_apims'][0][j]] = dataset['24hour_api_apims'][i][j];
@@ -98,18 +97,19 @@ var formatData = function (results) {
       }
       dataObject.data = time;
       var stationMetaData = stations.filter(
-        function (s) {return s.Location == dataObject.Location;}
+        function (s) { return s.Location === dataObject.Location; }
       );
       dataObject = {...stationMetaData[0], ...dataObject};
       stationData.push(dataObject);
     }
     return stationData;
-  }
+  };
   try {
-    var data = parseData(results[0],results[1]);
+    var data = parseData(results[0], results[1]);
   } catch (e) {
     return undefined;
   }
+  console.log(data[0]);
   /**
    * Given a measurement object, convert to system appropriate times.
    * @param {object} m A source measurement object
@@ -127,49 +127,49 @@ var formatData = function (results) {
   var parseValue = function (v) {
     const types = [
       {
-        marker : '[**]',
-        marker2 : '**',
-        parameter : 'pm25',
-        unit : 'µg/m³'
+        marker: '[**]',
+        marker2: '**',
+        parameter: 'pm25',
+        unit: 'µg/m³'
       },
       {
-        marker : 'c',
-        marker2 : 'c',
-        parameter : 'o3',
-        unit : 'ppm'
+        marker: 'c',
+        marker2: 'c',
+        parameter: 'o3',
+        unit: 'ppm'
       },
       {
-        marker : '[*]',
-        marker2 : '*',
-        parameter : 'pm10',
-        unit : 'µg/m³'
+        marker: '[*]',
+        marker2: '*',
+        parameter: 'pm10',
+        unit: 'µg/m³'
       },
       {
-        marker : 'a',
-        marker2 : 'a',
-        parameter : 'so2',
-        unit : 'ppm'
+        marker: 'a',
+        marker2: 'a',
+        parameter: 'so2',
+        unit: 'ppm'
       },
       {
-        marker : 'b',
-        marker2 : 'b',
-        parameter : 'no2',
-        unit : 'ppm'
+        marker: 'b',
+        marker2: 'b',
+        parameter: 'no2',
+        unit: 'ppm'
       },
       {
-        marker : 'd',
-        marker2 : 'd',
-        parameter : 'co',
-        unit : 'ppm'
-      },
-    ]
+        marker: 'd',
+        marker2: 'd',
+        parameter: 'co',
+        unit: 'ppm'
+      }
+    ];
     for (let i = 0; i < types.length; i++) {
-      if(String(v).search(String(types[i].marker)) != -1) {
-        return {...types[i], value : Number(String(v).replace(types[i].marker2, ''))}
+      if (String(v).search(String(types[i].marker)) !== -1) {
+        return {...types[i], value: Number(String(v).replace(types[i].marker2, ''))};
       }
     }
     return null;
-  }
+  };
   var measurements = [];
   _.forEach(data, function (s) {
     var base = {
@@ -180,27 +180,26 @@ var formatData = function (results) {
         longitude: s.longitude
       },
       attribution: [
-        {name: 'DOE Malaysia', url: 'http://apims.doe.gov.my/public_v2/home.html'},
+        {name: 'DOE Malaysia', url: 'http://apims.doe.gov.my/public_v2/home.html'}
       ]
     };
     var startTime = String(Object.keys(s.data)[0]).replace('AM', ' AM').replace('PM', ' PM');
-    var date = (startTime == '12:00 AM') ? 
-    moment(moment().startOf('day').format('YYYY-MM-DD') + ' ' + startTime, 'YYYY-MM-DD HH:mm')
-    :
-    moment(moment().subtract(1, 'days').startOf('day').format('YYYY-MM-DD') + ' ' + startTime, 'YYYY-MM-DD HH:mm');
-    for (let i = 0; i < 24; i++) {
-      var m =  _.clone(base);
-      m.date = parseDate(date);
-      var parseVal = parseValue(Object.values(s.data)[i]);
-      if (parseVal != null) {
-        m.parameter = parseVal.parameter;
-        m.value = parseVal.value;
-        m.unit = parseVal.unit;
-        measurements.push(m);
+    var date = (startTime === '12:00 AM') 
+      ? moment(moment().startOf('day').format('YYYY-MM-DD') + ' ' + startTime, 'YYYY-MM-DD HH:mm')
+      : moment(moment().subtract(1, 'days').startOf('day').format('YYYY-MM-DD') + ' ' + startTime, 'YYYY-MM-DD HH:mm');
+      for (let i = 0; i < 24; i++) {
+        var m = _.clone(base);
+        m.date = parseDate(date);
+        var parseVal = parseValue(Object.values(s.data)[i]);
+        if (parseVal != null) {
+          m.parameter = parseVal.parameter;
+          m.value = parseVal.value;
+          m.unit = parseVal.unit;
+          measurements.push(m);
+        }
+        date = moment(date).add(1, 'hours');
       }
-      date = moment(date).add(1, 'hours');
-    }
-  }); 
+  });
   return {
     name: 'unused',
     measurements: measurements
