@@ -109,7 +109,6 @@ var formatData = function (results) {
   } catch (e) {
     return undefined;
   }
-  console.log(data[0]);
   /**
    * Given a measurement object, convert to system appropriate times.
    * @param {object} m A source measurement object
