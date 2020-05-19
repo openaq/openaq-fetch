@@ -2,7 +2,6 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
@@ -52,14 +51,14 @@ var formatData = function (result) {
     var data = rendered.substring(rendered.indexOf('= [{') + 3, rendered.indexOf('];'));
     var param = rendered.substring(rendered.indexOf('.title') + 10, rendered.length);
     param = param.substring(0, param.indexOf('};'));
-    param = (String(param).search('PM10') != -1) ? 'pm10' : 'pm25';
+    param = (String(param).search('PM10') !== -1) ? 'pm10' : 'pm25';
     if (data.length > 100) {
       try {
         data = JSON.parse(data);
         data.parameter = param;
         data.meta = getCoordinates(data.name);
         stations.push(data);
-      } catch (e) { console.log(e)};
+      } catch (e) { console.log(e); }
     }
   });
   var measurements = [];
@@ -83,8 +82,8 @@ var formatData = function (result) {
       unit: 'µg/m³',
       attribution: [{name: 'Aarhus universitet', url: 'https://www.au.dk/'}],
       averagingPeriod: {unit: 'hours', value: 1}
-    }
-    for(var i = station.data.length - 1; i >= 0; i--){
+    };
+    for (var i = station.data.length - 1; i >= 0; i--) {
       const dateMoment = moment.tz(basedate, 'YYYY-MM-DD HH:mm', 'Europe/Copenhagen');
       var m = Object.assign({
         value: Number(station.data[i]),
