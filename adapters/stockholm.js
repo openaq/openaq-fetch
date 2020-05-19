@@ -26,9 +26,9 @@ exports.fetchData = function (source, cb) {
         return cb({message: 'Failure to parse data.'});
       }
       cb(null, data);
-      } catch (e) {
+    } catch (e) {
       return cb({message: 'Unknown adapter error.'});
-     }
+    }
   });
 };
 
@@ -101,23 +101,23 @@ var formatData = function (result) {
 
   $('.entry-content script').each(function () {
     var rendered = $(this).html();
-      // extract data table
-      var data = rendered.substring(rendered.indexOf('arrayToDataTable('));
-      data = data.substring(18, data.indexOf(']);'));
-      data = data.replace('[', '').trim();
-      data = data.split("'").join('').trim(); // remove all [
-      var param = rendered.substring(rendered.indexOf('visualization.LineChart'));
-      param = param.substring(param.indexOf('.getElementById(\'') + 17);
-      param = param.substring(0, param.indexOf('_'));
+    // extract data table
+    var data = rendered.substring(rendered.indexOf('arrayToDataTable('));
+    data = data.substring(18, data.indexOf(']);'));
+    data = data.replace('[', '').trim();
+    data = data.split("'").join('').trim(); // remove all [
+    var param = rendered.substring(rendered.indexOf('visualization.LineChart'));
+    param = param.substring(param.indexOf('.getElementById(\'') + 17);
+    param = param.substring(0, param.indexOf('_'));
 
-      if (acceptableParameters.indexOf(param) === -1) {
-        return;
-      }
+    if (acceptableParameters.indexOf(param) === -1) {
+      return;
+    }
 
-      if (data.length > 20) {
-        nodes.push(data);
-        parameters.push(param);
-      }
+    if (data.length > 20) {
+      nodes.push(data);
+      parameters.push(param);
+    }
   });
 
   // Iterate over different quantitites (PM10, NO2, PM25, O3)
