@@ -11,17 +11,5 @@
             "info@openaq.org"
         ],
         "active": true
-    },
-    {
-        "url": "https://envs2.au.dk/Luftdata/Presentation/Graph/PM",
-        "adapter": "denmark-pm",
-        "name": "DenmarkPM",
-        "country": "DK",
-        "description": "Danish PM2.5 and PM10 from Aarhus university",
-        "sourceURL": "https://envs2.au.dk/Luftdata/Presentation/",
-        "contacts": [
-            "info@openaq.org"
-        ],
-        "active": true
     }
 ]
