@@ -1,6 +1,6 @@
 /**
  * This code is responsible for implementing all methods related to fetching
- * and returning data for the Norwegian data sources.
+ * and returning data for the South African data sources.
  */
 'use strict';
 
@@ -8,6 +8,7 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import _ from 'lodash';
+import { unifyMeasurementUnits } from '../lib/utils';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 exports.name = 'southafrica';
@@ -80,26 +81,8 @@ const formatData = function (data) {
    * @return {object} An object containing both UTC and local times
    */
   var parseDate = function (m) {
-    var date = moment.tz(m, 'YYYY-MM-DDHH:mm', 'Africa/Maseru');
+    var date = moment.tz(m, 'YYYY-MM-DDHH:mm', 'Africa/Johannesburg');
     return {utc: date.toDate(), local: date.format()};
-  };
-  /**
-   * Converts PPB to µg/m3, depending of the type of pollutant
-   * @param {String} pollutant that is going to be used to determine convertion
-   * @param {String} value Number to be converted
-   * @returns {Number} converted value of pollutant
-   */
-  var convertPPB = function (pollutant, value) {
-    switch (pollutant) {
-      case 'o3' :
-        return Number(value) * 2;
-      case 'so2' :
-        return Number(value) * 2.62;
-      case 'no2' :
-        return Number(value) * 1.88;
-      case 'co' :
-        return Number(value) * 1.145;
-    }
   };
   const measurements = [];
   _.forEach(data, function (s) {
@@ -110,7 +93,7 @@ const formatData = function (data) {
         latitude: Number(s.latitude),
         longitude: Number(s.longitude)
       },
-      attribution: [{name: 'South African Air Quality Informationsystem', url: 'http://saaqis.environment.gov.za'}],
+      attribution: [{name: 'South African Air Quality Information System', url: 'http://saaqis.environment.gov.za'}],
       averagingPeriod: {unit: 'hours', value: 1}
     };
     _.forOwn(s.monitors, function (v, key) {
@@ -118,14 +101,10 @@ const formatData = function (data) {
       if (v.value > 0 && v.value !== null && pollutant !== null) {
         var m = _.clone(base);
         m.parameter = pollutant;
-        if (String(v.unit).localeCompare('ppb') === 0) {
-          m.value = Number(convertPPB(pollutant, v.value));
-          m.unit = 'µg/m3';
-        } else {
-          m.value = Number(v.value);
-          m.unit = v.unit;
-        }
+        m.value = Number(v.value);
+        m.unit = v.unit;
         m.date = parseDate(v.DateVal);
+        m = unifyMeasurementUnits(m);
         measurements.push(m);
       }
     });
