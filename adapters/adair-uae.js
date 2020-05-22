@@ -35,19 +35,19 @@ exports.fetchData = function (source, cb) {
     const sourceName = source.url + s.urlName;
     var task = function (cb) {
       request(sourceName,
-      function (err, res, body) {
-        if (err || res.statusCode !== 200) {
-          return cb(err || res);
-        }
-        try {
-          const data = JSON.parse(JSON.parse(body).JSONDataResult);
-          cb(null, Object.assign({
-            data
-          }, s));
-        } catch (e) {
-          return cb({message: 'Failure to load data'});
-        }
-      });
+        function (err, res, body) {
+          if (err || res.statusCode !== 200) {
+            return cb(err || res);
+          }
+          try {
+            const data = JSON.parse(JSON.parse(body).JSONDataResult);
+            cb(null, Object.assign({
+              data
+            }, s));
+          } catch (e) {
+            return cb({message: 'Failure to load data'});
+          }
+    });
     };
     tasks.push(task);
   });
