@@ -12,6 +12,7 @@ import { default as baseRequest } from 'request';
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import async from 'async';
+import { unifyParameters } from '../lib/utils';
 
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
@@ -54,16 +55,16 @@ exports.fetchData = function (source, cb) {
       return cb({message: 'Failure to load data urls.'});
     }
     // Wrap everything in a try/catch in case something goes wrong
-    try {
+   // try {
       // Format the data
       var data = formatData(results);
       if (data === undefined) {
         return cb({message: 'Failure to parse data.'});
       }
       cb(null, data);
-    } catch (e) {
-      return cb({message: 'Unknown adapter error.'});
-    }
+    //} catch (e) {
+     // return cb({message: 'Unknown adapter error.'});
+    //}
   });
 };
 
@@ -87,8 +88,26 @@ var formatData = function (results) {
    * @return {object} An object containing both UTC and local times
    */
   var parseDate = function (m) {
-    m = moment(m).format('YYYY-MM-DDHH:mm');
-    var date = moment.tz(m, 'YYYY-MM-DDHH:mm', 'Asia/Dubai');
+    // The input date is not in a recognized format, so the string needs to be transformed
+    var tm = String(m).split(' ').join(':').split('/').join(':').split(':');
+    m = ''
+    for(let i = 0; i < tm.length-1; i++) {
+      if(tm[i].length<2) {
+        m += ('0' + tm[i]); 
+      } else {
+        m += tm[i];
+      }
+      if(i<2) {
+        m+='-';
+      } else if (i === 2) {
+        m+=' ';
+      } else if (i < tm.length-2) {
+        m+=':';
+      }
+    }
+    m = moment(m,'MM/DD/YYYY HH:mm');  
+    if(tm[tm.length-1]=='PM') m.add(12, 'hours');
+    var date = moment.tz(m, 'YYYY-MM-DD HH:mm', 'Asia/Dubai');
     return {utc: date.toDate(), local: date.format()};
   };
 
@@ -108,12 +127,12 @@ var formatData = function (results) {
     for (var i in s.data) {
       const date = parseDate(s.data[i].DateTime);
       for (let [key, value] of Object.entries(s.data[i])) {
-        const param = paramMap[key];
-        if (typeof param !== 'undefined') {
+        if(key !== 'DateTime' && key !== 'AQI') {
           var m = _.clone(base);
-          m.parameter = param;
+          m.parameter = key;
           m.date = date;
-          m.value = (param === 'co') ? (Number(value) * 1000) : Number(value);
+          m.value = (key === 'CO') ? (Number(value) * 1000) : Number(value);
+          m = unifyParameters(m);
           measurements.push(m);
         }
       }
@@ -125,14 +144,19 @@ var formatData = function (results) {
   };
 };
 
+/* Coordinates are fetched by using transforming the geometry positions from
+  https://services.arcgis.com/kuR0ZmzEAOg4q3DU/arcgis/rest/services/AirQuality_Pics/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=true&spatialRel=esriSpatialRelIntersects&outFields=
+  into usable geometry with the calculator from this site
+  https://epsg.io/transform#s_srs=3857&t_srs=4326
+*/
 const stations = [
   {
     urlName: 'AlAinSchool',
     location: 'Al Ain Islamic Institute',
     city: 'Al Ain',
     coordinates: {
-      latitude: 24.22937,
-      longitude: 55.75031
+      latitude: 24.2190093,
+      longitude: 55.7348393
     }
   },
   {
@@ -140,8 +164,8 @@ const stations = [
     location: 'Al Tayseer Street',
     city: 'Al Ain',
     coordinates: {
-      latitude: 24.22625,
-      longitude: 55.76567
+      latitude: 24.2261798,
+      longitude: 55.765823
     }
   },
   {
@@ -149,8 +173,8 @@ const stations = [
     location: 'Al Maqtaa',
     city: 'Abu Dhabi',
     coordinates: {
-      latitude: 24.40255,
-      longitude: 54.51382
+      latitude: 24.4037259,
+      longitude: 54.5162126
     }
   },
   {
@@ -158,8 +182,8 @@ const stations = [
     location: 'Al Quaa',
     city: 'Al Quaa',
     coordinates: {
-      latitude: 23.53041,
-      longitude: 55.48645
+      latitude: 23.5308087,
+      longitude: 55.4859262
     }
   },
   {
@@ -167,8 +191,8 @@ const stations = [
     location: 'Biljian',
     city: 'Abu Dhabi',
     coordinates: {
-      latitude: 23.75064,
-      longitude: 53.74533
+      latitude: 23.7504126,
+      longitude: 53.7458552
     }
   },
   {
@@ -176,8 +200,8 @@ const stations = [
     location: 'Hamdan Street',
     city: 'Abu Dhabi',
     coordinates: {
-      latitude: 24.48808,
-      longitude: 54.36169
+      latitude: 24.4889191,
+      longitude: 54.3636999
     }
   },
   {
@@ -185,8 +209,8 @@ const stations = [
     location: 'Khadeeja School',
     city: 'Abu Dhabi',
     coordinates: {
-      latitude: 24.48207,
-      longitude: 54.36895
+      latitude: 24.4815689,
+      longitude: 54.3693316
     }
   },
   {
@@ -194,8 +218,8 @@ const stations = [
     location: 'Khalifa City A',
     city: 'Khalifa City',
     coordinates: {
-      latitude: 24.42005,
-      longitude: 54.57817
+      latitude: 24.4199791,
+      longitude: 54.5785249
     }
   },
   {
@@ -203,8 +227,8 @@ const stations = [
     location: 'Khalifa Bin Zayed Secondary School',
     city: 'Abu Dhabi',
     coordinates: {
-      latitude: 24.43007,
-      longitude: 54.40690
+      latitude: 24.430162,
+      longitude: 54.4080899
     }
   },
   {
@@ -212,8 +236,8 @@ const stations = [
     location: 'Mussafah',
     city: 'Abu Dhabi',
     coordinates: {
-      latitude: 24.34689,
-      longitude: 54.50265
+      latitude: 24.3472949,
+      longitude: 54.5029305
     }
   },
   {
@@ -221,8 +245,8 @@ const stations = [
     location: 'Al Tawia',
     city: 'Al Ain',
     coordinates: {
-      latitude: 24.25881,
-      longitude: 55.70514
+      latitude: 24.2592835,
+      longitude: 55.7049407
     }
   },
   {
@@ -230,8 +254,8 @@ const stations = [
     location: 'Zakher',
     city: 'Al Ain',
     coordinates: {
-      latitude: 24.16332,
-      longitude: 55.70231
+      latitude: 24.1634814,
+      longitude: 55.7021987
     }
   },
   {
@@ -239,8 +263,8 @@ const stations = [
     location: 'Al Mafraq',
     city: 'Abu Dhabi',
     coordinates: {
-      latitude: 24.28523,
-      longitude: 54.58833
+      latitude: 24.2862522,
+      longitude: 54.5888933
     }
   },
   {
@@ -248,8 +272,8 @@ const stations = [
     location: 'Sweihan',
     city: 'Al Ain',
     coordinates: {
-      latitude: 24.46684,
-      longitude: 55.32829
+      latitude: 24.4666818,
+      longitude: 55.342881
     }
   },
   {
@@ -257,8 +281,8 @@ const stations = [
     location: 'Baniyas School',
     city: 'Abu Dhabi',
     coordinates: {
-      latitude: 24.32142,
-      longitude: 54.63524
+      latitude: 24.3213815,
+      longitude: 54.6360422
     }
   },
   {
@@ -266,8 +290,8 @@ const stations = [
     location: 'Bida Zayed',
     city: 'Bida Zayed',
     coordinates: {
-      latitude: 23.65065,
-      longitude: 53.70369
+      latitude: 23.6521322,
+      longitude: 53.7030852
     }
   },
   {
@@ -275,8 +299,8 @@ const stations = [
     location: 'Gayathi',
     city: 'Gayathi',
     coordinates: {
-      latitude: 23.83111,
-      longitude: 52.81086
+      latitude: 23.8356045,
+      longitude: 52.810022
     }
   },
   {
@@ -284,8 +308,8 @@ const stations = [
     location: 'Liwa',
     city: 'Liwa',
     coordinates: {
-      latitude: 23.09554,
-      longitude: 53.60660
+      latitude: 23.0957772,
+      longitude: 53.6064018
     }
   },
   {
@@ -293,8 +317,8 @@ const stations = [
     location: 'Ruwais',
     city: 'Ruwais',
     coordinates: {
-      latitude: 24.09085,
-      longitude: 52.75504
+      latitude: 24.0908732,
+      longitude: 52.75477
     }
   },
   {
@@ -302,8 +326,8 @@ const stations = [
     location: 'E11Road',
     city: 'Abu Dhabi',
     coordinates: {
-      latitude: 24.03296,
-      longitude: 53.88497
+      latitude: 24.0333937,
+      longitude: 53.8858092
     }
   }
 ];
