@@ -13,6 +13,11 @@ import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import async from 'async';
 import { unifyParameters } from '../lib/utils';
+import { join } from 'path';
+
+require('ssl-root-cas/latest')
+  .inject()
+  .addFile(join(__dirname, '..', '/certs/ADAir.crt.txt'));
 
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
@@ -29,11 +34,8 @@ exports.fetchData = function (source, cb) {
   _.forEach(stations, function (s) {
     const sourceName = source.url + s.urlName;
     var task = function (cb) {
-      request({
-        'rejectUnauthorized': false,
-        'url': sourceName,
-        'method': 'GET'
-      }, function (err, res, body) {
+      request(sourceName,
+      function (err, res, body) {
         if (err || res.statusCode !== 200) {
           return cb(err || res);
         }
@@ -55,16 +57,16 @@ exports.fetchData = function (source, cb) {
       return cb({message: 'Failure to load data urls.'});
     }
     // Wrap everything in a try/catch in case something goes wrong
-   // try {
-      // Format the data
+    try {
+    // Format the data
       var data = formatData(results);
       if (data === undefined) {
         return cb({message: 'Failure to parse data.'});
       }
       cb(null, data);
-    //} catch (e) {
-     // return cb({message: 'Unknown adapter error.'});
-    //}
+    } catch (e) {
+      return cb({message: 'Unknown adapter error.'});
+    }
   });
 };
 
@@ -74,14 +76,6 @@ exports.fetchData = function (source, cb) {
  * @return {object} Parsed and standarized data our system can use
  */
 var formatData = function (results) {
-  var paramMap = {
-    'PM25': 'pm25',
-    'PM10': 'pm10',
-    'SO2': 'so2',
-    'NO2': 'no2',
-    'CO': 'co',
-    'O3': 'o3'
-  };
   /**
    * Given a measurement object, convert to system appropriate times.
    * @param {object} m A source measurement object
@@ -89,24 +83,7 @@ var formatData = function (results) {
    */
   var parseDate = function (m) {
     // The input date is not in a recognized format, so the string needs to be transformed
-    var tm = String(m).split(' ').join(':').split('/').join(':').split(':');
-    m = ''
-    for(let i = 0; i < tm.length-1; i++) {
-      if(tm[i].length<2) {
-        m += ('0' + tm[i]); 
-      } else {
-        m += tm[i];
-      }
-      if(i<2) {
-        m+='-';
-      } else if (i === 2) {
-        m+=' ';
-      } else if (i < tm.length-2) {
-        m+=':';
-      }
-    }
-    m = moment(m,'MM/DD/YYYY HH:mm');  
-    if(tm[tm.length-1]=='PM') m.add(12, 'hours');
+    m = moment(m, 'MM/DD/YYYY HH:mm a');
     var date = moment.tz(m, 'YYYY-MM-DD HH:mm', 'Asia/Dubai');
     return {utc: date.toDate(), local: date.format()};
   };
@@ -127,7 +104,7 @@ var formatData = function (results) {
     for (var i in s.data) {
       const date = parseDate(s.data[i].DateTime);
       for (let [key, value] of Object.entries(s.data[i])) {
-        if(key !== 'DateTime' && key !== 'AQI') {
+        if (key !== 'DateTime' && key !== 'AQI') {
           var m = _.clone(base);
           m.parameter = key;
           m.date = date;
