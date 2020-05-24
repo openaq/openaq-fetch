@@ -8,7 +8,7 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import _ from 'lodash';
-import { unifyMeasurementUnits } from '../lib/utils';
+import { unifyMeasurementUnits, removeUnwantedParameters, unifyParameters } from '../lib/utils';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 exports.name = 'southafrica';
@@ -53,29 +53,6 @@ const formatData = function (data) {
     return undefined;
   }
   /**
-   * Convertor for pollutant, to make it look like the standard for the program, returns null if it is not an acceptable pollutant
-   * @param {String} pollutant that is going to be converted to the right format
-   * @returns {String} if pollutant is acceptable, null if not
-   */
-  var getPollutant = function (pollutant) {
-    switch (pollutant) {
-      case 'O3':
-        return 'o3';
-      case 'NO2':
-        return 'no2';
-      case 'PM2_5':
-        return 'pm25';
-      case 'PM10':
-        return 'pm10';
-      case 'CO':
-        return 'co';
-      case 'SO2':
-        return 'so2';
-      default:
-        return null;
-    }
-  };
-  /**
    * Given a measurement object, convert to system appropriate times.
    * @param {object} m A source measurement object
    * @return {object} An object containing both UTC and local times
@@ -84,7 +61,7 @@ const formatData = function (data) {
     var date = moment.tz(m, 'YYYY-MM-DDHH:mm', 'Africa/Johannesburg');
     return {utc: date.toDate(), local: date.format()};
   };
-  const measurements = [];
+  var measurements = [];
   _.forEach(data, function (s) {
     const base = {
       location: s.location,
@@ -97,17 +74,18 @@ const formatData = function (data) {
       averagingPeriod: {unit: 'hours', value: 1}
     };
     _.forOwn(s.monitors, function (v, key) {
-      const pollutant = getPollutant(v.Pollutantname);
-      if (v.value > 0 && v.value !== null && pollutant !== null) {
+      if (v.value !== null) {
         var m = _.clone(base);
-        m.parameter = pollutant;
+        m.parameter = v.Pollutantname;
         m.value = Number(v.value);
         m.unit = v.unit;
         m.date = parseDate(v.DateVal);
         m = unifyMeasurementUnits(m);
+        m = unifyParameters(m);
         measurements.push(m);
       }
     });
   });
+  measurements = removeUnwantedParameters(measurements);
   return {name: 'unused', measurements: measurements};
 };
