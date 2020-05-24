@@ -1,0 +1,28 @@
+[
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/KhartoumEmbassy/KhartoumEmbassy-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_KhartoumEmbassy",
+        "city": "Khartoum",
+        "country": "SD",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://dosairnowdata.org/dos/RSS/KhartoumResidential/KhartoumResidential-PM2.5.xml",
+        "adapter": "stateair",
+        "name": "StateAir_KhartoumResidential",
+        "city": "Khartoum",
+        "country": "SD",
+        "description": "",
+        "sourceURL": "http://stateair.net/dos/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]

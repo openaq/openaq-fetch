@@ -137,6 +137,11 @@ var formatData = function (data) {
           return 'Africa/Bamako';
         case 'Abidjan':
           return 'Africa/Abidjan';
+        case 'N\'Djamena':
+          return 'Africa/Ndjamena';
+        case 'Khartoum Embassy':
+        case 'Khartoum Residential':
+          return 'Africa/Khartoum';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -375,6 +380,21 @@ var formatData = function (data) {
           latitude: 5.335049,
           longitude: -3.976023
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'N\'Djamena':
+        return {
+          latitude: 12.1348,
+          longitude: 15.0557
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Khartoum Embassy':
+        return {
+          latitude: 15.526226,
+          longitude: 32.607622
+        }; // Coordinates from Google Maps for Embassy location
+      case 'Khartoum Residential':
+        return {
+          latitude: 15.5007,
+          longitude: 32.5599
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
     }
   };
 
@@ -400,7 +420,6 @@ var formatData = function (data) {
       }],
       coordinates: getCoordinates(location)
     };
-
     // Loop over each item and save the object
     $('item').each(function (i, elem) {
       // Clone base object
