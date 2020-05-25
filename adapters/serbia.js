@@ -81,7 +81,7 @@ const formatData = function (data) {
       case 'Smederevo Centar':
         return 'Smederevo';
       case 'Obrenovac Centar':
-        return 'Obrenovac'
+        return 'Obrenovac';
       case 'Smederevo Carina':
         return 'Smederevo';
       case 'Bor Krivelj-ZIJIN':
@@ -104,7 +104,7 @@ const formatData = function (data) {
       case 'Novi Pazar':
         return 'Novi Pazar';
     }
-  }
+  };
   // the parameters here are given numbers instead of measurement name, there a convertion is needed
   const paramMap = {
     '1': 'so2',
@@ -113,7 +113,7 @@ const formatData = function (data) {
     '7': 'o3',
     '5': 'pm10',
     '6001': 'pm25'
-  }
+  };
   var measurements = [];
   Object.keys(data).forEach(key => {
     // The data itself has no timestamp, but according to http://www.amskv.sepa.gov.rs/index.php, the data is from the last hour
@@ -138,10 +138,10 @@ const formatData = function (data) {
         if (typeof param !== 'undefined') {
           if (typeof data[key].components[p]['1h'] !== 'undefined') {
             var m = Object.assign({
-              value : Number(data[key].components[p]['1h'].raw_value),
-              unit : (param !== 'co') ? 'µg/m³' : 'mg/m³',
-              parameter : param},
-              baseObject);
+              value: Number(data[key].components[p]['1h'].raw_value),
+              unit: (param !== 'co') ? 'µg/m³' : 'mg/m³',
+              parameter: param},
+            baseObject);
             m = unifyMeasurementUnits(m);
             measurements.push(m);
           }
