@@ -47,7 +47,7 @@ exports.fetchData = function (source, cb) {
           } catch (e) {
             return cb({message: 'Failure to load data'});
           }
-       });
+        });
     };
     tasks.push(task);
   });
