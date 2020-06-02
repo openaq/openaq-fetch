@@ -3,8 +3,8 @@
         "url": "http://dosairnowdata.org/dos/RSS/NDjamena/NDjamena-PM2.5.xml",
         "adapter": "stateair",
         "name": "StateAir_NDjamena",
-        "city": "NDjamena",
-        "country": "TD",
+        "city": "N'Djamena",
+        "country": "TD",    
         "description": "",
         "sourceURL": "https://airnow.gov/",
         "contacts": [
