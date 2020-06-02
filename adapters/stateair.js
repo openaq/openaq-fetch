@@ -142,6 +142,10 @@ var formatData = function (data) {
         case 'Khartoum Embassy':
         case 'Khartoum Residential':
           return 'Africa/Khartoum';
+        case 'Conakry':
+          return 'Africa/Conakry';
+        case 'Accra':
+          return 'Africa/Accra';
       }
     };
     var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm:ss', getTZ(location));
@@ -394,6 +398,15 @@ var formatData = function (data) {
         return {
           latitude: 15.5007,
           longitude: 32.5599
+      case 'Conakry':
+        return {
+          latitude: 9.594805,
+          longitude: -13.636629
+        }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
+      case 'Accra':
+        return {
+          latitude: 5.579447,
+          longitude: -0.170699
         }; // Coordinates from https://www.dosairnowdata.org/dos/AllPosts24Hour.json
     }
   };
