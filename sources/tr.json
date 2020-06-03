@@ -1,6 +1,6 @@
 [
     {
-        "url": "http://index.havaizleme.gov.tr/Dynamic/0",
+        "url": "http://index.havaizleme.gov.tr/DynamicTable/GetTable/0",
         "adapter": "turkey",
         "name": "Turkey",
         "city": "",

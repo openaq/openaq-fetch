@@ -1,6 +1,6 @@
 /**
  * This code is responsible for implementing all methods related to fetching
- * and returning data for the Taiwanese data sources.
+ * and returning data for the Turkish data sources.
  */
 'use strict';
 
@@ -58,6 +58,7 @@ exports.fetchData = function (source, cb) {
       }
       return cb(null, data);
     } catch (e) {
+      console.log(e);
       return cb({message: 'Unknown adapter error.'});
     }
   });
@@ -68,13 +69,12 @@ exports.fetchData = function (source, cb) {
  * @param {object} results Fetched source data and other metadata
  * @return {object} Parsed and standarized data our system can use
  */
-const formatData = function (data) {
+const formatData = function (data) {;
   // Turn this into an object containing coordinates, there is a bit of
   // hackery going on here since we're pulling out values from JSON in code
   let coordsHTML = cheerio.load(data.coordinates).html();
   const coordsRe = /var stations = jQuery.parseJSON\('(.*)'\);/g;
   const metadata = JSON.parse(coordsRe.exec(coordsHTML)[1]);
-
   /* -- Get individual measurements -- */
   let $ = cheerio.load(data.sources);
 
@@ -87,22 +87,22 @@ const formatData = function (data) {
       headers[j][key] = $('small', elem).text().trim().toLowerCase();
     });
   });
-
   // Now get each measurement
   let records = [];
   // Each row within table, outside of header
   $('tbody>tr').each((i, row) => {
     let base = {};
-
     // Location, city
     $('td>a', row).each((j, elem) => {
       const arr = $(elem).text().split(' - ');
-      if (arr.length === 2) {
+      if (arr.length >= 2) {
         base.location = arr[1].trim();
+        base.city = arr[0].trim();
+      } else {
+        base.location = arr[0].trim(); 
         base.city = arr[0].trim();
       }
     });
-
     // Time
     $('td>span', row).each((j, elem) => {
       // Multiple matches, save one that has time format
@@ -111,23 +111,22 @@ const formatData = function (data) {
         base.dateString = str;
       }
     });
-
     // Loop over measurements and clone from base
-    $('td>table>tr>td:first-child', row).each((j, elem) => {
+    $('td>table>tbody>tr>td>span', row).each((j, elem) => {
       const idx = j + 2; // Need to add 2 to match headers indexing
       let record = Object.assign({}, base);
-      record.parameter = headers[idx]['name'];
-      record.unit = headers[idx]['unit'];
-      if ($('span', elem).text() !== '') {
-        record.value = Number($('span', elem).text().replace(',', '.')); // Account for alternate numbering scheme
-      }
-
-      if (acceptableParameters.includes(headers[idx]['name']) && record.city && record.location && record.value !== undefined) {
-        records.push(record);
+      if(idx <= 13) {
+        record.parameter = headers[idx]['name'];
+        record.unit = headers[idx]['unit'];
+        if ($(elem).text() !== '') {
+          record.value = Number($(elem).text().replace(',', '.')); // Account for alternate numbering scheme
+        }
+        if (acceptableParameters.includes(headers[idx]['name']) && record.city && record.location && record.value !== undefined) {
+          records.push(record);
+        }
       }
     });
   });
-
   /**
    * Given a json object, convert to aq openaq format
    * @param {json object} item coming from source data
@@ -167,7 +166,6 @@ const formatData = function (data) {
       attribution: [{name: 'National Air Quality Monitoring Network', url: 'http://index.havaizleme.gov.tr/Dynamic/0'}],
       averagingPeriod: {unit: 'hours', value: 1}
     };
-
     if (isNaN(item.value)) {
       console.log(item);
     }
