@@ -69,7 +69,7 @@ exports.fetchData = function (source, cb) {
  * @param {object} results Fetched source data and other metadata
  * @return {object} Parsed and standarized data our system can use
  */
-const formatData = function (data) {;
+const formatData = function (data) {
   // Turn this into an object containing coordinates, there is a bit of
   // hackery going on here since we're pulling out values from JSON in code
   let coordsHTML = cheerio.load(data.coordinates).html();
@@ -99,7 +99,7 @@ const formatData = function (data) {;
         base.location = arr[1].trim();
         base.city = arr[0].trim();
       } else {
-        base.location = arr[0].trim(); 
+        base.location = arr[0].trim();
         base.city = arr[0].trim();
       }
     });
@@ -115,7 +115,7 @@ const formatData = function (data) {;
     $('td>table>tbody>tr>td>span', row).each((j, elem) => {
       const idx = j + 2; // Need to add 2 to match headers indexing
       let record = Object.assign({}, base);
-      if(idx <= 13) {
+      if (idx <= 13) {
         record.parameter = headers[idx]['name'];
         record.unit = headers[idx]['unit'];
         if ($(elem).text() !== '') {
