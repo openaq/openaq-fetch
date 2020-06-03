@@ -2,10 +2,10 @@
     {
         "url": "https://discomap.eea.europa.eu/map/fme/latest/",
         "adapter": "eea-direct",
-        "name": "EEA Czech Republic",
+        "name": "EEA Greece",
         "city": "",
-        "country": "CZ",
-        "description": "Czech data from UTD service",
+        "country": "GR",
+        "description": "Greek data from UTD service",
         "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
         "contacts": [
             "info@openaq.org"
