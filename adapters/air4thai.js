@@ -58,10 +58,10 @@ const formatData = function (data) {
 
   data.stations.forEach(item => {
     const city = String(item.areaEN).split(',');
-    const dateMoment = moment.tz(item.AQILast.date + " " +item.AQILast.time, 'YYYY-MM-DD HH:mm', 'Asia/Bangkok');
+    const dateMoment = moment.tz(item.AQILast.date + ' ' + item.AQILast.time, 'YYYY-MM-DD HH:mm', 'Asia/Bangkok');
     const base = {
       location: item.nameEN.trim(),
-      city: city[city.length-1].trim(),
+      city: city[city.length - 1].trim(),
       date: {
         utc: dateMoment.toDate(),
         local: dateMoment.format()
@@ -72,9 +72,9 @@ const formatData = function (data) {
       },
       attribution: [{name: 'Air4Thai', url: 'http://air4thai.pcd.go.th/webV2/'}],
       averagingPeriod: {unit: 'hours', value: 1}
-    }
+    };
     Object.keys(item.AQILast).forEach(v => {
-      const unaccepted = ['date','AQI','time'];
+      const unaccepted = ['date', 'AQI', 'time'];
       const unit = {
         'PM25': 'µg/m³',
         'PM10': 'µg/m³',
@@ -82,20 +82,20 @@ const formatData = function (data) {
         'CO': 'ppm',
         'NO2': 'ppb',
         'SO2': 'ppb'
-      }
-      if(!unaccepted.includes(v)) {
+      };
+      if (!unaccepted.includes(v)) {
         var m = Object.assign({
           unit: unit[v],
           value: Number(item.AQILast[v].value),
           parameter: v
         }, base);
         m = unifyMeasurementUnits(unifyParameters(m));
-        if(m.value > 0) {
+        if (m.value > 0) {
           measurements.push(m);
         }
       }
     });
   });
-  
+
   return {name: 'unused', measurements: measurements};
 };
