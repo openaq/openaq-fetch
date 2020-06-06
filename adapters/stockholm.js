@@ -8,7 +8,7 @@ import cheerio from 'cheerio';
 import { acceptableParameters } from '../lib/utils';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'sweden';
+exports.name = 'stockholm';
 
 exports.fetchData = function (source, cb) {
   request(source.url, function (err, res, body) {
@@ -49,6 +49,7 @@ var formatData = function (result) {
       case 'Töjnaskolan':
         return {'latitude': 59.42370559, 'longitude': 17.92887634};
       case 'Norr Malma (regional bakgrund)':
+      case 'Regional bakgrund (Norr Malma)':
         return {'latitude': 59.83171574, 'longitude': 18.63317244};
       case 'Torkel Knutssonsgatan (tak)':
         return {'latitude': 59.31600560, 'longitude': 18.05780160};
@@ -87,6 +88,22 @@ var formatData = function (result) {
         return {'latitude': 59.32551867, 'longitude': 18.00396061};
       case 'Uppsala Kungsgatan':
         return {'latitude': 59.85953006, 'longitude': 17.64248414};
+      case 'Urban bakgrund (Uppsala)':
+        return {'latitude': 59.860460, 'longitude': 17.637890};
+      case 'Urban bakgrund (Stockholm)':
+        return {'latitude': 59.315891, 'longitude': 18.057991};
+      case 'Sankt Eriksgatan':
+        return {'latitude': 59.338921, 'longitude': 18.035773};
+      case 'Solna Råsundavägen':
+        return {'latitude': 59.362291, 'longitude': 17.992711};
+      case 'Sollentuna Danderydsvägen':
+        return {'latitude': 59.445750, 'longitude': 17.952473};
+      case 'Botkyrka Hågelbyleden':
+        return {'latitude': 59.236914, 'longitude': 17.838365};
+      case 'Sollentuna Häggvik (E4)':
+        return {'latitude': 59.443580, 'longitude': 17.922494};
+      case 'Skonertvägen (E4/E20)':
+        return {'latitude': 59.313251, 'longitude': 18.003880};
       default:
         return undefined;
     }
@@ -101,25 +118,22 @@ var formatData = function (result) {
 
   $('.entry-content script').each(function () {
     var rendered = $(this).html();
-    if (rendered.startsWith('\r\n\t')) {
-      // extract data table
-      var data = rendered.substring(rendered.indexOf('arrayToDataTable('));
-      data = data.substring(18, data.indexOf(']);'));
-      data = data.replace('[', '').trim();
-      data = data.split("'").join('').trim(); // remove all [
+    // extract data table
+    var data = rendered.substring(rendered.indexOf('arrayToDataTable('));
+    data = data.substring(18, data.indexOf(']);'));
+    data = data.replace('[', '').trim();
+    data = data.split("'").join('').trim(); // remove all [
+    var param = rendered.substring(rendered.indexOf('visualization.LineChart'));
+    param = param.substring(param.indexOf('.getElementById(\'') + 17);
+    param = param.substring(0, param.indexOf('_'));
 
-      var param = rendered.substring(rendered.indexOf('visualization.LineChart'));
-      param = param.substring(param.indexOf('.getElementById(\'') + 17);
-      param = param.substring(0, param.indexOf('_'));
+    if (acceptableParameters.indexOf(param) === -1) {
+      return;
+    }
 
-      if (acceptableParameters.indexOf(param) === -1) {
-        return;
-      }
-
-      if (data.length > 20) {
-        nodes.push(data);
-        parameters.push(param);
-      }
+    if (data.length > 20) {
+      nodes.push(data);
+      parameters.push(param);
     }
   });
 
@@ -148,10 +162,10 @@ var formatData = function (result) {
       // efficient.
       legend.forEach((e, i) => {
         // Filter out time or background columns
-        if (e === 'Tid' || e.includes('bakgrund')) {
+        if (e === 'Tid') {
           return;
         }
-
+        e = e.trim();
         var city = 'Stockholm';
         if (e.includes('Uppsala')) city = 'Uppsala';
         if (e.includes('Gävle')) city = 'Gävle';
@@ -163,7 +177,6 @@ var formatData = function (result) {
           averagingPeriod: {'value': 1, 'unit': 'hours'},
           coordinates: getCoordinates(e)
         };
-
         var value = row[i];
 
         if (value !== '' && value !== ' ' && value !== '\n') {

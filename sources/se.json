@@ -1,8 +1,8 @@
 [
     {
         "url": "http://slb.nu/slbanalys/luften-idag/",
-        "adapter": "sweden",
-        "name": "Sweden",
+        "adapter": "stockholm",
+        "name": "Stockholm",
         "city": "Stockkholm",
         "country": "SE",
         "description": "Swedish data from SLB analys",
