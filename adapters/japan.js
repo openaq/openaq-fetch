@@ -60,11 +60,11 @@ const loadAllFiles = (source) => {
         return csv;
       });
     });
-    }).then(async function (files) {
-      files = await Promise.all(files);
-      files = [].concat.apply([], files);
-      return files;
-    });
+  }).then(async function (files) {
+    files = await Promise.all(files);
+    files = [].concat.apply([], files);
+    return files;
+  });
 };
 
 const loadAllCSV = (files) => {
@@ -96,20 +96,20 @@ const loadAllCSV = (files) => {
             location: matchedStation.location,
             city: matchedStation.prefecture,
             coordinates: {
-                latitude: Number(matchedStation.latitude),
-                longitude: Number(matchedStation.longitude)
+              latitude: Number(matchedStation.latitude),
+              longitude: Number(matchedStation.longitude)
             },
             date: {
-                utc: dateMoment.toDate(),
-                local: dateMoment.format()
+              utc: dateMoment.toDate(),
+              local: dateMoment.format()
             },
             attribution: [{
-                name: 'Soromame.taiki',
-                url: 'http://soramame.taiki.go.jp/'
+              name: 'Soromame.taiki',
+              url: 'http://soramame.taiki.go.jp/'
             }],
             averagingPeriod: {
-                unit: 'hours',
-                value: 1
+              unit: 'hours',
+              value: 1
             }
           };
           for (let i = 3; i < record.length; i++) {
@@ -124,8 +124,8 @@ const loadAllCSV = (files) => {
               timeMeasurements.push(m);
             }
           }
-            timeMeasurements = removeUnwantedParameters(timeMeasurements);
-            return timeMeasurements;
+          timeMeasurements = removeUnwantedParameters(timeMeasurements);
+          return timeMeasurements;
         });
     })
   ).mux();
@@ -11377,4 +11377,4 @@ const stations = {
     'latitude': 36.33167,
     'longitude': 139.58194
   }
-}
+};
