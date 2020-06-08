@@ -63,7 +63,6 @@ const loadAllFiles = (source) => {
   }).then(async function (files) {
     files = await Promise.all(files);
     files = [].concat.apply([], files);
-    files = files.slice(700,730);
     return files;
   });
 };
