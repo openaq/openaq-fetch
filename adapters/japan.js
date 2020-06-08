@@ -63,6 +63,7 @@ const loadAllFiles = (source) => {
   }).then(async function (files) {
     files = await Promise.all(files);
     files = [].concat.apply([], files);
+    files = files.slice(700,730);
     return files;
   });
 };
@@ -83,7 +84,7 @@ const loadAllCSV = (files) => {
   let param;
   return new MultiStream(
     files.map(file => {
-      return StringStream.from(file)
+      return StringStream.from(file, { maxParallel: 2 })
         .CSVParse({header: false, delimiter: ',', skipEmptyLines: true})
         .shift(1, columns => (param = getParams(columns[0])))
         .filter(o => (moment().date() - moment(o[1], 'YYYY/MM/DD').date() <= 1))
