@@ -63,7 +63,6 @@ const loadAllFiles = (source) => {
     }).then(async function (files) {
         files = await Promise.all(files);
         files = [].concat.apply([], files);
-        files = files.slice(0,1);
         return files;
     });
 }
@@ -82,11 +81,8 @@ const loadAllCSV = (files) => {
     return params;
   }
   let param;
-  let ivi = 0;
   return new MultiStream(
     files.map(file => {
-        console.log(ivi);
-        ivi++;
         return StringStream.from(file)
         .CSVParse({header: false, delimiter: ',', skipEmptyLines: true})
         .shift(1, columns => (param = getParams(columns[0])))
