@@ -8,7 +8,7 @@ import log from '../lib/logger';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'japan';
-/*
+
 function fetchStream (source) {
   const out = new DataStream();
   out.name = 'unused';
@@ -16,12 +16,12 @@ function fetchStream (source) {
   log.debug('Fetch stream called');
 
   loadAllFiles(source)
-    .then((stations) => fetchPollutants(source, stations))
+    .then((stations) => loadAllCSV(stations))
     .then(stream => stream.pipe(out))
   ;
   return out;
 }
-*/
+
 export async function fetchData (source, cb) {
     const sourceURL = source.url+'/'+moment().format('YYYYMM')+'/'+moment().format('YYYYMM')+'_00.zip'
     request({
@@ -35,14 +35,13 @@ export async function fetchData (source, cb) {
         // Wrap everything in a try/catch in case something goes wrong
         try {
           // Format the data
-        const data = await loadAllFiles(body);
-        console.log(data.length);
-        const results = loadAllCSV(data);
+        const stream = await fetchStream(body);
+        const measurements = await stream.toArray();    
           // Make sure the data is valid
-          if (data === undefined) {
+          if (measurements === undefined) {
             return cb({message: 'Failure to parse data.'});
           }
-          cb(null, data);
+          cb(null, {name: stream.name, measurements});
         } catch (e) {
             console.log(e);
           return cb({message: 'Unknown adapter error.'});
@@ -84,52 +83,56 @@ const loadAllCSV = (files) => {
   }
   let param;
   let ivi = 0;
-  files.map(file => {
-  return StringStream.from(file)
-    .CSVParse({header: false, delimiter: ',', skipEmptyLines: true})
-    .shift(1, columns => (param = getParams(columns[0])))
-    .filter(o => (moment().date() - moment(o[1],'YYYY/MM/DD').date() <= 1))
-    .filter(o => o[0] in stations)
-    .flatMap(record => {
-      const matchedStation = stations[record[0]];
-      const dateMoment = moment.tz(record[1] + record[2], 'YYYY-MM-DD HH:mm', 'Asia/Tokyo');
-      var timeMeasurements = [];
-      const baseObject = {
-          location: matchedStation.location,
-          city: matchedStation.prefecture,
-          coordinates: {
-            latitude: Number(matchedStation.latitude),
-            longitude: Number(matchedStation.longitude)
-          },
-          date: {
-            utc: dateMoment.toDate(),
-            local: dateMoment.format()
-          },
-          attribution: [{
-            name: 'Soromame.taiki',
-            url: 'http://soramame.taiki.go.jp/'
-          }],
-          averagingPeriod: {
-            unit: 'hours',
-            value: 1
-          }
-      };
-      for(let i = 3; i < record.length; i++) {
-        if(!(isNaN(record[i]) || Number(record[i]) == 0)) {
-            var m = Object.assign({
-                value: Number(record[i]),
-                parameter: param[i].parameter,
-                unit: param[i].unit
-            }, baseObject);
-            m = unifyMeasurementUnits(m);
-            m = unifyParameters(m);
-            timeMeasurements.push(m);
+  return new MultiStream(
+    files.map(file => {
+        console.log(ivi);
+        ivi++;
+        return StringStream.from(file)
+        .CSVParse({header: false, delimiter: ',', skipEmptyLines: true})
+        .shift(1, columns => (param = getParams(columns[0])))
+        .filter(o => (moment().date() - moment(o[1],'YYYY/MM/DD').date() <= 1))
+        .filter(o => o[0] in stations)
+        .flatMap(record => {
+        const matchedStation = stations[record[0]];
+        const dateMoment = moment.tz(record[1] + record[2], 'YYYY-MM-DD HH:mm', 'Asia/Tokyo');
+        var timeMeasurements = [];
+        const baseObject = {
+            location: matchedStation.location,
+            city: matchedStation.prefecture,
+            coordinates: {
+                latitude: Number(matchedStation.latitude),
+                longitude: Number(matchedStation.longitude)
+            },
+            date: {
+                utc: dateMoment.toDate(),
+                local: dateMoment.format()
+            },
+            attribution: [{
+                name: 'Soromame.taiki',
+                url: 'http://soramame.taiki.go.jp/'
+            }],
+            averagingPeriod: {
+                unit: 'hours',
+                value: 1
+            }
+        };
+        for(let i = 3; i < record.length; i++) {
+            if(!(isNaN(record[i]) || Number(record[i]) == 0)) {
+                var m = Object.assign({
+                    value: Number(record[i]),
+                    parameter: param[i].parameter,
+                    unit: param[i].unit
+                }, baseObject);
+                m = unifyMeasurementUnits(m);
+                m = unifyParameters(m);
+                timeMeasurements.push(m);
+            }
         }
-      }
-      timeMeasurements = removeUnwantedParameters(timeMeasurements);
-      return timeMeasurements;
-    });
-  })
+        timeMeasurements = removeUnwantedParameters(timeMeasurements);
+        return timeMeasurements;
+        });
+    })
+  ).mux();
 }
 
 const stations = {
