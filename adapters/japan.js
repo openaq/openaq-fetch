@@ -1,6 +1,6 @@
 import {unifyParameters, unifyMeasurementUnits, removeUnwantedParameters} from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
-import { default as baseRequest, head } from 'request';
+import { default as baseRequest} from 'request';
 import { default as moment } from 'moment-timezone';
 import { MultiStream, DataStream, StringStream } from 'scramjet';
 import log from '../lib/logger';
@@ -23,126 +23,126 @@ function fetchStream (source) {
 }
 
 export async function fetchData (source, cb) {
-    const sourceURL = source.url+'/'+moment().format('YYYYMM')+'/'+moment().format('YYYYMM')+'_00.zip'
-    request({
-        method : 'GET',
-        url : sourceURL,
-        encoding: null
-      }, async function (err, res, body) {
-        if (err || res.statusCode !== 200) {
-          return cb({message: 'Failure to load data url.'});
+const sourceURL = source.url + '/' + moment().format('YYYYMM') + '/'+moment().format('YYYYMM') + '_00.zip';
+request({
+    method: 'GET',
+    url: sourceURL,
+    encoding: null
+}, async function (err, res, body) {
+    if (err || res.statusCode !== 200) {
+        return cb({message: 'Failure to load data url.'});
+    }
+    // Wrap everything in a try/catch in case something goes wrong
+    try {
+        // Format the data
+    const stream = await fetchStream(body);
+    const measurements = await stream.toArray();
+        // Make sure the data is valid
+        if (measurements === undefined) {
+        return cb({message: 'Failure to parse data.'});
         }
-        // Wrap everything in a try/catch in case something goes wrong
-        try {
-          // Format the data
-        const stream = await fetchStream(body);
-        const measurements = await stream.toArray();    
-          // Make sure the data is valid
-          if (measurements === undefined) {
-            return cb({message: 'Failure to parse data.'});
-          }
-          cb(null, {name: stream.name, measurements});
-        } catch (e) {
-            console.log(e);
-          return cb({message: 'Unknown adapter error.'});
-        }
-      });
-}
-const loadAllFiles = (source) => {
-    const JSZip = require('jszip');
-    return JSZip.loadAsync(source).then(function (zip) {
-        return Object.keys(zip.files).map(z => {
-            return JSZip.loadAsync(zip.file(z).async('arraybuffer')).then(async function (f) {
-                const csv = [];
-                for(let key in Object.keys(f.files)) {
-                    csv.push(await f.file(Object.keys(f.files)[key]).async('string'))
-                }
-                return csv;
-            });
-        });
-    }).then(async function (files) {
-        files = await Promise.all(files);
-        files = [].concat.apply([], files);
-        return files;
+        cb(null, {name: stream.name, measurements});
+    } catch (e) {
+        console.log(e);
+        return cb({message: 'Unknown adapter error.'});
+    }
     });
 }
+const loadAllFiles = (source) => {
+const JSZip = require('jszip');
+return JSZip.loadAsync(source).then(function (zip) {
+    return Object.keys(zip.files).map(z => {
+        return JSZip.loadAsync(zip.file(z).async('arraybuffer')).then(async function (f) {
+            const csv = [];
+            for (let key in Object.keys(f.files)) {
+                csv.push(await f.file(Object.keys(f.files)[key]).async('string'));
+            }
+            return csv;
+        });
+    });
+}).then(async function (files) {
+    files = await Promise.all(files);
+    files = [].concat.apply([], files);
+    return files;
+});
+};
 
 const loadAllCSV = (files) => {
   const getParams = (header) => {
     const params = [null, null, null];
-    for(let i = 3; i < header.length; i++) {
+    for (let i = 3; i < header.length; i++) {
       const p = String(header[i]).split('(');
-      p[1] = p[1].replace(')','')
+      p[1] = p[1].replace(')', '')
       params.push({
         parameter: p[0],
         unit: p[1]
-      })
+      });
     }
     return params;
-  }
+  };
   let param;
   return new MultiStream(
     files.map(file => {
-        return StringStream.from(file)
+    return StringStream.from(file)
         .CSVParse({header: false, delimiter: ',', skipEmptyLines: true})
         .shift(1, columns => (param = getParams(columns[0])))
-        .filter(o => (moment().date() - moment(o[1],'YYYY/MM/DD').date() <= 1))
+        .filter(o => (moment().date() - moment(o[1], 'YYYY/MM/DD').date() <= 1))
         .filter(o => o[0] in stations)
         .flatMap(record => {
-        const matchedStation = stations[record[0]];
-        const dateMoment = moment.tz(record[1] + record[2], 'YYYY-MM-DD HH:mm', 'Asia/Tokyo');
-        var timeMeasurements = [];
-        const baseObject = {
-            location: matchedStation.location,
-            city: matchedStation.prefecture,
-            coordinates: {
-                latitude: Number(matchedStation.latitude),
-                longitude: Number(matchedStation.longitude)
-            },
-            date: {
-                utc: dateMoment.toDate(),
-                local: dateMoment.format()
-            },
-            attribution: [{
-                name: 'Soromame.taiki',
-                url: 'http://soramame.taiki.go.jp/'
-            }],
-            averagingPeriod: {
-                unit: 'hours',
-                value: 1
-            }
-        };
-        for(let i = 3; i < record.length; i++) {
-            if(!(isNaN(record[i]) || Number(record[i]) == 0)) {
-                var m = Object.assign({
-                    value: Number(record[i]),
-                    parameter: param[i].parameter,
-                    unit: param[i].unit
-                }, baseObject);
-                m = unifyMeasurementUnits(m);
-                m = unifyParameters(m);
-                timeMeasurements.push(m);
+            const matchedStation = stations[record[0]];
+            const dateMoment = moment.tz(record[1] + record[2], 'YYYY-MM-DD HH:mm', 'Asia/Tokyo');
+            var timeMeasurements = [];
+            const baseObject = {
+                location: matchedStation.location,
+                city: matchedStation.prefecture,
+                coordinates: {
+                    latitude: Number(matchedStation.latitude),
+                    longitude: Number(matchedStation.longitude)
+                },
+                date: {
+                    utc: dateMoment.toDate(),
+                    local: dateMoment.format()
+                },
+                attribution: [{
+                    name: 'Soromame.taiki',
+                    url: 'http://soramame.taiki.go.jp/'
+                }],
+                averagingPeriod: {
+                    unit: 'hours',
+                    value: 1
+                }
+            };
+        for (let i = 3; i < record.length; i++) {
+            if (!(isNaN(record[i]) || Number(record[i]) === 0)) {
+            var m = Object.assign({
+                value: Number(record[i]),
+                parameter: param[i].parameter,
+                unit: param[i].unit
+            }, baseObject);
+            m = unifyMeasurementUnits(m);
+            m = unifyParameters(m);
+            timeMeasurements.push(m);
             }
         }
-        timeMeasurements = removeUnwantedParameters(timeMeasurements);
-        return timeMeasurements;
+            timeMeasurements = removeUnwantedParameters(timeMeasurements);
+            return timeMeasurements;
         });
     })
   ).mux();
-}
+};
 
 const stations = {
   '10201090': {
-      'prefecture': 'Gunma',
-      'location': 'eiseikankyoukenkyujyo',
-      'latitude': 36.405,
-      'longitude': 139.09583
+    'prefecture': 'Gunma',
+    'location': 'eiseikankyoukenkyujyo',
+    'latitude': 36.405,
+    'longitude': 139.09583
   },
   '10201510': {
-      'prefecture': 'Gunma',
-      'location': 'Kokusetsumaebashijidousyakoutsukannkyousokutijyo',
-      'latitude': 36.38194,
-      'longitude': 139.04194
+    'prefecture': 'Gunma',
+    'location': 'Kokusetsumaebashijidousyakoutsukannkyousokutijyo',
+    'latitude': 36.38194,
+    'longitude': 139.04194
   },
   '10202010': {
       'prefecture': 'Gunma',
