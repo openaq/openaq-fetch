@@ -1,0 +1,14 @@
+[
+    {
+        "url": "http://soramame.taiki.go.jp/DownLoad",
+        "adapter": "japan",
+        "name": "Japan",
+        "country": "JP",
+        "description": "Air quality data from Ministry of Enviroment Japan",
+        "sourceURL": "http://soramame.taiki.go.jp/Index.php",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": false
+    }
+]

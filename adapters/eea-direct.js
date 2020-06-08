@@ -13,7 +13,7 @@ require('ssl-root-cas/latest')
   .inject()
   .addFile(join(__dirname, '..', '/certs/discomap-eea-europa-eu-chain.pem'));
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
-const stationsLink = 'http://battuta.s3.amazonaws.com/eea-stations-all.json';
+const stationsLink = 'http://battuta.s3.amazonaws.com/  eea-stations-all.json';
 
 export const name = 'eea-direct';
 
@@ -77,7 +77,7 @@ function fetchPollutants (source, stations) {
       const url = source.url + source.country + '_' + pollutant + '.csv';
       const timeLastInsert = moment().utc().subtract(2, 'hours');
       let header;
-
+      
       return new StringStream()
         .use(stream => {
           const resp = request.get({url})
