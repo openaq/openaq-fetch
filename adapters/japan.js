@@ -87,6 +87,7 @@ const loadAllCSV = (files) => {
   files.map(file => {
   return StringStream.from(file)
     .CSVParse({header: false, delimiter: ',', skipEmptyLines: true})
+    .shift(1, columns => (param = getParams(columns[0])))
     .filter(o => (moment().date() - moment(o[1],'YYYY/MM/DD').date() <= 1))
     .filter(o => o[0] in stations)
     .flatMap(record => {
@@ -126,7 +127,6 @@ const loadAllCSV = (files) => {
         }
       }
       timeMeasurements = removeUnwantedParameters(timeMeasurements);
-      console.log(timeMeasurements);
       return timeMeasurements;
     });
   })
