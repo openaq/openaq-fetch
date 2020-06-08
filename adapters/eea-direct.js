@@ -77,7 +77,7 @@ function fetchPollutants (source, stations) {
       const url = source.url + source.country + '_' + pollutant + '.csv';
       const timeLastInsert = moment().utc().subtract(2, 'hours');
       let header;
-      
+
       return new StringStream()
         .use(stream => {
           const resp = request.get({url})
