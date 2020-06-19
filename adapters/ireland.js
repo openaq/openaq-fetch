@@ -8,7 +8,7 @@
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
-import {unifyParameters,unifyMeasurementUnits} from '../lib/utils';
+import {unifyParameters, unifyMeasurementUnits} from '../lib/utils';
 import { default as baseRequest } from 'request';
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
@@ -27,14 +27,14 @@ exports.name = 'ireland';
  */
 exports.fetchData = async function (source, cb) {
   // First fetches the metadata
-  var stationSource = 'https://erc.epa.ie/air_upgrade/dcc/geojson.php'
+  var stationSource = 'https://erc.epa.ie/air_upgrade/dcc/geojson.php';
   var stations = await new Promise((resolve, reject) => {
     request(stationSource, (error, response, body) => {
-        if (error) reject(error);
-          if (response.statusCode != 200) {
-            return cb(err || res);
-          }
-        resolve(body);
+      if (error) reject(error);
+        if (response.statusCode !== 200) {
+          return cb(error || response);
+        }
+      resolve(body);
     });
   });
   stations = fetchMetadata(stations);
@@ -42,7 +42,7 @@ exports.fetchData = async function (source, cb) {
   var tasks = [];
   _.forEach(stations, function (s) {
     var task = function (cb) {
-      request(source.url+'station='+s.location, function (err, res, body) {
+      request(source.url + 'station=' + s.location, function (err, res, body) {
         if (err || res.statusCode !== 200) {
           return cb(err || res);
         }
@@ -65,7 +65,6 @@ exports.fetchData = async function (source, cb) {
       }
       cb(null, data);
     } catch (e) {
-      console.log(e)
       return cb({message: 'Unknown adapter error.'});
     }
   });
@@ -81,7 +80,6 @@ var fetchMetadata = function (results) {
     results = JSON.parse(results);
   } catch (e) {
     // Return undefined to be caught elsewhere
-    console.log(e)
     return undefined;
   }
   /**
@@ -90,18 +88,18 @@ var fetchMetadata = function (results) {
    * @return {string} Parsed address to a city
    */
   var fetchCity = (cityString) => {
-    var address  = String(cityString).split(', ');
+    var address = String(cityString).split(', ');
     cityString = address[address.length - 1]
-    if (cityString.search('Cork') != -1){ 
-      return 'Cork' 
-    } else if (cityString.substring(0,2) == 'Co') {
-      return cityString.replace('Co','').replace('.','').trim()
-    } else if (cityString.search('Dublin') != -1) {
-      return 'Dublin'
-    } else if(/\d/.test(address)) {
-      return address[address.length - 2]
+    if (cityString.search('Cork') !== -1) { 
+      return 'Cork';
+    } else if (cityString.substring(0,2) === 'Co') {
+      return cityString.replace('Co', '').replace('.', '').trim();
+    } else if (cityString.search('Dublin') !== -1) {
+      return 'Dublin';
+    } else if (/\d/.test(address)) {
+      return address[address.length - 2];
     }
-    return cityString.trim()
+    return cityString.trim();
   }
 
   return results.features.map(s => { return {
@@ -129,22 +127,22 @@ var formatData = function (results) {
     var headers = [...header];
     var dataObj = {};
     for (let i = 0; i < headers.length; i++) {
-      if (headers[i].search('Value') != -1) {
-        dataObj['unit'] = headers[i].substring(headers[i].indexOf('(') + 1,headers[i].indexOf(')'));
+      if (headers[i].search('Value') !== -1) {
+        dataObj['unit'] = headers[i].substring(headers[i].indexOf('(') + 1, headers[i].indexOf(')'));
         headers[i] = 'value';
       }
       dataObj[headers[i]] = entries[i];
     }
     var average = 1;
-    if (dataObj['value'].search(/\*/) == dataObj['value'].length - 1) average = 8;
-    if (dataObj['value'].search(/\*/) == dataObj['value'].length - 2) average = 24;
+    if (dataObj['value'].search(/\*/) === dataObj['value'].length - 1) average = 8;
+    if (dataObj['value'].search(/\*/) === dataObj['value'].length - 2) average = 24;
     dataObj['average'] = average;
-    dataObj['value'] = Number(dataObj['value'].replace(/\*/g,''));
+    dataObj['value'] = Number(dataObj['value'].replace(/\*/g, ''));
     dataObj['Date'] = moment(dataObj['Date'], 'Do MMM hh:mm').tz('Europe/Dublin');
     return dataObj;
-  }
+  };
   // Runs through the table to find headers and then values to fetch
-  var measurements = []
+  var measurements = [];
   results.forEach(s => {
     const $ = cheerio.load(s[0]);
     var stationTemplate = {
@@ -154,35 +152,35 @@ var formatData = function (results) {
         latitude: s[1].coordinates[0],
         longitude: s[1].coordinates[0]
       },
-      attribution: [{name: 'epa.ie', url: 'https://www.epa.ie/'}],
-    }
+      attribution: [{name: 'epa.ie', url: 'https://www.epa.ie/'}]
+    };
     $('thead').each((i, e) => {
-      var headers = []
+      var headers = [];
       $('thead').each((i, e) => {
-          $('th', $(e)).each((i, e) => {
-            headers.push($(e).text())
-          });
+        $('th', $(e)).each((i, e) => {
+          headers.push($(e).text());
+        });
       });
       $('tbody').each((i, e) => {
         $('tr', $(e)).each((i, e) => {
-          var entries = []
+          var entries = [];
           $('td', $(e)).each((i, e) => {
             entries.push($(e).text().trim())
           });
-          const rowData = parseRow(headers,entries)
-            var m = Object.assign({
-              value: rowData['value'],
-              unit: rowData['unit'],
-              parameter: rowData['Pollutant'],
-              date: {
-                utc: rowData['Date'].toDate(),
-                local: rowData['Date'].format()
-              },
-              averagingPeriod: {unit: 'hours', value: rowData['average']}
-            }, stationTemplate)
-            m = unifyMeasurementUnits(m);
-            m = unifyParameters(m);
-            measurements.push(m);
+          const rowData = parseRow(headers,entries);
+          var m = Object.assign({
+            value: rowData['value'],
+            unit: rowData['unit'],
+            parameter: rowData['Pollutant'],
+            date: {
+              utc: rowData['Date'].toDate(),
+              local: rowData['Date'].format()
+            },
+            averagingPeriod: {unit: 'hours', value: rowData['average']}
+          }, stationTemplate);
+          m = unifyMeasurementUnits(m);
+          m = unifyParameters(m);
+          measurements.push(m);
         });
       });
     });
