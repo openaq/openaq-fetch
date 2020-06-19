@@ -31,9 +31,9 @@ exports.fetchData = async function (source, cb) {
   var stations = await new Promise((resolve, reject) => {
     request(stationSource, (error, response, body) => {
       if (error) reject(error);
-        if (response.statusCode !== 200) {
-          return cb(error || response);
-        }
+      if (response.statusCode !== 200) {
+        return cb(error || response);
+      }
       resolve(body);
     });
   });
@@ -89,10 +89,10 @@ var fetchMetadata = function (results) {
    */
   var fetchCity = (cityString) => {
     var address = String(cityString).split(', ');
-    cityString = address[address.length - 1]
-    if (cityString.search('Cork') !== -1) { 
+    cityString = address[address.length - 1];
+    if (cityString.search('Cork') !== -1) {
       return 'Cork';
-    } else if (cityString.substring(0,2) === 'Co') {
+    } else if (cityString.substring(0, 2) === 'Co') {
       return cityString.replace('Co', '').replace('.', '').trim();
     } else if (cityString.search('Dublin') !== -1) {
       return 'Dublin';
@@ -100,16 +100,16 @@ var fetchMetadata = function (results) {
       return address[address.length - 2];
     }
     return cityString.trim();
-  }
+  };
 
-  return results.features.map(s => { return {
-    location: s.properties.AQStation,
-    coordinates: s.geometry.coordinates,
-    city: fetchCity(s.properties['On Ground Location'])
-  }
-  })
+  return results.features.map(s => { 
+    return {
+      location: s.properties.AQStation,
+      coordinates: s.geometry.coordinates,
+      city: fetchCity(s.properties['On Ground Location'])
+    };
+  });
 }
-
 
 /**
  * Given fetched data, turn it into a format our system can use.
@@ -165,9 +165,9 @@ var formatData = function (results) {
         $('tr', $(e)).each((i, e) => {
           var entries = [];
           $('td', $(e)).each((i, e) => {
-            entries.push($(e).text().trim())
+            entries.push($(e).text().trim());
           });
-          const rowData = parseRow(headers,entries);
+          const rowData = parseRow(headers, entries);
           var m = Object.assign({
             value: rowData['value'],
             unit: rowData['unit'],
