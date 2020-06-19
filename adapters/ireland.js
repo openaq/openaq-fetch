@@ -154,14 +154,14 @@ var formatData = function (results) {
       },
       attribution: [{name: 'epa.ie', url: 'https://www.epa.ie/'}]
     };
-    $('thead').each((i, e) => {
+    $('table').each((i, e) => {
       var headers = [];
-      $('thead').each((i, e) => {
+      $('thead', $(e)).each((i, e) => {
         $('th', $(e)).each((i, e) => {
           headers.push($(e).text());
         });
       });
-      $('tbody').each((i, e) => {
+      $('tbody', $(e)).each((i, e) => {
         $('tr', $(e)).each((i, e) => {
           var entries = [];
           $('td', $(e)).each((i, e) => {
