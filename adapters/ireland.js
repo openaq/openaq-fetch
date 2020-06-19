@@ -102,14 +102,14 @@ var fetchMetadata = function (results) {
     return cityString.trim();
   };
 
-  return results.features.map(s => { 
+  return results.features.map(s => {
     return {
       location: s.properties.AQStation,
       coordinates: s.geometry.coordinates,
       city: fetchCity(s.properties['On Ground Location'])
     };
   });
-}
+};
 
 /**
  * Given fetched data, turn it into a format our system can use.
