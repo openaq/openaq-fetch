@@ -6,7 +6,7 @@
  * data.
  */
 'use strict';
-import {removeUnwantedParameters, unifyParameters} from '../lib/utils'
+import {removeUnwantedParameters, unifyParameters} from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import _ from 'lodash';
@@ -26,25 +26,25 @@ exports.name = 'netherlands2';
 exports.fetchData = async function (source, cb) {
   // First fetches the number of pages of stations
   var totalStations = await new Promise((resolve, reject) => {
-    request(source.url+'/stations/', (error, response, body) => {
-        if (error) reject(error);
-        if (response.statusCode != 200) {
-          return cb({message: 'Failure to load data urls.'});
-        }
-        resolve(body);
+    request(source.url + '/stations/', (error, response, body) => {
+      if (error) reject(error);
+      if (response.statusCode !== 200) {
+        return cb({message: 'Failure to load data urls.'});
+      }
+      resolve(body);
     });
   });
   totalStations = JSON.parse(totalStations).pagination.last_page;
   // Then fetches all the stationsnumbers
   var stations = [];
-  for(let i = 0; i < totalStations; i++) {
+  for (let i = 0; i < totalStations; i++) {
     var pageStations = await new Promise((resolve, reject) => {
-      request(source.url+'/stations/?page='+(i+1), (error, response, body) => {
-          if (error) reject(error);
-          if (response.statusCode != 200) {
-            return cb({message: 'Failure to load data url'});
-          }
-          resolve(body);
+      request(source.url + '/stations/?page=' + (i + 1), (error, response, body) => {
+        if (error) reject(error);
+        if (response.statusCode !== 200) {
+          return cb({message: 'Failure to load data url'});
+        }
+        resolve(body);
       });
     });
     var pageStations = JSON.parse(pageStations)
@@ -76,7 +76,7 @@ exports.fetchData = async function (source, cb) {
   });
   // Then runs all thes tasks in parallel, gathers the data and sends it
   async.parallel(tasks, function (err, results) {
-    if (err) { 
+    if (err) {
       return cb({message: 'Failure to load data urls.'});
     }
     // Wrap everything in a try/catch in case something goes wrong
@@ -100,8 +100,8 @@ exports.fetchData = async function (source, cb) {
  */
 var formatData = function (results) {
   /**
-   * Parses the metadata and the measurements and combines them into an easiliery read and parsed object  
-   * @param {Object} metadata of a station 
+   * Parses the metadata and the measurements and combines them into an easiliery read and parsed object
+   * @param {Object} metadata of a station
    * @param {Object} data measurements of a station
    * @returns {Object} combined metadata and data for a statios
    */
@@ -119,11 +119,11 @@ var formatData = function (results) {
     } catch (e) {
       return null;
     }
-  }
+  };
   // Loops through each pair of metadata and stations measurement and creates an object and adds them to the datalist
-  const data = []
-  for(let i = 0; i < results.length; i+=2) {
-    const combinedData = parsedStationData(results[i],results[i+1]);
+  const data = [];
+  for (let i = 0; i < results.length; i += 2) {
+    const combinedData = parsedStationData(results[i], results[i + 1]);
     if (combinedData != null) {
       data.push(combinedData);
     }
@@ -142,7 +142,7 @@ var formatData = function (results) {
       unit: 'µg/m³', // sites says that all of the measurements are in this unit
       attribution: [{name: 'Luchtmeetnet', url: 'https://www.luchtmeetnet.nl/'}],
       averagingPeriod: {unit: 'hours', value: 1}
-    }
+    };
     // Loops through all of the measurements from a station
     item.data.forEach(data => {
       // Adds 1 hour because timestamp is the start of an hourly average measurement
@@ -154,15 +154,15 @@ var formatData = function (results) {
         date: {
           utc: dateMoment.toDate(),
           local: dateMoment.format()
-        },
-      }, template)
+        }
+      }, template);
       // Parses the parameters the correct format
       m = unifyParameters(m);
       measurements.push(m);
     });
   });
   // Removes unwanted parameters such as NO
-  measurements = removeUnwantedParameters(measurements)
+  measurements = removeUnwantedParameters(measurements);
   return {
     name: 'unused',
     measurements: measurements
