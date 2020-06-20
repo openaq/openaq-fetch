@@ -47,16 +47,16 @@ exports.fetchData = async function (source, cb) {
         resolve(body);
       });
     });
-    var pageStations = JSON.parse(pageStations)
+    pageStations = JSON.parse(pageStations);
     pageStations.data.forEach(station => {
-      stations.push(station.number)
+      stations.push(station.number);
     });
   }
   // Then creates tasks of fetching metadata and the data for each station
   const tasks = [];
   _.forEach(stations, function (e) {
     var task = function (cb) {
-      request(source.url+'/stations/'+e, function (err, res, body) {
+      request(source.url + '/stations/' + e, function (err, res, body) {
         if (err || res.statusCode !== 200) {
           return cb(err || res);
         }
@@ -65,7 +65,7 @@ exports.fetchData = async function (source, cb) {
     };
     tasks.push(task);
     task = function (cb) {
-      request(source.url+'/stations/'+e+'/measurements', function (err, res, body) {
+      request(source.url + '/stations/' + e + '/measurements', function (err, res, body) {
         if (err || res.statusCode !== 200) {
           return cb(err || res);
         }
