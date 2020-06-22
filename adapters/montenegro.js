@@ -34,9 +34,9 @@ exports.fetchData = async function (source, cb) {
       // Tests if method works
       await new Promise((resolve, reject) => {
         request(source.url + i, (error, response, body) => {
-          if (error) reject(error);
+          if (error) reject(new Error(error));
           if (response.statusCode !== 200) {
-            reject('Invalid status code <' + response.statusCode + '>');
+            reject(new Error('Invalid status code <' + response.statusCode + '>'));
           }
           resolve(body);
         });
