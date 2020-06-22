@@ -10,7 +10,6 @@
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { removeUnwantedParameters, unifyMeasurementUnits, unifyParameters } from '../lib/utils';
 import { default as baseRequest } from 'request';
-import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import async from 'async';
 import cheerio from 'cheerio';
@@ -32,19 +31,20 @@ exports.fetchData = async function (source, cb) {
   // First finds pages that has data, some of these pages may give a nullresponse, so I have to add all the other sites instead
   for (let i = 1; i < 20; i++) {
     try {
-      const page = await new Promise((resolve, reject) => {
+      // Tests if method works
+      await new Promise((resolve, reject) => {
         request(source.url + i, (error, response, body) => {
-            if (error) reject(error);
-            if (response.statusCode != 200) {
-                reject('Invalid status code <' + response.statusCode + '>');
-            }
-            resolve(body);
+          if (error) reject(error);
+          if (response.statusCode !== 200) {
+            reject('Invalid status code <' + response.statusCode + '>');
+          }
+          resolve(body);
         });
       });
       var task = function (cb) {
         request(source.url + i, function (err, res, body) {
           if (err || res.statusCode !== 200) {
-            skip
+            return cb(err || res);
           }
           cb(null, body);
         });
@@ -72,7 +72,6 @@ exports.fetchData = async function (source, cb) {
       return cb({message: 'Unknown adapter error.'});
     }
   });
-  
 };
 
 /**
@@ -92,13 +91,13 @@ var formatData = function (results) {
     var city = location[0].split(',');
     template['city'] = city[0].trim();
     template['location'] = (city.length === 1) ? city[0].trim() : city[1].trim();
-    var coordinates = location[1].replace('Geolokacija:','').split(',');
+    var coordinates = location[1].replace('Geolokacija:', '').split(',');
     coordinates = {
       latitude: Number(coordinates[0]),
       longitude: Number(coordinates[1])
-    }
+    };
     template['coordinates'] = coordinates;
-  }
+  };
   /**
    * Given a string and the template json object, parses a string into a moment object
    * and adds it to the template
@@ -106,9 +105,9 @@ var formatData = function (results) {
    * @param {object} template Object to add the parsed values to
    */
   var parseDate = (date, template) => {
-    date = date.replace('Pregled mjerenja za','').replace('h','');
+    date = date.replace('Pregled mjerenja za', '').replace('h', '');
     const dateMoment = moment.tz(date, 'DD.MM.YYYY HH:mm', 'Europe/Podgorica');
-    var date = {
+    date = {
       utc: dateMoment.toDate(),
       local: dateMoment.format()
     };
