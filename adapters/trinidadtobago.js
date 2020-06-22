@@ -26,23 +26,23 @@ exports.name = 'trinidadtobago';
 exports.fetchData = function (source, cb) {
   // Fetch both the measurements and meta-data about the locations
   // List of keys for parameters used in url
-  var parameterIDs = ['3','1465','2130','18','20','23'];
+  var parameterIDs = ['3', '1465', '2130', '18', '20', '23'];
   var tasks = [];
-  // Loops through all the stations, and then loops through all parameters IDS, and adds the requests to the tasks 
+  // Loops through all the stations, and then loops through all parameters IDS, and adds the requests to the tasks
   _.forEach(stations, function (e) {
-    for(let i in parameterIDs) {
-      const sourceURL = source.url.replace('$station',e.key).replace('$parameter', parameterIDs[i])+moment().valueOf();
+    for (let i in parameterIDs) {
+      const sourceURL = source.url.replace('$station', e.key).replace('$parameter', parameterIDs[i]) + moment().valueOf();
       var task = function (cb) {
         // Have to use Jar true here, because if it does not have it, it will get stuck in a redirect loop
-          request({jar: true, url: sourceURL}, function (err, res, body) {
-            if (err || res.statusCode !== 200) {
-              return cb(err || res);
-            }
-            // Adds body and metadata result to callback
-            cb(null, {meta: e, values: body});
-          });
-        };
-        tasks.push(task);
+        request({jar: true, url: sourceURL}, function (err, res, body) {
+          if (err || res.statusCode !== 200) {
+            return cb(err || res);
+          }
+          // Adds body and metadata result to callback
+          cb(null, {meta: e, values: body});
+        });
+      };
+      tasks.push(task);
     }
   });
 
@@ -79,19 +79,19 @@ var formatData = function (results) {
   const parseToJSON = (data) => {
     try {
       data['values'] = JSON.parse(data.values);
-      if (Object.keys(data['values']).length == 0) {
+      if (Object.keys(data['values']).length === 0) {
         data = undefined;
       }
     } catch (e) {
       data = undefined;
     }
     return data;
-  }
+  };
   // Loops through all items
   results.forEach(item => {
     item = parseToJSON(item);
     // If values are empty or something fails, dont run
-    if(item != undefined) {
+    if (item !== undefined) {
       const template = {
         city: item.meta.city,
         location: item.meta.location,
@@ -102,20 +102,20 @@ var formatData = function (results) {
         },
         attribution: [{name: 'EMA', url: 'http://ei.weblakes.com/RTTPublic/DshBrdAQI'}],
         averagingPeriod: {unit: 'hours', value: 1}
-      }
+      };
       // Units are mostly ug/m3, but CO is mg/m3, according to site
-      template['unit'] = (template['parameter'] == 'CO') ? 'mg/m3':'ug/m3';
+      template['unit'] = (template['parameter'] === 'CO') ? 'mg/m3' : 'ug/m3';
       // Loops through the latest data for 24 hours, data is hourly
       for (let i in item.values[template.parameter]) {
         // Do not add values if values are Null
-        if(item.values[template.parameter][i] !== null) {
-          var m = Object.assign({value: item.values[template['parameter']][i]},template);
+        if (item.values[template.parameter][i] !== null) {
+          var m = Object.assign({value: item.values[template['parameter']][i]}, template);
           // Adds the formated date
-          const dateMoment = moment.tz(item.values.xlabels[i],'YYYY-MM-DD HH','America/Port_of_spain');
+          const dateMoment = moment.tz(item.values.xlabels[i], 'YYYY-MM-DD HH', 'America/Port_of_spain');
           m['date'] = {
             utc: dateMoment.toDate(),
             local: dateMoment.format()
-          }
+          };
           // unifies parameters and measurement units
           m = unifyParameters(m);
           m = unifyMeasurementUnits(m);
@@ -131,7 +131,6 @@ var formatData = function (results) {
     measurements: measurements
   };
 };
-
 
 const stations = [
   {
@@ -155,4 +154,4 @@ const stations = [
     latitude: 11.17455,
     longitude: -60.76007
   }
-]
+];
