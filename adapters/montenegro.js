@@ -112,7 +112,7 @@ var formatData = function (results) {
       local: dateMoment.format()
     };
     template['date'] = date;
-  }
+  };
   /**
    * Given a string and a measurement json object, parses the string into value and unit
    * and adds it to the measurement object
@@ -120,37 +120,37 @@ var formatData = function (results) {
    * @param {object} measurement Object to add the parsed values to
    */
   var parseValueAndUnit = (value, measurement) => {
-    value = value.replace(/<|>/gi,'').trim();
+    value = value.replace(/<|>/gi, '').trim();
     var splitPos = -1;
     // For some reason JS can not recognize the space between value and parameter, so I have to find the first letter
-    for(let i = 0; i < value.length; i++) {
-      if(value.charAt(i).toLowerCase() != value.charAt(i).toUpperCase()) {
+    for (let i = 0; i < value.length; i++) {
+      if (value.charAt(i).toLowerCase() !== value.charAt(i).toUpperCase()) {
         splitPos = i;
         break;
       }
-    }  
+    }
     measurement['unit'] = value.substring(splitPos);
-    measurement['value'] = Number(value.substring(0,splitPos).replace(',','.').trim());
-  }
+    measurement['value'] = Number(value.substring(0, splitPos).replace(',', '.').trim());
+  };
   var measurements = [];
   // loops through all sites
   results.forEach(p => {
     let $ = cheerio.load(p);
     // base template of object
-    let template = {      
+    let template = {
       attribution: [{name: 'epa.me', url: 'https://epa.org.me/'}],
       averagingPeriod: {unit: 'hours', value: 1}
     };
     // Finds the location and date string
     $('.col-6.col-12-medium').each((i, e) => {
       $('h6 a', e).each((i, e) => {
-        if($(e).text().search('|') !== -1 && $(e).text().charAt(0) !== '*') {
-          parseLocation($(e).text(), template)
+        if ($(e).text().search('|') !== -1 && $(e).text().charAt(0) !== '*') {
+          parseLocation($(e).text(), template);
         }
       });
       $('h4', e).each((i, e) => {
-        if($(e).text().search('Pregled mjerenja za') !== -1) {
-          parseDate($(e).text(), template)
+        if ($(e).text().search('Pregled mjerenja za') !== -1) {
+          parseDate($(e).text(), template);
         }
       });
     });
@@ -158,16 +158,16 @@ var formatData = function (results) {
     let valueIndex = -1;
     // finds the index of value and parameter
     $('.sortable thead th').each((i, e) => {
-      if($(e).text().search('Oznaka') !== -1) {
+      if ($(e).text().search('Oznaka') !== -1) {
         parameterIndex = i;
       }
-      if($(e).text().search('Koncentracija') !== -1) {
+      if ($(e).text().search('Koncentracija') !== -1) {
         valueIndex = i;
       }
     });
     // loops through all the parameters and values and adds them to a measurement and adds it to measurements
     $('.sortable tbody tr').each((i, e) => {
-      if(parameterIndex !== -1 && valueIndex !== -1) {
+      if (parameterIndex !== -1 && valueIndex !== -1) {
         var m = Object.assign({'parameter': $($('td', e).get(parameterIndex)).text()}, template);
         var value = $($('td', e).get(valueIndex)).text();
         parseValueAndUnit(value, m);
