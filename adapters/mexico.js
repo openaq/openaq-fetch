@@ -128,7 +128,7 @@ var formatData = function (pages) {
   pages.forEach(page => {
     var $ = cheerio.load(page);
     // base template
-    var template = {      
+    var template = {
       attribution: [{name: 'Sinaica.inecc', url: 'https://sinaica.inecc.gob.mx/index.php'}],
       averagingPeriod: {unit: 'hours', value: 1}
     };
@@ -167,15 +167,15 @@ var formatData = function (pages) {
           // Loops through all the measurements for each parameter
           param.forEach(d => {
             if (d != null) {
-              const dateMoment = moment.tz(d.fecha + ' ' + d.hora,'YYYY-MM-DD H', 'America/Mexico_City');
+              const dateMoment = moment.tz(d.fecha + ' ' + d.hora, 'YYYY-MM-DD H', 'America/Mexico_City');
               var m = Object.assign({
-                unit: (d.parametro === 'PM10' || d.parametro === 'PM2.5') ? 'µg/m3':'ppm',
+                unit: (d.parametro === 'PM10' || d.parametro === 'PM2.5') ? 'µg/m3' : 'ppm',
                 value: Number(d.valorAct),
                 parameter: d.parametro,
                 date: {
                   utc: dateMoment.toDate(),
                   local: dateMoment.format()
-                },
+                }
               },
               template);
               m = unifyMeasurementUnits(m);
@@ -184,7 +184,7 @@ var formatData = function (pages) {
             }
           });
         });
-      } catch (e) { };
+      } catch (e) { }
     }
   });
   measurements = removeUnwantedParameters(measurements);
