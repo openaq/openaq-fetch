@@ -13,7 +13,6 @@ import { default as baseRequest } from 'request';
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import async, { find } from 'async';
-import { join } from 'path';
 import cheerio from 'cheerio';
 
 // Adding in certs to get around unverified connection issue
@@ -41,6 +40,7 @@ exports.fetchData = async function (source, cb) {
   }), source.url)
   .map(e => {
     return function (cb) {
+      // Tried to use more maxsockets to fix the  Error: ESOCKETTIMEDOUT, did not work
       request({url: e, agent: false, pool: {maxSockets: 200}}, function (err, res, body) {
         if (err || res.statusCode !== 200) {
           return cb(err || res);
@@ -49,7 +49,6 @@ exports.fetchData = async function (source, cb) {
       });
     };
   });
-  // Runs through all the requests in parallel
   async.parallel(tasks, function (err, results) {
     if (err) {
       console.log(err);
