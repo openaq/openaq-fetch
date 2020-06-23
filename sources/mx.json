@@ -1,0 +1,14 @@
+[
+    {
+        "url": "https://sinaica.inecc.gob.mx/estacion.php?estId=",
+        "adapter": "mexico",
+        "name": "Sinaica Mexico",
+        "country": "MX",
+        "description": "",
+        "sourceURL": "https://sinaica.inecc.gob.mx/index.php",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
