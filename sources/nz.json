@@ -1,0 +1,14 @@
+[
+    {
+        "url": "http://data.ecan.govt.nz/data/29/Air/Air%20quality%20data%20for%20a%20monitored%20site%20(10%20Minute)/JSON?SiteId=$station&StartDate=$date&EndDate=$date",
+        "adapter": "canterbury",
+        "name": "New Zealand Canterbury",
+        "country": "NZ",
+        "description": "AQ data from Enviromental Agency Canterybury",
+        "sourceURL": "https://ecan.govt.nz/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
