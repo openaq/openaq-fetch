@@ -10,7 +10,6 @@
 import { unifyMeasurementUnits, unifyParameters } from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import async from 'async';
 
@@ -97,10 +96,10 @@ var formatData = function (results) {
         return false;
       }).forEach(m => {
         // Part of key is the measurement, substring until the first letter of _, to find parameter
-        measurement.parameter = m.substr(0,m.indexOf('_'));
+        measurement.parameter = m.substr(0, m.indexOf('_'));
         measurement.value = Number(d[m]);
         // All data is in ug/m3, except CO, which is mg/m3
-        measurement.unit = (measurement.parameter != 'CO') ? 'ug/m3' : 'mg/m3';
+        measurement.unit = (measurement.parameter !== 'CO') ? 'ug/m3' : 'mg/m3';
         // Unifies measurement units and parameters before adding them
         measurement = unifyMeasurementUnits(measurement);
         measurement = unifyParameters(measurement);
@@ -115,7 +114,7 @@ var formatData = function (results) {
 };
 /* There are a lot of more stations, but they dont seem to be reporting for some reason,
   Managed to find the coordinates from this site: https://ecan.govt.nz/data/air-quality-data/,
-  according to main source site, there should be atleast 30 stations, but none of them are sadly report by the date of 24/06/2020 
+  according to main source site, there should be atleast 30 stations, but none of them are sadly report by the date of 24/06/2020
 */
 const stations = {
   '1': {
