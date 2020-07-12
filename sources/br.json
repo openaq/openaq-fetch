@@ -12,5 +12,18 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "https://services1.arcgis.com/OlP4dGNtIcnD3RYf/arcgis/rest/services/Qualidade_do_ar_dados_horarios_2011_2018/FeatureServer/2/query?where=1%3D1&outFields=OBJECTID,Data,CodNum,Estação,SO2,NO2,CO,PM10,PM2_5,Lat,Lon,O3&outSR=4326&f=json",
+        "adapter": "rio",
+        "name": "Rio de Janeiro",
+        "city": "Rio de Janeiro",
+        "country": "BR",
+        "description": "Data.rio",
+        "sourceURL": "http://www.data.rio/datasets/dados-hor%C3%A1rios-do-monitoramento-da-qualidade-do-ar-monitorar/geoservice?page=61045",
+            "contacts": [
+                "info@openaq.org"
+            ],
+        "active": true
     }
 ]
