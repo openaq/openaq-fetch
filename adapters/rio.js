@@ -1,5 +1,6 @@
 'use strict';
 
+// TODO: fetch last month, units, sourceName, test!
 import { default as moment } from 'moment-timezone';
 import { acceptableParameters, promiseRequest } from '../lib/utils';
 
@@ -17,7 +18,7 @@ export async function fetchData(source, cb) {
 /**
  * Flatten object returned by endpoint containing array of objects,
  * each with multiple parameter measurements.
- * Return array with the latest measurement for valid parameters only. TODO: latest?
+ * Return array with the latest measurement for valid parameters only.
  *
  * @param {object} params Data object returned from endpoint
  *
@@ -46,7 +47,7 @@ export async function fetchData(source, cb) {
  *    ]
  * })
  *
- * @returns [ { TODO: test
+ * @returns [ {
     "date": { utc: 2020-01-03T04:00:00.000Z, local: YYYY-MM-DDTHH:mm:ssZ },
     "coordinates": { "latitude": -22, "longitude": -43 },
     "location": "BG",
@@ -58,7 +59,7 @@ export async function fetchData(source, cb) {
     "averagingPeriod": { "value": 1, "unit": "hours" },
     "attribution": [{ "name": "Data.rio", "url": "http://www.data.rio/" }],
     "sourceName": "x",
-    "sourceType": "research",
+    "sourceType": "government",
     "mobile": false,
   }]
  */
@@ -109,7 +110,7 @@ function parseData(measurements) {
 }
 
 function getDataObj(date, parameter, value) {
-  const unit = ["ppm", "pphm", "ppb", "ppt", "µg/m3", "mg/m3"] // TODO
+  const unit = ["ppm", "pphm", "ppb", "ppt", "µg/m3", "mg/m3"]
 
   return {
     "date": date,
@@ -122,8 +123,8 @@ function getDataObj(date, parameter, value) {
     "unit": unit,
     "averagingPeriod": { "value": 1, "unit": "hours" },
     "attribution": [{ "name": "Data.rio", "url": "http://www.data.rio/" }],
-    "sourceName": "x", // TODO: ID to track measurement to source within the platform
-    "sourceType": "research",
+    "sourceName": "",
+    "sourceType": "government",
     "mobile": false,
   }
 }
