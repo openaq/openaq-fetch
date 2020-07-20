@@ -1,6 +1,5 @@
 'use strict';
 
-// TODO: fetch last month, units, sourceName, test!
 import { default as moment } from 'moment-timezone';
 import { acceptableParameters, promiseRequest } from '../lib/utils';
 
@@ -28,7 +27,7 @@ export async function fetchData(source, cb) {
  *    "globalIdFieldName":"",
  *    "fields":[...],
  *    "features":[
- *      {"attributes":
+ *      { "attributes":
  *        {
  *          "OBJECTID":1,
  *          "Data": 1325377800000,
@@ -70,7 +69,6 @@ function parseData(measurements) {
   flattened.forEach(measurement => {
     /**
      * @example measurement: {
-     *    "OBJECTID":1,
      *    "Data": 1325377800000, // Date
      *    "Estação":"BG", // Station
      *    "SO2":null,
@@ -110,7 +108,10 @@ function parseData(measurements) {
 }
 
 function getDataObj(date, parameter, value) {
-  const unit = ["ppm", "pphm", "ppb", "ppt", "µg/m3", "mg/m3"]
+  let unit = "ppm";
+  if (parameter === "CO") {
+    unit = "µg/m3";
+  }
 
   return {
     "date": date,
@@ -123,7 +124,7 @@ function getDataObj(date, parameter, value) {
     "unit": unit,
     "averagingPeriod": { "value": 1, "unit": "hours" },
     "attribution": [{ "name": "Data.rio", "url": "http://www.data.rio/" }],
-    "sourceName": "",
+    "sourceName": "Prefeitura da Cidade do Rio de Janeiro – MonitorAr",
     "sourceType": "government",
     "mobile": false,
   }
