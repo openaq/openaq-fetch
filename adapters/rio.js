@@ -8,7 +8,8 @@ export const name = 'rio';
 export async function fetchData(source, cb) {
   try {
     const allData = JSON.parse(await promiseRequest(source.url));
-    return parseData(allData.features);
+    const parsedData = parseData(allData.features);
+    cb(null, { name: 'unused', measurements: parsedData });
   } catch (e) {
     cb(e);
   }
@@ -17,7 +18,7 @@ export async function fetchData(source, cb) {
 /**
  * Flatten object returned by endpoint containing array of objects,
  * each with multiple parameter measurements.
- * Return array with the latest measurement for valid parameters only.
+ * Return array with the measurements logged in the last 31 days for valid parameters only.
  *
  * @param {object} params Data object returned from endpoint
  *
@@ -29,7 +30,6 @@ export async function fetchData(source, cb) {
  *    "features":[
  *      { "attributes":
  *        {
- *          "OBJECTID":1,
  *          "Data": 1325377800000,
  *          "Estação":"BG",
  *          "SO2":null,
@@ -62,9 +62,10 @@ export async function fetchData(source, cb) {
     "mobile": false,
   }]
  */
+
 function parseData(measurements) {
   const flattened = measurements.map(m => m.attributes);
-  const allData = []
+  let allData = [];
 
   flattened.forEach(measurement => {
     /**
@@ -83,49 +84,46 @@ function parseData(measurements) {
     */
     const parsedData = [];
 
-    const dateStr = moment.tz(latestM.endtime, 'Brasilia');
+    const utcDate = moment.utc(measurement.Data);
     const date = {
-      utc: dateStr.toDate(), // 2020-01-03T04:00:00.000Z
-      local: dateStr.format('YYYY-MM-DDTHH:mm:ssZ') // '2020-01-03T04:00:00+00:00'
+      utc: utcDate.format(), // 2020-01-03T04:00:00.000Z
+      local: utcDate.tz("America/Sao_Paulo").format('YYYY-MM-DDTHH:mm:ssZ') // '2020-01-03T04:00:00+00:00'
     }
 
     // All acceptable parameters in the current measurement
     const validParams = Object.keys(measurement).filter(
-      p => acceptableParameters.includes(p.toLowerCase().replace('_', ''))
+      param => acceptableParameters.includes(param.toLowerCase().replace('_', ''))
     );
-    validParams.each(param => {
+
+    validParams.forEach(param => {
       const value = measurement[param];
       if (value !== null) {
-        const datapoint = getDataObj(date, param, value)
+        const datapoint = getDataObj(date, measurement, param);
         parsedData.push(datapoint);
       }
     })
 
-    allData.concat(parsedData);
+    allData = allData.concat(parsedData);
   })
 
   return allData;
 }
 
-function getDataObj(date, parameter, value) {
-  let unit = "ppm";
-  if (parameter === "CO") {
-    unit = "µg/m3";
-  }
-
+function getDataObj(date, measurement, parameter) {
+  const formattedParam = parameter.toLowerCase().replace("_", "");
   return {
-    "date": date,
-    "coordinates": { "latitude": m["Lat"], "longitude": m["Lon"] },
-    "location": m["Estação"],
-    "city": "Rio de Janeiro",
-    "country": "BR",
-    "parameter": parameter,
-    "value": value,
-    "unit": unit,
-    "averagingPeriod": { "value": 1, "unit": "hours" },
-    "attribution": [{ "name": "Data.rio", "url": "http://www.data.rio/" }],
-    "sourceName": "Prefeitura da Cidade do Rio de Janeiro – MonitorAr",
-    "sourceType": "government",
-    "mobile": false,
+    date: date,
+    coordinates: { latitude: measurement.Lat, longitude: measurement.Lon },
+    location: measurement.Estação,
+    city: "Rio de Janeiro",
+    country: "BR",
+    parameter: formattedParam,
+    unit: (parameter === "CO" ? "µg/m3" : "ppm"),
+    value: measurement[parameter],
+    averagingPeriod: { value: 1, unit: "hours" },
+    attribution: [{ name: "Data.rio", url: "http://www.data.rio/" }],
+    sourceName: "Prefeitura da Cidade do Rio de Janeiro – MonitorAr",
+    sourceType: "government",
+    mobile: false,
   }
 }

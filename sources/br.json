@@ -14,7 +14,7 @@
         "active": true
     },
     {
-        "url": "https://services1.arcgis.com/OlP4dGNtIcnD3RYf/arcgis/rest/services/Qualidade_do_ar_dados_horarios_2011_2018/FeatureServer/2/query?where=Data%20%3E%20CURRENT_TIMESTAMP%20-%20INTERVAL%20%2731%27%20DAY&outFields=Data,CodNum,Esta%C3%A7%C3%A3o,SO2,NO2,CO,NO,O3,PM10,PM2_5,Lat,Lon&returnGeometry=false&outSR=4326&f=json",
+        "url": "https://services1.arcgis.com/OlP4dGNtIcnD3RYf/arcgis/rest/services/Qualidade_do_ar_dados_horarios_2011_2018/FeatureServer/2/query?where=Data%20%3E%20CURRENT_TIMESTAMP%20-%20INTERVAL%20%2731%27%20DAY&outFields=Data,CodNum,Esta%C3%A7%C3%A3o,SO2,NO2,CO,O3,PM10,PM2_5,Lat,Lon&returnGeometry=false&outSR=4326&f=json",
         "adapter": "rio",
         "name": "Rio de Janeiro",
         "city": "Rio de Janeiro",
