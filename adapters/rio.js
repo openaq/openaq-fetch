@@ -5,7 +5,7 @@ import { acceptableParameters, promiseRequest } from '../lib/utils';
 
 export const name = 'rio';
 
-export async function fetchData(source, cb) {
+export async function fetchData (source, cb) {
   try {
     const allData = JSON.parse(await promiseRequest(source.url));
     const parsedData = parseData(allData.features);
@@ -63,7 +63,7 @@ export async function fetchData(source, cb) {
   }]
  */
 
-function parseData(measurements) {
+function parseData (measurements) {
   const flattened = measurements.map(m => m.attributes);
   let allData = [];
 
@@ -87,8 +87,8 @@ function parseData(measurements) {
     const utcDate = moment.utc(measurement.Data);
     const date = {
       utc: utcDate.format(), // 2020-01-03T04:00:00.000Z
-      local: utcDate.tz("America/Sao_Paulo").format('YYYY-MM-DDTHH:mm:ssZ') // '2020-01-03T04:00:00+00:00'
-    }
+      local: utcDate.tz('America/Sao_Paulo').format('YYYY-MM-DDTHH:mm:ssZ') // '2020-01-03T04:00:00+00:00'
+    };
 
     // All acceptable parameters in the current measurement
     const validParams = Object.keys(measurement).filter(
@@ -101,29 +101,29 @@ function parseData(measurements) {
         const datapoint = getDataObj(date, measurement, param);
         parsedData.push(datapoint);
       }
-    })
+    });
 
     allData = allData.concat(parsedData);
-  })
+  });
 
   return allData;
 }
 
-function getDataObj(date, measurement, parameter) {
-  const formattedParam = parameter.toLowerCase().replace("_", "");
+function getDataObj (date, measurement, parameter) {
+  const formattedParam = parameter.toLowerCase().replace('_', '');
   return {
     date: date,
     coordinates: { latitude: measurement.Lat, longitude: measurement.Lon },
     location: measurement.Estação,
-    city: "Rio de Janeiro",
-    country: "BR",
+    city: 'Rio de Janeiro',
+    country: 'BR',
     parameter: formattedParam,
-    unit: (parameter === "CO" ? "µg/m3" : "ppm"),
+    unit: (parameter === 'CO' ? 'µg/m3' : 'ppm'),
     value: measurement[parameter],
-    averagingPeriod: { value: 1, unit: "hours" },
-    attribution: [{ name: "Data.rio", url: "http://www.data.rio/" }],
-    sourceName: "Prefeitura da Cidade do Rio de Janeiro – MonitorAr",
-    sourceType: "government",
-    mobile: false,
-  }
+    averagingPeriod: { value: 1, unit: 'hours' },
+    attribution: [{ name: 'Data.rio', url: 'http://www.data.rio/' }],
+    sourceName: 'Prefeitura da Cidade do Rio de Janeiro – MonitorAr',
+    sourceType: 'government',
+    mobile: false
+  };
 }
