@@ -25,4 +25,5 @@ $aws s3 cp s3://openaq-env-variables/openaq-fetch/$ENV_FILE local.env
 
 echo "Building new ECS task"
 node .build_scripts/insert-env.js
-$aws ecs register-task-definition --cli-input-json file://ecs-task-generated.json
+$aws ecs register-task-definition --cli-input-json file://ecs-task-generated.json > /dev/null 2>&1
+echo "Finished building new ECS task"
