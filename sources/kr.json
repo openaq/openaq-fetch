@@ -1,0 +1,14 @@
+[
+  {
+    "url": "http://openapi.airkorea.or.kr/openapi/services/rest/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty",
+    "adapter": "south-korea",
+    "name": "South Korea",
+    "country": "KR",
+    "description": "South Korea's OpenAPI",
+    "sourceURL": "https://www.data.go.kr/index.do",
+    "contacts": [
+      "info@openaq.org"
+    ],
+    "active": true
+  }
+]
