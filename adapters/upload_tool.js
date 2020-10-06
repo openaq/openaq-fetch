@@ -79,7 +79,7 @@ const readS3Files = function(params) {
         for (let i = 0; i < data.Contents.length; i++) {
           try {
             const result = await readFile({
-              Bucket: 'upload-tool-bucket-dev',
+              Bucket: 'upload-tool-bucket-development',
               Key: data.Contents[i].Key
             });
             results.push(result)
@@ -102,7 +102,7 @@ const readS3Files = function(params) {
 
 exports.fetchData = function (source, cb) {
   const bucketParams = {
-    Bucket: 'upload-tool-bucket-dev',
+    Bucket: 'upload-tool-bucket-development',
     Delimiter: '/'
   };
     readS3Files(bucketParams).then(measurements => {
