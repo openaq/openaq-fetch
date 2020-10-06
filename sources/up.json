@@ -1,0 +1,15 @@
+[
+    {
+        "url": "",
+        "adapter": "upload_tool",
+        "name": "Upload Tool",
+        "city": "",
+        "country": "",
+        "description": "",
+        "sourceURL": "https://upload.openaq.org",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
