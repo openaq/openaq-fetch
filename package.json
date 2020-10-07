@@ -7,7 +7,7 @@
     "lint": "eslint .",
     "test": "npm run lint && mocha test/lib/ --require babel-register",
     "start": "node index.js",
-    "docker-start": "docker-compose up"
+    "docker": "docker-compose --project-name openaq run --rm fetch"
   },
   "author": "Joe Flasher",
   "license": "MIT",
