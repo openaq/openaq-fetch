@@ -14,8 +14,33 @@ const s3 = new S3({region: 'us-west-2'});
 
 exports.name = 'upload_tool';
 
+const generateAttributions = function(a) {
+  let attributions = []
+  attributions.push({
+    name: a.attribution_name,
+    url: a.attribution_url
+  })
+  // look for additional attributions 
+  let searchingAttributions = true;
+  let attributionIndex = 2;
+  while(searchingAttributions) {
+      if (`attribution_name_${attributionIndex}` in a) {
+          if (`attribution_url_${attributionIndex}` in a) {
+              attributions.push({
+                name: a[`attribution_name_${attributionIndex}`],
+                url: a[`attribution_url_${attributionIndex}`]
+              })
+              attributionIndex++;
+              continue
+          }
+      } 
+      searchingAttributions = false
+  }
+  return attributions;
+}
+
 // transforms data from the Upload format to the final Upload format
-const transformFormat = function(a) {
+const transformFormat = function(a, source) {
   let b = {
     parameter: a.parameter,
     location: a.location,
@@ -26,19 +51,14 @@ const transformFormat = function(a) {
       utc: a.date_utc,
       local: a.date_local
     },  
-    sourceName: a.sourceName,
+    sourceName: source.name, // This will always be `Upload Tool`
     sourceType: a.sourceType,
     mobile: a.mobile === true || a.mobile === 'true',
     coordinates: {
       longitude: parseFloat(a.coordinates_longitude),
       latitude: parseFloat(a.coordinates_latitude)
     },
-    attribution: 
-      [{
-        name: a.attribution_name,
-        url: a.attribution_url
-      }]
-    ,
+    attribution: generateAttributions(a),
     averagingPeriod: {
       value: parseFloat(a.averagingPeriod_value),
       unit: a.averagingPeriod_unit
@@ -48,10 +68,11 @@ const transformFormat = function(a) {
   if (a.city) {
     b.city = a.city
   }
+  console.log('storing', b)
   return b
 }
 
-const readFile = function(params) {
+const readFile = function(params, source) {
   return new Promise((resolve, reject) => {
     const s3stream = s3.getObject(params).createReadStream();
     const result = []
@@ -60,8 +81,7 @@ const readFile = function(params) {
       reject(err)
     })
     .on('data', (data) => {
-      console.log(data)
-      result.push(transformFormat(data))
+      result.push(transformFormat(data, source))
     })
     .on('end', () => {
       resolve(result)
@@ -69,19 +89,20 @@ const readFile = function(params) {
   })
 }
 
-const readS3Files = function(params) {
+const readS3Files = function(params, source) {
   return new Promise((resolve, reject) => {
     let results = []
-    s3.listObjects(params, async function (e, data) {
+    s3.listObjects((params), async function (e, data) {
         if(e) {
           reject(e)
         }
         for (let i = 0; i < data.Contents.length; i++) {
           try {
-            const result = await readFile({
-              Bucket: 'upload-tool-bucket-development',
+            const fileParams = {
+              Bucket: 'upload-tool-bucket-dev',
               Key: data.Contents[i].Key
-            });
+            }
+            const result = await readFile(fileParams, source);
             results.push(result)
             if (i === data.Contents.length - 1) {
               resolve(results)
@@ -102,10 +123,10 @@ const readS3Files = function(params) {
 
 exports.fetchData = function (source, cb) {
   const bucketParams = {
-    Bucket: 'upload-tool-bucket-development',
+    Bucket: 'upload-tool-bucket-dev',
     Delimiter: '/'
   };
-    readS3Files(bucketParams).then(measurements => {
+    readS3Files(bucketParams, source).then(measurements => {
       cb(null, {
         name: 'upload-tool',
         measurements: measurements[0]
