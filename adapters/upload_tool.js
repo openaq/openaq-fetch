@@ -79,10 +79,10 @@ const readFile = function (params, source) {
     s3stream.pipe(csv())
       .on('error', (err) => {
         reject(err);
-      });
+      })
       .on('data', (data) => {
         result.push(transformFormat(data, source));
-      });
+      })
       .on('end', () => {
         resolve(result)
       });
