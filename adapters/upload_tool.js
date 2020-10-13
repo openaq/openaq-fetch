@@ -76,7 +76,7 @@ const readFile = function (params, source) {
   return new Promise((resolve, reject) => {
     const s3stream = s3.getObject(params).createReadStream();
     const result = [];
-    s3stream.pipe(csv());
+    s3stream.pipe(csv())
       .on('error', (err) => {
         reject(err);
       });
