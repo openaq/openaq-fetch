@@ -12,6 +12,7 @@ import log from '../lib/logger';
 // The S3 bucket containing the data is in a different region
 const s3 = new S3({region: 'us-west-2'});
 
+const UPLOAD_TOOL_BUCKET = 'upload-tool-bucket-dev'
 exports.name = 'upload_tool';
 
 const generateAttributions = function(a) {
@@ -99,7 +100,7 @@ const readS3Files = function(params, source) {
         for (let i = 0; i < data.Contents.length; i++) {
           try {
             const fileParams = {
-              Bucket: 'upload-tool-bucket-dev',
+              Bucket: UPLOAD_TOOL_BUCKET,
               Key: data.Contents[i].Key
             }
             const result = await readFile(fileParams, source);
@@ -123,7 +124,7 @@ const readS3Files = function(params, source) {
 
 exports.fetchData = function (source, cb) {
   const bucketParams = {
-    Bucket: 'upload-tool-bucket-dev',
+    Bucket: upload_tool_bucket,
     Delimiter: '/'
   };
     readS3Files(bucketParams, source).then(measurements => {
