@@ -9,7 +9,7 @@ import { S3 } from 'aws-sdk';
 import csv from 'csv-parser';
 
 // The S3 bucket containing the data is in a different region
-const s3 = new S3({ region: 'us-west-2' });
+const s3 = new S3({ region: 'us-east-1' });
 
 const UPLOAD_TOOL_BUCKET = 'upload-tool-bucket-dev';
 exports.name = 'upload_tool';
