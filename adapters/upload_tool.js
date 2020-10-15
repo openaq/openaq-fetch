@@ -100,7 +100,7 @@ const readS3Files = function (params, source) {
           const fileParams = {
             Bucket: UPLOAD_TOOL_BUCKET,
             Key: data.Contents[i].Key
-          }
+          };
           const result = await readFile(fileParams, source);
           results.push(result);
           if (i === data.Contents.length - 1) {
