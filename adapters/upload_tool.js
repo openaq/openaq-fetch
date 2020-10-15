@@ -7,7 +7,6 @@
 
 import { S3 } from 'aws-sdk';
 import csv from 'csv-parser';
-import log from '../lib/logger';
 
 // The S3 bucket containing the data is in a different region
 const s3 = new S3({ region: 'us-west-2' });
@@ -21,7 +20,7 @@ const generateAttributions = function (a) {
     name: a.attribution_name,
     url: a.attribution_url
   });
-  // look for additional attributions 
+  // look for additional attributions
   let searchingAttributions = true;
   let attributionIndex = 2;
   while (searchingAttributions) {
@@ -30,7 +29,7 @@ const generateAttributions = function (a) {
         attributions.push({
           name: a[`attribution_name_${attributionIndex}`],
           url: a[`attribution_url_${attributionIndex}`]
-        })
+        });
         attributionIndex++;
         continue;
       }
@@ -38,7 +37,7 @@ const generateAttributions = function (a) {
     searchingAttributions = false;
   }
   return attributions;
-}
+};
 
 // transforms data from the Upload format to the final Upload format
 const transformFormat = function (a, source) {
@@ -70,7 +69,7 @@ const transformFormat = function (a, source) {
     b.city = a.city;
   }
   return b;
-}
+};
 
 const readFile = function (params, source) {
   return new Promise((resolve, reject) => {
@@ -84,10 +83,10 @@ const readFile = function (params, source) {
         result.push(transformFormat(data, source));
       })
       .on('end', () => {
-        resolve(result)
+        resolve(result);
       });
   });
-}
+};
 
 const readS3Files = function (params, source) {
   return new Promise((resolve, reject) => {
@@ -108,12 +107,12 @@ const readS3Files = function (params, source) {
             resolve(results);
           }
         } catch (e) {
-          reject(`Error reading ${data.Contents[i].key}: ${e}`);
+          reject(new Error(`Error reading ${data.Contents[i].key}: ${e}`));
         }
       }
     });
   });
-}
+};
 
 /**
  * Fetches the data for a given source and returns an appropriate object
@@ -123,7 +122,7 @@ const readS3Files = function (params, source) {
 
 exports.fetchData = function (source, cb) {
   const bucketParams = {
-    Bucket: upload_tool_bucket,
+    Bucket: UPLOAD_TOOL_BUCKET,
     Delimiter: '/'
   };
   readS3Files(bucketParams, source).then(measurements => {
@@ -134,4 +133,4 @@ exports.fetchData = function (source, cb) {
   }).catch(e => {
     cb(e);
   });
-}
+};
