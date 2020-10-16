@@ -65,6 +65,7 @@ exports.fetchData = async function (source, cb) {
     }
   });
 };
+
 /**
  * Goes through main page of site, and finds the urls for all the stations pages, and returns them
  * @param {*} page Mainpage of the source
@@ -77,6 +78,7 @@ var fetchAllStationSites = function (page, url) {
     return (url + $(this).val());
   }).get();
 };
+
 /**
  * Given fetched data, turn it into a format our system can use.
  * @param {array} pages Fetched source data and other metadata
@@ -123,13 +125,14 @@ var formatData = function (pages) {
       if (found) break;
     }
   };
+
   var measurements = [];
   // Loops through each oage
   pages.forEach(page => {
     var $ = cheerio.load(page);
     // base template
     var template = {
-      attribution: [{name: 'Sinaica.inecc', url: 'https://sinaica.inecc.gob.mx/index.php'}],
+      attribution: [{ name: 'SINAICA', url: 'https://sinaica.inecc.gob.mx/index.php' }],
       averagingPeriod: {unit: 'hours', value: 1}
     };
     // checks if page has any values to read
@@ -149,14 +152,15 @@ var formatData = function (pages) {
           .filter(script => script.search('conts = {') !== -1)[0];
 
         // Metadata from the documentscript, turns it into json to get latitude, longitude and location
-        var meta = values.substring(values.indexOf('cump = {'));
-        meta = meta.substring(String('cump = {').length - 1, meta.indexOf('};') + 1);
+        var meta = values.substring(values.indexOf('est = {'));
+        meta = meta.substring(String('est = {').length - 1, meta.indexOf('};') + 1);
         meta = JSON.parse(meta);
         template['coordinates'] = {
           latitude: Number(meta.lat),
-          longitude: Number(meta.lat)
+          longitude: Number(meta.long)
         };
-        template['location'] = meta.nom;
+        template['location'] = meta.nombre;
+        var timezone = getTimeZone(meta.zonaHoraria);
 
         // formats the data and values from the documentscript into readable data
         var data = values.substring(values.indexOf('conts = {'));
@@ -167,7 +171,7 @@ var formatData = function (pages) {
           // Loops through all the measurements for each parameter
           param.forEach(d => {
             if (d != null) {
-              const dateMoment = moment.tz(d.fecha + ' ' + d.hora, 'YYYY-MM-DD H', 'America/Mexico_City');
+              const dateMoment = moment.tz(d.fecha + ' ' + d.hora, 'YYYY-MM-DD H', timezone);
               var m = Object.assign({
                 unit: (d.parametro === 'PM10' || d.parametro === 'PM2.5') ? 'µg/m3' : 'ppm',
                 value: Number(d.valorAct),
@@ -193,3 +197,19 @@ var formatData = function (pages) {
     measurements: measurements
   };
 };
+
+function getTimeZone (timezone) {
+  switch (timezone) {
+    case '5': // Tiempo del noroeste, UTC-8 (UTC-7 en verano)
+      return 'America/Tijuana';
+    case '4': // Sonora, UTC-7
+      return 'America/Hermosillo';
+    case '3': // Tiempo del pac&#xED;fico, UTC-7 (UTC-6 en verano)
+      return 'America/Chihuahua';
+    case '8': // Tiempo del centro (UTC-6 todo el a&#xF1;o)
+    case '1': // Tiempo del centro, UTC-6 (UTC-5 en verano)
+      return 'America/Mexico_City';
+    default:
+      throw new Error('UNKNOWN TIMEZONE: ' + timezone);
+  }
+}
