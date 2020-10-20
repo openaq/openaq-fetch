@@ -11,7 +11,7 @@ import csv from 'csv-parser';
 // The S3 bucket containing the data is in a different region
 const s3 = new S3({ region: 'us-east-1' });
 
-const UPLOAD_TOOL_BUCKET = 'upload-tool-bucket-dev';
+const UPLOAD_TOOL_BUCKET = 'upload-tool-bucket-production';
 exports.name = 'upload_tool';
 
 const generateAttributions = function (a) {
@@ -102,7 +102,7 @@ const readS3Files = function (params, source) {
             Key: data.Contents[i].Key
           };
           const result = await readFile(fileParams, source);
-          results.push(result);
+          results = results.concat(result);
           if (i === data.Contents.length - 1) {
             resolve(results);
           }
@@ -128,7 +128,7 @@ exports.fetchData = function (source, cb) {
   readS3Files(bucketParams, source).then(measurements => {
     cb(null, {
       name: 'upload-tool',
-      measurements: measurements[0]
+      measurements: measurements
     });
   }).catch(e => {
     cb(e);
