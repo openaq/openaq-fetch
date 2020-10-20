@@ -110,6 +110,8 @@ const readS3Files = function (params, source) {
           reject(new Error(`Error reading ${data.Contents[i].key}: ${e}`));
         }
       }
+      // no results found
+      resolve([])
     });
   });
 };
