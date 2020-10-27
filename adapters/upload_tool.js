@@ -6,7 +6,7 @@
 'use strict';
 
 import { S3 } from 'aws-sdk';
-import csv from 'csv-parser';
+import { StringStream, DataStream } from 'scramjet';
 
 // The S3 bucket containing the data is in a different region
 const s3 = new S3({ region: 'us-east-1' });
@@ -72,48 +72,26 @@ const transformFormat = function (a, source) {
 };
 
 const readFile = function (params, source) {
-  return new Promise((resolve, reject) => {
-    const s3stream = s3.getObject(params).createReadStream();
-    const result = [];
-    s3stream.pipe(csv())
-      .on('error', (err) => {
-        reject(err);
-      })
-      .on('data', (data) => {
-        result.push(transformFormat(data, source));
-      })
-      .on('end', () => {
-        resolve(result);
-      });
-  });
+  const s3stream = s3.getObject(params).createReadStream();
+  return StringStream.from(s3stream, "utf-8")
+    .CSVParse({header: true})
 };
 
-const readS3Files = function (params, source) {
-  return new Promise((resolve, reject) => {
-    let results = [];
-    s3.listObjects((params), async function (e, data) {
-      if (e) {
-        reject(e);
-      }
-      for (let i = 0; i < data.Contents.length; i++) {
-        try {
-          const fileParams = {
-            Bucket: UPLOAD_TOOL_BUCKET,
-            Key: data.Contents[i].Key
-          };
-          const result = await readFile(fileParams, source);
-          results = results.concat(result);
-          if (i === data.Contents.length - 1) {
-            resolve(results);
-          }
-        } catch (e) {
-          reject(new Error(`Error reading ${data.Contents[i].key}: ${e}`));
-        }
-      }
-      // no results found
-      resolve([])
-    });
-  });
+const readS3Files = async function* (params, source) {
+  const data = await s3.listObjects(params).promise();
+
+  for (let i = 0; i < data.Contents.length; i++) {
+    try {
+      const fileParams = {
+        Bucket: UPLOAD_TOOL_BUCKET,
+        Key: data.Contents[i].Key
+      };
+      const result = readFile(fileParams, source);
+      yield* result;
+    } catch (e) {
+      reject(new Error(`Error reading ${data.Contents[i].key}: ${e}`));
+    }
+  }
 };
 
 /**
@@ -122,17 +100,12 @@ const readS3Files = function (params, source) {
  * @param {function} cb A callback of the form cb(err, data)
  */
 
-exports.fetchData = function (source, cb) {
+exports.fetchStream = function (source, cb) {
   const bucketParams = {
     Bucket: UPLOAD_TOOL_BUCKET,
     Delimiter: '/'
   };
-  readS3Files(bucketParams, source).then(measurements => {
-    cb(null, {
-      name: 'upload-tool',
-      measurements: measurements
-    });
-  }).catch(e => {
-    cb(e);
-  });
+  return DataStream.from(readS3Files(bucketParams, source))
+    .map(data => transformFormat(data, source))
+  ;
 };
