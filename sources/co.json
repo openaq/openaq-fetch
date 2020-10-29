@@ -24,5 +24,18 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "http://api-aire.ambientebogota.gov.co/api/sda/openAq",
+        "adapter": "bogota",
+        "name": "Bogota",
+        "city": "Bogota",
+        "country": "CO",
+        "description": "Secretaria Distrital de Ambiente",
+        "sourceURL": "http://www.ambientebogota.gov.co/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
