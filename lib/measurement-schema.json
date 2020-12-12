@@ -29,6 +29,9 @@
                 }
             }
         },
+        "license": {
+            "type": "string"
+        },
         "attribution": {
             "type": "array",
             "items": {

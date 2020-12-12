@@ -33,6 +33,7 @@ Optional properties (used to add information to measurements):
 * `city (String)` - City name
 * `location (String)` - Name of the location
 * `mobile (Boolean)` - Is the source mobile
+* `license (String)` - The license for the data specified using a [SPDX identifier](https://spdx.org/licenses/).
 
 Additonally the whole object is passed to the adapter so anything can be added to the structure. Adapter usually use:
 
