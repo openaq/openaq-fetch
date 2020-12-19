@@ -4,9 +4,9 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 
-const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
+exports.name = 'quito';
 
-var locations = [
+const locations = [
   'CML',
   'COT',
   'GUA',
@@ -19,7 +19,9 @@ var locations = [
   'BEL',
   'CEN'
 ];
-var measurementTypes = ['PM 2.5', 'PM 10', 'CO', 'NO2', 'SO2', 'O3'];
+const measurementTypes = ['PM 2.5', 'PM 10', 'CO', 'NO2', 'SO2', 'O3'];
+
+const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
 
 const renameParameter = function (parameter) {
   switch (parameter) {
@@ -43,46 +45,6 @@ const renameParameter = function (parameter) {
   }
 };
 
-const sanitizeDate = function (date) {
-  try {
-    var utc = moment.tz(date['utc'], 'America/Guayaquil');
-    var local = moment.tz(date['local'], 'America/Guayaquil');
-    return {
-      utc: utc.toDate(),
-      local: local.format()
-    };
-  } catch (error) {
-    console.log('here');
-  }
-};
-
-const formatData = function (source, data) {
-  let measurements = [];
-  let dataObject = JSON.parse(data);
-  dataObject.forEach((element) => {
-    let m = {
-      location: element['location'],
-      value: element['value'],
-      unit: element['unit'],
-      parameter: renameParameter(element['parameter']),
-      averagingPeriod: element['averagingPeriod'],
-      date: sanitizeDate(element['date']),
-      coordinates: element['coordinates'],
-      attribution: element['attribution'],
-      city: element['city'],
-      country: element['country'],
-      sourceType: element['sourceType'],
-      sourceName: element['sourceName'],
-      mobile: element['mobile'] === 'true'
-    };
-    measurements.push(m);
-  });
-  return {
-    name: 'unused',
-    measurements: measurements
-  };
-};
-
 const getNowDateFields = function () {
   let dateObj = new Date();
   let output = {};
@@ -91,9 +53,47 @@ const getNowDateFields = function () {
   output['year'] = dateObj.getUTCFullYear();
   return output;
 };
-let nowDateObject = getNowDateFields();
+const nowDateObject = getNowDateFields();
+
+var allMeasurements = [];
 
 exports.fetchData = function (source, cb) {
+  function sanitizeDate (date) {
+    try {
+      var utc = moment.tz(date['utc'], 'America/Guayaquil');
+      var local = moment.tz(date['local'], 'America/Guayaquil');
+      return {
+        utc: utc.toDate(),
+        local: local.format()
+      };
+    } catch (error) {
+      return cb({ message: 'Failed to parse date.' });
+    }
+  }
+
+  function formatData (_, data) {
+    let dataObject = JSON.parse(data);
+    dataObject.forEach((element) => {
+      let m = {
+        location: element['location'],
+        value: element['value'],
+        unit: element['unit'],
+        parameter: renameParameter(element['parameter']),
+        averagingPeriod: element['averagingPeriod'],
+        date: sanitizeDate(element['date']),
+        coordinates: element['coordinates'],
+        attribution: element['attribution'],
+        city: element['city'],
+        country: element['country'],
+        sourceType: element['sourceType'],
+        sourceName: element['sourceName'],
+        mobile: element['mobile'] === 'true'
+      };
+      allMeasurements.push(m);
+    });
+    return allMeasurements;
+  }
+
   locations.forEach((station) => {
     measurementTypes.forEach((measurement) => {
       var propertiesObject = {
@@ -121,13 +121,17 @@ exports.fetchData = function (source, cb) {
 
           try {
             var data = formatData(source, body);
+
             if (data === undefined) {
               return cb({ message: 'Failure to parse data.' });
             }
-            cb(null, data);
           } catch (e) {
             return cb({ message: 'Unknown adapter error.' });
           }
+          return cb(null, {
+            name: 'unused',
+            measurements: allMeasurements
+          });
         }
       );
     });
