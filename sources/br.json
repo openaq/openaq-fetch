@@ -1,6 +1,6 @@
 [
     {
-        "url": "http://sistemasinter.cetesb.sp.gov.br/Ar/php/ar_dados_horarios_resultado.php",
+        "url": "https://qualar.cetesb.sp.gov.br/qualar",
         "adapter": "saopaulo",
         "name": "Sao Paulo",
         "city": "Sao Paulo",
