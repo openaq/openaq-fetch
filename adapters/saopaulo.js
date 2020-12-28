@@ -2,21 +2,29 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-// import _ from 'lodash';
+import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import log from '../lib/logger';
-// import { parallelLimit } from 'async';
-// import { convertUnits } from '../lib/utils';
+import { unifyMeasurementUnits } from '../lib/utils';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'saopaulo';
 
+export const paramCodes = {
+  pm25: 57,
+  pm10: 12,
+  co: 16,
+  so2: 13,
+  o3: 63,
+  no2: 15
+};
+
 // Promisify post request
-async function promisePostRequest(url, formParams, headers) {
+async function promisePostRequest (url, formParams, headers) {
   return new Promise((resolve, reject) => {
     request.post(url, { form: formParams, headers: headers, encoding: null }, (error, res, data) => {
-      if (!error && (res.statusCode === 200 || res.statusCode === 302)) { // redirect for authentication counts as success
+      if (!error && (res.statusCode === 200)) {
         resolve(data.toString('latin1'));
       } else {
         reject(error);
@@ -25,7 +33,8 @@ async function promisePostRequest(url, formParams, headers) {
   });
 }
 
-async function promiseAuthRequest(url, params) {
+// Special post request to pass back cookie
+async function promiseAuthRequest (url, params) {
   return new Promise((resolve, reject) => {
     request.post(url, { form: params }, (error, res, data) => {
       if (!error && res.statusCode === 302) { // redirect for authentication counts as success
@@ -37,277 +46,106 @@ async function promiseAuthRequest(url, params) {
   });
 }
 
-export async function fetchData(source, cb) {
+export async function fetchData (source, cb) {
   // Authenticate
   const authURL = source.url + '/autenticador';
-  const authParams = { // NEED TO SWITCH TO ENVIRONMENT VARIABLES
-    cetesb_login: 'dev@openaq.org',
-    cetesb_password: 'ScCrIfhHEe'
+  const authParams = {
+    cetesb_login: process.env.CETESB.LOGIN,
+    cetesb_password: process.env.CETESB.PASSWORD
   };
+  // Get hourly data by parameter
   const dataURL = source.url + '/conDadosHorariosPorParametro.do?method=executarImprimir';
-
-  var dateNow = moment().tz('America/Sao_Paulo');
+  const dateNow = moment().tz('America/Sao_Paulo');
   const dataParams = {
-    // dataStr: dateNow.format('DD/MM/YYYY'), //'27/12/2020',
-    dataStr: '27/12/2020', // '27/12/2020',
-    // horaStr: dateNow.format('HH:mm'), //'11:00',
-    horaStr: '11:00', // '11:00',
-    tipoMedia: 'MH',
-    nparmtsSelecionados: 15 // PM25
-  };
-
-  const paramCodes = {
-    pm25: 57,
-    pm10: 12,
-    co: 16,
-    so2: 13,
-    o3: 63,
-    no2: 15 // ??
+    dataStr: dateNow.format('DD/MM/YYYY'),
+    horaStr: dateNow.format('HH:mm'),
+    tipoMedia: 'MH' // hourly average
   };
 
   try {
     const auth = await promiseAuthRequest(authURL, authParams);
     const cookie = auth[0].split(';')[0];
-    log.info('Successfully logged in!' + cookie);
-    const data = await promisePostRequest(dataURL, dataParams, { cookie: cookie });
-    log.info('Success!');
 
-    var $ = cheerio.load(data, { decodeEntities: false });
+    // Create promises with post requests and parsing for all parameters
+    const allParams = Object.values(paramCodes).map(p =>
+      promisePostRequest(dataURL, { ...dataParams, nparmtsSelecionados: p }, { cookie: cookie })
+        // in case a request fails, handle gracefully
+        .catch(error => { log.warn(error || 'Unable to load data for parameter'); return null; })
+        .then(data => parseParams(data)));
 
-    // Get parameter and unit
-    var niceParameter = function (parameter) {
-      switch (parameter) {
-        case 'MP10':
-          return 'pm10';
-        case 'MP2.5':
-          return 'pm25';
-        default:
-          return parameter.toLowerCase();
-      }
-    };
+    const allData = await Promise.all(allParams);
+    const measurements = _.flatten((allData.filter(d => (d))));
 
-    var niceUnit = function (string) {
-      if (string === 'µg/m3') {
-        return 'µg/m³';
-      } else if (string === 'ppm') {
-        return string;
-      } else {
-        log.warn('Unknown unit', string);
-        return undefined;
-      }
-    };
-    const paramString = $('tbody').last().children().first().text().trim();
-    const parameter = niceParameter(paramString.split(' ')[1].trim());
-    console.log(parameter)
-    const unit = niceUnit(paramString.split(')')[1].trim());
-
-    var timeStamps = $($('tbody').last().children()[2]).children(); // Add check to make sure we think what it is
-    var dataRows = $('tbody').last().children().slice(3); // Add check to make sure we think what it is
-
-    const measurements = [];
-
-    dataRows.each((_, row) => {
-      row = $(row).children();
-      // Build base measurement
-      const location = $(row[0]).text().trim();
-      if (!Object.keys(coordinates).includes(location)) {
-        log.warn('Unknown or new location:', location);
-      } else {
-        const base = {
-          parameter: parameter,
-          unit: unit,
-          location: location, // TODO: Cleanup station name
-          attribution: [{'name': 'CETESB', 'url': 'http://cetesb.sp.gov.br/'}],
-          averagingPeriod: {'value': 1, 'unit': 'hours'},
-          coordinates: coordinates[location],
-          city: stationsCities[location] || location || 'São Paulo'
-        }
-
-        // Get values and dates
-        row.each((i, e) => {
-          if (i !== 0) {
-            const value = $(e).text();
-            if (value !== '' && value !== ' ' && value !== '--') {
-              // Get date from timeStamps, index -1 since there's an extra column here for the station name
-              const date = moment.tz($(timeStamps[i - 1]).text(), 'DD/MM/YYYYHH:mm', 'America/Sao_Paulo');
-              const m = {
-                date: { utc: date.toDate(), local: date.format() },
-                value: Number(value)
-              };
-              measurements.push({ ...base, ...m });
-            }
-          }
-        });
-      }
-    });
     cb(null, { name: 'unused', measurements });
   } catch (e) {
     cb(e);
   }
 }
 
-//   // First fetch all the stations from link below and then load them
-//   // http://sistemasinter.cetesb.sp.gov.br/Ar/php/ar_dados_horarios.php
+function parseParams (data) {
+  if (!data) return null;
+  var $ = cheerio.load(data, { decodeEntities: false });
 
-//   request(source.sourceURL, function (err, res, body) {
-//     if (err || res.statusCode !== 200) {
-//       return cb({message: 'Failure to load source url.'});
-//     }
-//     var stations = [];
-//     var $ = cheerio.load(body);
-//     $($('#selEst').children()).each(function () {
-//       stations.push($(this).val());
-//     });
+  // Get parameter and unit
+  var niceParameter = function (parameter) {
+    switch (parameter) {
+      case 'MP10':
+        return 'pm10';
+      case 'MP2.5':
+        return 'pm25';
+      default:
+        return parameter.toLowerCase();
+    }
+  };
+  const paramString = $('tbody').last().children().first().text().trim();
+  const parameter = niceParameter(paramString.split(' ')[1].trim());
+  const unit = paramString.split(')')[1].trim();
 
-//     // Now create a task for each station
-//     var tasks = [];
-//     _.forEach(stations, function (s) {
-//       var task = function (cb) {
-//         var form = makePostForm(s);
-//         request.post(source.url, {form: form}, function (err, res, body) {
-//           if (err || res.statusCode !== 200) {
-//             return cb(err || res);
-//           }
-//           return cb(null, body);
-//         });
-//       };
+  // Future TODO: Add checks to make sure rows and cols are lining up as we are assuming
+  var timeStamps = $($('tbody').last().children()[2]).children();
+  var dataRows = $('tbody').last().children().slice(3);
 
-//       tasks.push(task);
-//     });
+  const paramMeasurements = [];
 
-//     parallelLimit(tasks, 4, function (err, results) {
-//       if (err) {
-//         return cb({message: 'Failure to load data urls.'});
-//       }
+  dataRows.each((_, row) => {
+    row = $(row).children();
 
-//       // Wrap everything in a try/catch in case something goes wrong
-//       try {
-//         // Format the data
-//         var data = formatData(results);
-//         if (data === undefined) {
-//           return cb({message: 'Failure to parse data.'});
-//         }
-//         cb(null, data);
-//       } catch (e) {
-//         return cb({message: 'Unknown adapter error.'});
-//       }
-//     });
-//   });
-// };
+    // Build base measurement
+    const location = $(row[0]).text().trim();
+    if (!Object.keys(coordinates).includes(location)) {
+      log.warn('Unknown or new location:', location);
+    } else {
+      const base = {
+        parameter: parameter,
+        location: location,
+        attribution: [{'name': 'CETESB', 'url': 'http://cetesb.sp.gov.br/'}],
+        averagingPeriod: {'value': 1, 'unit': 'hours'},
+        coordinates: coordinates[location],
+        city: stationsCities[location] || location || 'São Paulo'
+      };
 
-// // Build up the url post object to query
-// var makePostForm = function (station) {
-//   // Get current date in Sao Paulo
-//   var date = moment().tz('America/Sao_Paulo').format('DD-MM-YYYY');
-//   return {
-//     texData: date,
-//     selEst: station
-//   };
-// };
-
-// // Create a measurement for every value in the table and let the upstream
-// // insert fail. Could be optimized in the future.
-// var formatData = function (results) {
-//   var measurements = [];
-
-//   // Take out <br> and trim whitespace/returns
-//   var niceStrip = function (string) {
-//     return string.replace('<br>', '').trim();
-//   };
-
-//   var niceParameter = function (parameter) {
-//     switch (parameter) {
-//       case 'MP10':
-//         return 'pm10';
-//       case 'MP2.5':
-//         return 'pm25';
-//       default:
-//         return parameter.toLowerCase();
-//     }
-//   };
-
-//   var getDate = function (day, time) {
-//     // Grab date from page, add time string and convert to date
-//     var dateString = day + ' ' + time;
-//     var date = moment.tz(dateString, 'DD/MM/YYYY HH:mm', 'America/Sao_Paulo');
-
-//     return {utc: date.toDate(), local: date.format()};
-//   };
-
-//   // Try to find a nice unit to use for the measurement
-//   var niceUnit = function (string) {
-//     if (string.indexOf('&micro;g/m&sup3;') !== -1) {
-//       return 'µg/m³';
-//     } else if (string.indexOf('ppm') !== -1) {
-//       return 'ppm';
-//     } else {
-//       log.warn('Unknown unit', string);
-//       return undefined;
-//     }
-//   };
-
-//   // This will loop over each individual station page we've received
-//   _.forEach(results, function (r) {
-//     // Load the html into Cheerio
-//     var $ = cheerio.load(r, {decodeEntities: false});
-
-//     // Get the title of the page based on a style class, this feels bad
-//     var title = $($('.font04').first()).html();
-//     var match = / - \d{2}\/\d{2}\/\d{4}/.exec(title);
-//     var day = match[0].split(' - ')[1];
-//     var location = title.substring(0, match.index);
-
-//     var base = {
-//       location: location,
-//       attribution: [{'name': 'CETESB', 'url': 'http://cetesb.sp.gov.br/'}],
-//       averagingPeriod: {'value': 1, 'unit': 'hours'},
-//       coordinates: coordinates[location]
-//     };
-
-//     // Loop over each table (column), first is hours, others are params
-//     var hours = [];
-//     $($('table').get(6)).find('table').each(function (i) {
-//       // Hours
-//       if (i === 0) {
-//         $(this).children().each(function (j) {
-//           if (j >= 2) { // Skip firs two rows
-//             // Add hours to the array
-//             hours.push($($(this).find('td')).html());
-//           }
-//         });
-//       } else {
-//         // Other parameters, get title and see if we want to keep them
-//         var parameter = niceStrip($($(this).find('strong')).html());
-//         if (['MP10', 'MP2.5', 'O3', 'SO2', 'NO2', 'CO'].indexOf(parameter) !== -1) {
-//           var unit = niceUnit($($($(this).find('strong')).parent()).text());
-//           $(this).children().each(function (j) {
-//             if (j >= 2) { // Skip firs two rows
-//               // Grab the first td (col) this works for us since we want the hourly
-//               var value = niceStrip($($(this).find('td')).html());
-//               // Make sure we have a valid value
-//               if (value !== '' && value !== ' ' && value !== '--') {
-//                 var m = _.cloneDeep(base);
-//                 if (_.indexOf(_.keys(stationsCities), location) !== -1) {
-//                   m.city = stationsCities[location] || location;
-//                 }
-//                 m.value = Number(value);
-//                 m.parameter = niceParameter(parameter);
-//                 m.unit = unit;
-//                 m.date = getDate(day, hours[j - 2]); // Subtract 2 to match hours array
-
-//                 measurements.push(m);
-//               }
-//             }
-//           });
-//         }
-//       }
-//     });
-//   });
-
-//   // Convert units to platform standard
-//   measurements = convertUnits(measurements);
-//   return {name: 'unused', measurements: measurements};
-// };
+      // Get values and dates
+      row.each((i, e) => {
+        if (i !== 0) {
+          let value = $(e).text();
+          if (value !== '' && value !== ' ' && value !== '--') {
+            value = value.replace(',', '.');
+            // Get date from timeStamps, index -1 since there's an extra column here for the station name
+            const date = moment.tz($(timeStamps[i - 1]).text(), 'DD/MM/YYYYHH:mm', 'America/Sao_Paulo');
+            const m = {
+              date: { utc: date.toDate(), local: date.format() },
+              value: value,
+              unit: unit
+            };
+            unifyMeasurementUnits(m);
+            paramMeasurements.push({ ...base, ...m });
+          }
+        }
+      });
+    }
+  });
+  return paramMeasurements;
+}
 
 // stations and their respective cities mapping
 // if city === "" then city = station
@@ -377,8 +215,8 @@ export const stationsCities = {
 export const coordinates = {
   'Guaratinguetá': { latitude: -22.80191714, longitude: -45.19112236 },
   'Jacareí': { latitude: -23.29419924, longitude: -45.96823386 },
-  'S.José dos Campos': { latitude: -23.18788733, longitude: -45.87119762 },
-  'S.José dos Campos-Jd.Satelite': { latitude: -23.22364548, longitude: -45.8908 },
+  'S.José Campos': { latitude: -23.18788733, longitude: -45.87119762 },
+  'S.José Campos-Jd.Satelite': { latitude: -23.22364548, longitude: -45.8908 },
   'S.José dos Campos-Vista Verde': { latitude: -23.18369735, longitude: -45.83089698 },
   'Taubaté': { latitude: -23.03235096, longitude: -45.57580502 },
   'Ribeirão Preto': { latitude: -21.15394189, longitude: -47.82848053 },
