@@ -1,36 +1,47 @@
 'use strict';
 
-import { default as moment } from 'moment-timezone';
+import _ from 'lodash';
 import log from '../lib/logger';
 import { promisePostRequest, unifyMeasurementUnits } from '../lib/utils';
 
 export const name = 'rwanda';
 
-export async function fetchData(source, cb) {
+export async function fetchData (source, cb) {
+  try {
+    // Create post requests for all parameters
+    const params = ['PM25', 'PM10', 'O3', 'NO2', 'SO2', 'CO', 'PB'];
+    const paramRequests = params.map(p =>
+      promisePostRequest(source.url, { parameter: p })
+      // Handle request errors gracefully
+        .catch(error => { log.warn(error || 'Unable to load data for parameter'); return null; }));
+    // Run post requests in parallel and wait for all to resolve
+    let allData = await Promise.all(paramRequests);
 
-    try {
-        const params = ["PM25", "PM10", "O3", "NO2", "SO2", "CO"]
-        const data = JSON.parse(await promisePostRequest(source.url, { parameter: params[0] }));
-        const base = {
-            location: data.location,
-            coordinates: data.coordinates,
-            city: data.city,
-            attribution: data.attribution,
-            parameter: data.parameter,
-            averagingPeriod: data.averagingPeriod,
-            unit: data.unit
-        }
-        const measurements = data.data.map(d => {
-            const values = {
-                date: { local: d.date_local, utc: d.date_utc },
-                value: Number(d.value)
-            }
-            var m = { ...base, ...values }
-            return unifyMeasurementUnits(m)
-        })
-
-        cb(null, { name: 'unused', measurements });
-    } catch (e) {
-        cb(e);
-    }
+    allData = allData.map(d => JSON.parse(d)).filter(d => (d));
+    let measurements = allData.map(data => {
+      // Create base object
+      const base = {
+        location: data.location,
+        coordinates: data.coordinates,
+        city: data.city,
+        attribution: data.attribution,
+        parameter: data.parameter,
+        averagingPeriod: data.averagingPeriod
+      };
+      // Loop through array of values and dates
+      const paramMeasurements = data.data.map(d => {
+        const m = {
+          date: { local: d.date_local, utc: d.date_utc },
+          value: Number(d.value),
+          unit: data.unit
+        };
+        unifyMeasurementUnits(m);
+        return { ...base, ...m };
+      });
+      return paramMeasurements;
+    });
+    cb(null, { name: 'unused', measurements: _.flatten(measurements) });
+  } catch (e) {
+    cb(e);
+  }
 }

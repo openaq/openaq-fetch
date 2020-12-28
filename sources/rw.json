@@ -2,9 +2,9 @@
     {
         "url": "https://aq.rema.gov.rw/api/get_data",
         "adapter": "rwanda",
-        "name": "Rwanda",
+        "name": "Rwanda REMA",
         "country": "RW",
-        "description": "",
+        "description": "Rwanda Environment Management Authority (REMA)",
         "sourceURL": "https://aq.rema.gov.rw",
         "contacts": [
             "info@openaq.org"
