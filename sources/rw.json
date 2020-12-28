@@ -1,0 +1,14 @@
+[
+    {
+        "url": "https://aq.rema.gov.rw/api/get_data",
+        "adapter": "rwanda",
+        "name": "Rwanda",
+        "country": "RW",
+        "description": "",
+        "sourceURL": "https://aq.rema.gov.rw",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
