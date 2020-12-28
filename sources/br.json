@@ -2,7 +2,7 @@
     {
         "url": "https://qualar.cetesb.sp.gov.br/qualar",
         "adapter": "saopaulo",
-        "name": "Sao Paulo",
+        "name": "Sao Paulo CETESB",
         "city": "Sao Paulo",
         "country": "BR",
         "description": "",
