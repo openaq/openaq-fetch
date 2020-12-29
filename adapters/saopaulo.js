@@ -50,8 +50,8 @@ export async function fetchData (source, cb) {
   // Authenticate
   const authURL = source.url + '/autenticador';
   const authParams = {
-    cetesb_login: process.env.CETESB.LOGIN,
-    cetesb_password: process.env.CETESB.PASSWORD
+    cetesb_login: process.env.CETESB_LOGIN,
+    cetesb_password: process.env.CETESB_PASSWORD
   };
   // Get hourly data by parameter
   const dataURL = source.url + '/conDadosHorariosPorParametro.do?method=executarImprimir';
