@@ -1,12 +1,12 @@
 [
   {
-      "url": "http://www.aqvisor.net:9090/openaq/dataset",
+      "url": "http://www.aqvisor.net:9090/openaq",
       "adapter": "quito",
-      "name": "REMMAQ",
+      "name": "Quito REMMAQ",
       "city": "Quito",
       "country": "EC",
       "description": "",
-      "sourceURL": "http://www.aqvisor.net:9090/openaq/location",
+      "sourceURL": "http://www.quitoambiente.gob.ec/ambiente/",
       "contacts": [
           "info@openaq.org"
       ],
