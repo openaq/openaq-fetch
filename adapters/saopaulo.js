@@ -134,7 +134,7 @@ function parseParams (data) {
             const date = moment.tz($(timeStamps[i - 1]).text(), 'DD/MM/YYYYHH:mm', 'America/Sao_Paulo');
             const m = {
               date: { utc: date.toDate(), local: date.format() },
-              value: value,
+              value: Number(value),
               unit: unit
             };
             unifyMeasurementUnits(m);
