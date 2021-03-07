@@ -1,8 +1,12 @@
+---
+name: New data issue
+about: Use this template for requesting a new data source is added to the openaq platform.
+title: "New Data: NAME OF DATA SOURCE"
+labels: new data, needs investigation, good for new contributors, help wanted
+---
+
 _Please use this template when opening an issue for investigating or adding a new data source to openaq-fetch_
 _All bullets are optional_
-
-Suggested issue title: [New Data: NAME OF DATA SOURCE]
-Suggested label(s): `new data`, `needs investigation`, `good for new contributors`, `help wanted`
 
 - Country of data source:
 - Specific coverage within country:
