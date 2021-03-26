@@ -62,7 +62,7 @@ Promise.race([
       // get measurements object from given source
       // all error handling should happen inside this call
       .use(fetchCorrectedMeasurementsFromSourceStream, env)
-      // perform streamed save to DB and S3 on each source.
+      // perform streamed save to S3 on each source.
       .use(streamMeasurementsToDBAndStorage, env)
       // mark sources as finished
       .do(markSourceAs('finished', runningSources))
