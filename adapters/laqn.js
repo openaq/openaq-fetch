@@ -7,11 +7,11 @@ import { promiseRequest, unifyParameters, unifyMeasurementUnits } from '../lib/u
 
 export const name = 'laqn';
 
-// API does not publish units so they are inferred from the measurement
+// API does not publish units but we got them directly from the data source
 const unitLookup = {
-  'CO': 'µg/m3',
+  'CO': 'mg/m3',
   'NO2': 'µg/m3',
-  'O3': 'mg/m3',
+  'O3': 'µg/m3',
   'PM10': 'µg/m3',
   'PM25': 'µg/m3',
   'SO2': 'µg/m3'
@@ -20,7 +20,7 @@ const unitLookup = {
 export async function fetchData (source, cb) {
   try {
     let dateNow = moment().tz('Europe/London');
-    let startDate = dateNow.add(-1, 'days').format('DD MMM YYYY');
+    let startDate = dateNow.format('DD MMM YYYY');
     let endDate = dateNow.add(1, 'days').format('DD MMM YYYY');
     let siteCodesResponse = await promiseRequest(
       `${source.url}/AirQuality/Information/MonitoringSites/GroupName=All/Json`
@@ -72,17 +72,22 @@ function formatData (data, siteLookup) {
       },
       attribution: [
         {
-          'name': site['@DataOwner'],
-          'url': site['@SiteLink']
+          'name': 'Environmental Research Group of Kings College London',
+          'url': 'http://www.erg.kcl.ac.uk'
         },
         {
-          'name': site['@DataManager']
+          'name': 'London Air Quality Network',
+          'url': 'http://www.londonair.org.uk'
+        },
+        {
+          'name': site['@DataOwner'],
+          'url': site['@SiteLink']
         }
       ],
       city: site['@LocalAuthorityName'],
-      country: 'gb',
+      country: 'GB',
       sourceName: 'London Air Quality Network',
-      sourceType: 'research',
+      sourceType: 'government',
       mobile: false
     };
     m = unifyParameters(m);
