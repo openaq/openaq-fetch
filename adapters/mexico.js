@@ -13,8 +13,12 @@ import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import async from 'async';
 import cheerio from 'cheerio';
+import { join } from 'path';
 
 // Adding in certs to get around unverified connection issue
+require('ssl-root-cas/latest')
+  .inject()
+  .addFile(join(__dirname, '..', '/certs/sinaica.inecc.gob.mx.chained.crt'));
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 exports.name = 'mexico';
@@ -30,7 +34,7 @@ exports.fetchData = async function (source, cb) {
   // Request may need some calibration, because the code may often get Error: ESOCKETTIMEDOUT, could not find any way to bypass that
   var tasks = fetchAllStationSites(await new Promise((resolve, reject) => {
     request(source.sourceURL, (error, response, body) => {
-      if (error) reject(new Error(error));
+      if ((!response) || (error)) reject(new Error(error));
       if (response.statusCode !== 200) {
         reject(new Error('Invalid status code <' + response.statusCode + '>'));
       }
