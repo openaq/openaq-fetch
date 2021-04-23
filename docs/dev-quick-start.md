@@ -24,9 +24,9 @@ Follow these steps to create a full local development environment (this is proba
 4. Install dependencies `cd openaq-fetch && npm install`
 5. Create a user and db in postgres in `docker exec -ti postgis psql -U postgres`
 ```sql
-CREATE ROLE openaq WITH LOGIN PASSWORD 'openaq-password';
-CREATE DATABASE openaq OWNER openaq;
-\connect openaq
+CREATE ROLE openaq WITH LOGIN PASSWORD 'openaq-pass';
+CREATE DATABASE "openaq-local" OWNER openaq;
+\connect "openaq-local"
 CREATE EXTENSION postgis;
 \quit
 ```
