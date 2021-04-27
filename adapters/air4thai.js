@@ -71,7 +71,6 @@ const formatData = function (data) {
         longitude: Number(item.long)
       },
       attribution: [{name: 'Air4Thai', url: 'http://air4thai.pcd.go.th/webV2/'}],
-      averagingPeriod: {unit: 'hours', value: 1}
     };
     Object.keys(item.AQILast).forEach(v => {
       const unaccepted = ['date', 'AQI', 'time'];
@@ -83,11 +82,20 @@ const formatData = function (data) {
         'NO2': 'ppb',
         'SO2': 'ppb'
       };
+      const average = {
+        'PM25': 24,
+        'PM10': 24,
+        'O3': 8,
+        'CO': 8,
+        'NO2': 1,
+        'SO2': 1
+      };
       if (!unaccepted.includes(v)) {
         var m = Object.assign({
           unit: unit[v],
           value: Number(item.AQILast[v].value),
-          parameter: v
+          parameter: v,
+          averagingPeriod: {unit: 'hours', value: average[v]}
         }, base);
         m = unifyMeasurementUnits(unifyParameters(m));
         if (m.value > 0) {
