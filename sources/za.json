@@ -14,5 +14,17 @@
       "info@openaq.org"
     ],
     "active": false
+  },
+  {
+    "url": "http://saaqis.environment.gov.za/ajax/getAllStationsWithoutFiltering",
+    "adapter": "southafrica",
+    "name": "South Africa",
+    "country": "ZA",
+    "description": "Air Quality data from South African Department Enviromental Affairs",
+    "sourceURL": "http://saaqis.environment.gov.za",
+    "contacts": [
+        "info@openaq.org"
+    ],
+    "active": true
   }
 ]
