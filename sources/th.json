@@ -11,6 +11,20 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
+    },
+    {
+        "url": "http://air4thai.pcd.go.th/forappV2/getAQI_JSON.php",
+        "adapter": "air4thai",
+        "name": "Air4Thai",
+        "city": "",
+        "country": "TH",
+        "description": "Air Quality and Noise Management Bureau, Pollution Control Board",
+        "resolution": "",
+        "sourceURL": "http://air4thai.pcd.go.th/webV2/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true 
     }
 ]
