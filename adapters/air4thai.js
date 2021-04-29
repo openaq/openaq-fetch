@@ -70,7 +70,7 @@ const formatData = function (data) {
         latitude: Number(item.lat),
         longitude: Number(item.long)
       },
-      attribution: [{name: 'Air4Thai', url: 'http://air4thai.pcd.go.th/webV2/'}],
+      attribution: [{name: 'Air4Thai', url: 'http://air4thai.pcd.go.th/webV2/'}]
     };
     Object.keys(item.AQILast).forEach(v => {
       const unaccepted = ['date', 'AQI', 'time'];
@@ -98,7 +98,7 @@ const formatData = function (data) {
           averagingPeriod: {unit: 'hours', value: average[v]}
         }, base);
         m = unifyMeasurementUnits(unifyParameters(m));
-        if (m.value > 0) {
+        if (m.value >= 0) {
           measurements.push(m);
         }
       }
