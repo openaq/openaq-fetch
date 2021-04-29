@@ -72,12 +72,12 @@ function formatData (data, siteLookup) {
       },
       attribution: [
         {
-          'name': 'Environmental Research Group of Kings College London',
-          'url': 'http://www.erg.kcl.ac.uk'
+          'name': 'Environmental Research Group of Imperial College London',
+          'url': 'https://www.imperial.ac.uk/school-public-health/environmental-research-group/'
         },
         {
           'name': 'London Air Quality Network',
-          'url': 'http://www.londonair.org.uk'
+          'url': 'https://www.londonair.org.uk'
         },
         {
           'name': site['@DataOwner'],
