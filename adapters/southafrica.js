@@ -64,7 +64,7 @@ const formatData = function (data) {
   var measurements = [];
   _.forEach(data, function (s) {
     const base = {
-      location: (s.location==="N/A") ? s.name : s.location,
+      location: s.name,
       city: s.city,
       coordinates: {
         latitude: Number(s.latitude),
@@ -74,10 +74,10 @@ const formatData = function (data) {
       averagingPeriod: {unit: 'hours', value: 1}
     };
     _.forOwn(s.monitors, function (v, key) {
-      if (v.value !== null && v.DateVal !== null) { 
+      if (v.value !== null && v.value !== '' && v.DateVal !== null) {
         var m = _.clone(base);
         m.parameter = v.Pollutantname;
-        m.value = (v.value==="") ? 0 : Number(v.value);
+        m.value = Number(v.value);
         m.unit = v.unit;
         m.date = parseDate(v.DateVal);
         m = unifyMeasurementUnits(m);
