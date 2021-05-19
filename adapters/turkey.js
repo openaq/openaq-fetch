@@ -28,7 +28,6 @@ exports.fetchData = function (source, cb) {
         if (err || res.statusCode !== 200) {
           return done({message: 'Failure to load data url.'});
         }
-
         return done(null, body);
       });
     },
@@ -90,7 +89,7 @@ const formatData = function (data) {
   // Now get each measurement
   let records = [];
   // Each row within table, outside of header
-  $('tbody>tr').each((i, row) => {
+  $('div>table>tbody>tr').each((i, row) => {
     let base = {};
     // Location, city
     $('td>a', row).each((j, elem) => {
@@ -112,17 +111,19 @@ const formatData = function (data) {
       }
     });
     // Loop over measurements and clone from base
-    $('td>table>tbody>tr>td>span', row).each((j, elem) => {
-      const idx = j + 2; // Need to add 2 to match headers indexing
-      let record = Object.assign({}, base);
-      if (idx <= 13) {
-        record.parameter = headers[idx]['name'];
-        record.unit = headers[idx]['unit'];
-        if ($(elem).text() !== '') {
-          record.value = Number($(elem).text().replace(',', '.')); // Account for alternate numbering scheme
-        }
-        if (acceptableParameters.includes(headers[idx]['name']) && record.city && record.location && record.value !== undefined) {
-          records.push(record);
+    $('td>table>tbody>tr>td', row).each((j, elem) => {
+      if (j % 2 == 0) {
+        const idx = (j==0) ? 2 : (2 + (j/2)); // there are two of these elements pr parameter
+        let record = Object.assign({}, base);
+        if (idx <= 13) {
+          record.parameter = headers[idx]['name'];
+          record.unit = headers[idx]['unit'];
+          if ($(elem).text() !== '') {
+            record.value = Number($(elem).text().replace(',', '.'));
+          }
+          if (acceptableParameters.includes(headers[idx]['name']) && record.city && record.location && record.value !== undefined) {  
+            records.push(record);
+          }
         }
       }
     });
