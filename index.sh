@@ -1,6 +1,6 @@
 # !/usr/bin/env bash
-PROCESS_TIMEOUT=180
-adapters=exec.adapters.list
+PROCESS_TIMEOUT=120
+adapters=adapters.list
 rm $adapters
 for file in ./sources/*.json; do
     jq '.[] | select(.active == true ).name' $file | sed -r 's/^"|"$//g' >>$adapters
