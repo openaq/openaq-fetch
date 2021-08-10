@@ -1,5 +1,5 @@
 # !/usr/bin/env bash
-PROCESS_TIMEOUT=120
+PROCESS_TIMEOUT_=2m
 adapters=adapters.list
 rm $adapters
 for file in ./sources/*.json; do
@@ -8,7 +8,7 @@ done
 
 while read adapter; do
     echo "================================> $adapter <================================"
-    node index.js --source "$adapter" &
-    sleep $PROCESS_TIMEOUT
+    node index.js --source "$adapter" -vb &
+    sleep ${PROCESS_TIMEOUT_}
     kill "$!"
 done <$adapters

@@ -57,6 +57,7 @@ COPY test /app/test/
 COPY sources /app/sources/
 COPY adapters /app/adapters/
 COPY migrations /app/migrations/
+COPY index.sh /app/
 
 #############################
 # entrypoint
@@ -65,3 +66,4 @@ RUN source $NVM_DIR/nvm.sh
 ADD .build_scripts/entrypoint.sh /
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
+CMD ["index.sh"]
