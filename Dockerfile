@@ -39,6 +39,9 @@ RUN source $NVM_DIR/nvm.sh
 # mongo uses kerberos
 RUN apt-get update && apt-get install -y libkrb5-dev
 
+# install jq for json processing
+RUN apt-get -y install jq
+
 # Install NPM dependencies. Do this first so that if package.json hasn't
 # changed we don't have to re-run npm install during `docker build`
 COPY package.json /app/package.json
@@ -54,7 +57,7 @@ COPY test /app/test/
 COPY sources /app/sources/
 COPY adapters /app/adapters/
 COPY migrations /app/migrations/
-
+COPY index.sh /app/
 #############################
 # entrypoint
 #

@@ -8,3 +8,4 @@ ecs-task-generated.json
 /.nvmrc
 .editorconfig
 knexfile-local.js
+adapters.list
