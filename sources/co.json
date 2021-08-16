@@ -23,7 +23,7 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": false
+        "active": true
     },
     {
         "url": "http://api-aire.ambientebogota.gov.co/api/sda/openAq",
