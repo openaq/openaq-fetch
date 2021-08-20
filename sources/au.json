@@ -29,7 +29,7 @@
         "active": true
     },
     {
-        "url": "http://epa.tas.gov.au/Air/Live/EPA_tas_latest_particle_data.txt",
+        "url": "https://epa.tas.gov.au/Air/Live/EPA_tas_latest_particle_data.txt",
         "adapter": "tasmania",
         "name": "Australia - Tasmania",
         "city": "Tasmania Region",
