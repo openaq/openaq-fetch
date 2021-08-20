@@ -147,7 +147,7 @@ var formatData = function (source, data) {
 
   return {
     name: 'unused',
-    measurements: measurements
+    measurements: (measurements || []).filter(i => i.city)
   };
 };
 
