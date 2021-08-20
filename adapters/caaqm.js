@@ -8,7 +8,6 @@ import { join } from 'path';
 import log from '../lib/logger';
 import JSONStream from 'JSONStream';
 import { DataStream } from 'scramjet';
-import rp from 'request-promise-native';
 import { FetchError, DATA_URL_ERROR } from '../lib/errors';
 
 // Adding in certs to get around unverified connection issue
@@ -46,28 +45,33 @@ export async function fetchStream (source) {
       e.stream.end();
       throw e;
     })
-    .setOptions({maxParallel: 5})
-    .into(
-      (siteStream, site) => {
-        return siteStream.whenWrote({
-          station_id: site['station_id'],
-          station_name: site['station_name'],
-          coords: {latitude: Number(site['latitude']), longitude: Number(site['longitude'])}
-        });
-      },
-      new DataStream()
-    )
+    .setOptions({ maxParallel: 2 })
+    .into((siteStream, site) => {
+      return siteStream.whenWrote({
+        station_id: site['station_id'],
+        station_name: site['station_name'],
+        coords: {
+          latitude: Number(site['latitude']),
+          longitude: Number(site['longitude'])
+        },
+        status: site['status']
+      });
+    }, new DataStream())
+    .filter((station) => {
+      return station.status === 'Live';
+    })
     .into(
       async (measurements, {coords, station_id: stationId}) => {
         const options = Object.assign(requestOptions, {
           url: 'https://app.cpcbccr.com/caaqms/caaqms_viewdata_v2',
           body: Buffer.from(`{"site_id":"${stationId}"}`).toString('base64'),
-          resolveWithFullResponse: true
+          resolveWithFullResponse: true,
+          timeout: 30000
         });
 
         try {
-          const response = await rp(options);
-          const {siteInfo, tableData: {bodyContent}} = JSON.parse(response.body);
+          const body = await getInfo(options, stationId);
+          const {siteInfo, tableData: {bodyContent}} = JSON.parse(body);
 
           await (
             DataStream
@@ -116,4 +120,19 @@ export async function fetchStream (source) {
       new DataStream()
     )
   ;
+}
+
+async function getInfo (options, stationId) {
+  return new Promise((resolve, reject) => {
+    request.post(options, (err, res, body) => {
+      log.debug(`stationId: ${stationId}, statusCode: ${res ? res.statusCode : 'unknown'}`);
+      if (err) {
+        log.error(err);
+        reject(err);
+        // resolve(`{ "tableData": { "bodyContent": [] } }`);
+      } else {
+        resolve(body);
+      }
+    });
+  });
 }
