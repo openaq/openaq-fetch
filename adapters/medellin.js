@@ -11,7 +11,7 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { convertUnits } from '../lib/utils';
 import JSONStream from 'JSONStream';
-import { DataStream, MultiStream } from 'scramjet';
+import { DataStream, MultiStream, StringStream } from 'scramjet';
 import { pick } from 'lodash';
 
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
@@ -24,19 +24,30 @@ exports.name = 'medellin';
  * @param {function} cb A callback of the form cb(err, data)
  */
 exports.fetchStream = function (source) {
-  return new MultiStream(
-    ['co', 'no2', 'ozono', 'pm10', 'pm25', 'so2'].map(pollutant => {
-      return request(`${source.url}EntregaData1/Datos_SIATA_Aire_AQ_${pollutant}_Last.json`)
-        .pipe(JSONStream.parse('measurements.*'))
-        .pipe(new DataStream())
-        .use(stream => {
-          stream.name = 'unused';
-          return stream;
-        })
-        .map(extractMeasurements)
-        .map(convertUnits);
-    })
-  ).mux();
+  const pollutants = ['co', 'no2', 'ozono', 'pm10', 'pm25', 'so2'];
+  const streams = pollutants.map((pollutant) => {
+    const url = `${source.url}EntregaData1/Datos_SIATA_Aire_AQ_${pollutant}_Last.json`;
+    return new StringStream()
+      .use((stream) => {
+        const resp = request.get({ url }).on('response', ({ statusCode }) => {
+          +statusCode !== 200 ? stream.end() : resp.pipe(stream);
+        });
+        resp.on('error', function () {
+          resp.emit('close');
+          stream.end();
+        });
+        return stream;
+      })
+      .pipe(JSONStream.parse('measurements.*'))
+      .pipe(new DataStream())
+      .use((stream) => {
+        stream.name = 'unused';
+        return stream;
+      })
+      .map(extractMeasurements)
+      .map(convertUnits);
+  });
+  return new MultiStream(streams).mux();
 };
 
 const extractMeasurements = features => {
