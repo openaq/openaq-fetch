@@ -52,13 +52,13 @@ export async function fetchStream (source) {
         station_name: site['station_name'],
         coords: {
           latitude: Number(site['latitude']),
-          longitude: Number(site['longitude']),
+          longitude: Number(site['longitude'])
         },
-        status: site['status'],
+        status: site['status']
       });
     }, new DataStream())
     .filter((station) => {
-      return station.status == 'Live'; //delay, inactive
+      return station.status === 'Live';
     })
     .into(
       async (measurements, {coords, station_id: stationId}) => {
@@ -122,13 +122,13 @@ export async function fetchStream (source) {
   ;
 }
 
-async function getInfo(options, stationId) {
+async function getInfo (options, stationId) {
   return new Promise((resolve, reject) => {
     request.post(options, (err, res, body) => {
       log.debug(`stationId: ${stationId}, statusCode: ${res ? res.statusCode : 'unknown'}`);
       if (err) {
         log.error(err);
-        reject(err)
+        reject(err);
         // resolve(`{ "tableData": { "bodyContent": [] } }`);
       } else {
         resolve(body);
