@@ -126,7 +126,7 @@ async function getInfo(options, stationId) {
   return new Promise((resolve, reject) => {
     request.post(options, (err, res, body) => {
       log.debug(`stationId: ${stationId}, statusCode: ${res ? res.statusCode : 'unknown'}`);
-      if (err || (res && res.statusCode !== 200) ) {
+      if (err) {
         log.error(err);
         reject(err)
         // resolve(`{ "tableData": { "bodyContent": [] } }`);
