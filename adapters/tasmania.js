@@ -45,8 +45,10 @@ var formatData = function (data, source) {
     'WY': 'Wynyard',
     'ER': 'Emu River',
     'WU': 'West Ulverstone',
+    'QT': 'Queenstown',
     'DT': 'Devonport',
     'SF': 'Sheffield',
+    'LT': 'Latrobe',
     'DL': 'Deloraine',
     'WE': 'Westbury',
     'HA': 'Hadspen',
@@ -80,12 +82,13 @@ var formatData = function (data, source) {
   var output = [];
   var measurements = [];
 
+  data = (data || '').split('\n').filter(i => !!i.trim()).map(j => j.trim()).join('\n');
   // parse the csv feed, exclude # lines
   output = parse(data, {trim: true, comment: '#'});
 
   // loop through the csv rows
   for (var k = 0; k < output.length; k++) {
-    // Station, hhmmss(AEST), PM2.5(ug/m^3), PM10(ug/m^3), lat(deg), long(degE), alt(m)
+    // Station, hhmmss(AEST), PM2.5(ug/m^3), PM10(ug/m^3), lat(deg), long(degE), alt(m), Station name
     var value = output[k];
     var currentDate = value[1];
 
