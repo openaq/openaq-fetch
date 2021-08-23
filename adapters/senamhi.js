@@ -64,11 +64,15 @@ const formatData = function (results) {
     const location = html('td', html('tr').eq(0)).eq(1).html().trim();
 
     // Convert DMS to decimal degrees for fun
-    const coordsRe = /.*: (\d*)&#xB0;(\d*)&#x2032;(\d*\.?\d*)&#x2033; .*: (\d*)&#xB0;(\d*)&#x2032;(\d*\.?\d*)&#x2033;/.exec(html('td', html('tr').eq(2)).eq(1).html().trim());
-    const coordinates = {
-      latitude: -1.0 * (Number(coordsRe[1]) + Number(coordsRe[2]) / 60.0 + Number(coordsRe[3]) / 3600.0).toFixed(6),
-      longitude: -1.0 * (Number(coordsRe[4]) + Number(coordsRe[5]) / 60.0 + Number(coordsRe[6]) / 3600.0).toFixed(6)
-    };
+    const coordsRe = /: (\d[0-9]*)°([0-9]*)′([0-9]*\.?[0-9]*)″ .*: (\d[0-9]*)°([0-9]*)′([0-9]*\.?[0-9]*)″/gmi.exec(html('td', html('tr').eq(2)).eq(1).html().trim());
+    var coordinates = null;
+
+    if (coordsRe && coordsRe.length > 5) {
+      coordinates = {
+        latitude: -1.0 * (Number(coordsRe[1]) + Number(coordsRe[2]) / 60.0 + Number(coordsRe[3]) / 3600.0).toFixed(6),
+        longitude: -1.0 * (Number(coordsRe[4]) + Number(coordsRe[5]) / 60.0 + Number(coordsRe[6]) / 3600.0).toFixed(6)
+      };
+    }
 
     // Create our base object
     const base = {
@@ -172,7 +176,7 @@ const formatData = function (results) {
   });
 
   // Be kind, convert units
-  measurements = convertUnits(measurements);
+  measurements = convertUnits(measurements.filter(i => i.value));
 
   return {name: 'unused', measurements: measurements};
 };

@@ -96,8 +96,15 @@ var formatData = function (data) {
 
         if ($(this).find('a').length) {
           var regExp = new RegExp('</a><br>+(.+)');
-          var param = $(this).html().match(regExp)[1].replace('.', '').toLowerCase();
-          indexParams.push({col: colCounter, parameter: param, avgPeriod: null});
+          let param = $(this).html().match(regExp);
+          if (param && param.length > 0) {
+            param = param[1].replace('.', '').toLowerCase();
+            indexParams.push({
+              col: colCounter,
+              parameter: param,
+              avgPeriod: null
+            });
+          }
         }
       });
 
