@@ -176,7 +176,7 @@ const formatData = function (results) {
   });
 
   // Be kind, convert units
-  measurements = convertUnits(measurements.filter(i => i.value));
+  measurements = convertUnits(measurements.filter(i => !isNaN(i.value)));
 
   return {name: 'unused', measurements: measurements};
 };
