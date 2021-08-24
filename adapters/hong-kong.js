@@ -154,5 +154,7 @@ const hongKongLocations = {
   'Yuen Long': {city: 'New Territories', coordinates: {longitude: 114.02277777777778, latitude: 22.44527777777778}},
   'Central/Western': {city: 'Central & Western', coordinates: {longitude: 114.14444444444445, latitude: 22.285}},
   'Kwun Tong': {city: 'Kowloon', coordinates: {longitude: 114.22472222222223, latitude: 22.313333333333333}},
-  'Tsuen Wan': {city: 'New Territories', coordinates: {longitude: 114.11444444444444, latitude: 22.371666666666666}}
+  'Tsuen Wan': {city: 'New Territories', coordinates: {longitude: 114.11444444444444, latitude: 22.371666666666666}},
+  'North': {city: 'New Territories', coordinates: {longitude: 114.12824, latitude: 22.49671}},
+  'Southern': {city: 'Hong Kong', coordinates: {longitude: 114.16015, latitude: 22.24743}}
 };
