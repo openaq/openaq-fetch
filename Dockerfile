@@ -58,6 +58,8 @@ COPY sources /app/sources/
 COPY adapters /app/adapters/
 COPY migrations /app/migrations/
 COPY index.sh /app/
+COPY index.adapter.sh /app/
+
 #############################
 # entrypoint
 #
