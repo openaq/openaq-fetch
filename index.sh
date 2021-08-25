@@ -1,8 +1,4 @@
 # !/usr/bin/env bash
-# This script intends to run the main fetch data process and other processes sequentially.
-# The script also has a timeout to kill the process in case it gets stuck.
+# This script intends to run the main fetch data process with timeout to kill the process in case it gets stuck.
 echo "Start main fetch process"
-timeout 10m npm start
-
-echo "Start ccmaq - indian adapter"
-timeout 10m node index.js --source="caaqm"
+timeout 20m npm start
