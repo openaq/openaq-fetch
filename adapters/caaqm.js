@@ -66,7 +66,7 @@ export async function fetchStream (source) {
           url: 'https://app.cpcbccr.com/caaqms/caaqms_viewdata_v2',
           body: Buffer.from(`{"site_id":"${stationId}"}`).toString('base64'),
           resolveWithFullResponse: true,
-          timeout: 15000
+          timeout: 10000
         });
 
         try {
