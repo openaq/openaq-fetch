@@ -1,10 +1,4 @@
 # !/usr/bin/env bash
-adapters=adapters.list
-for file in ./sources/*.json; do
-    jq '.[] | select(.active == true ).name' $file | sed -r 's/^"|"$//g' >>$adapters
-done
-
-while read adapter; do
-    echo "================================> $adapter <================================"
-    node index.js --source "$adapter" -b
-done <$adapters
+# This script intends to run the main fetch data process with timeout to kill the process in case it gets stuck.
+echo "Start main fetch process"
+timeout 20m npm start

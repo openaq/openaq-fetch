@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import async from 'async';
-import { removeUnwantedParameters } from '../lib/utils';
+import {removeUnwantedParameters} from '../lib/utils';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 exports.name = 'netherlands';
@@ -86,6 +86,8 @@ var listApachetree = function (data, url) {
     $('td', this).each(function (i, elem) {
       fp[i] = $(this).text();
     });
+
+    if (!(fp[2] || '').trim()) return true;
 
     var f = {
       name: fp[1],
