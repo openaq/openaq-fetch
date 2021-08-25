@@ -127,7 +127,7 @@ async function getInfo (options, stationId) {
     request.post(options, (err, res, body) => {
       log.debug(`stationId: ${stationId}, statusCode: ${res ? res.statusCode : 'unknown'}`);
       if (err) {
-        log.error(err ? `${err.message} for stationId: ${stationId}` : 'error');
+        log.error(err ? `${err.message} for adapter: ${name} - stationId: ${stationId}` : 'error');
         reject(err);
       } else {
         resolve(body);
