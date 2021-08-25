@@ -45,7 +45,7 @@ export async function fetchStream (source) {
       e.stream.end();
       throw e;
     })
-    .setOptions({ maxParallel: 2 })
+    .setOptions({ maxParallel: 20 })
     .into((siteStream, site) => {
       return siteStream.whenWrote({
         station_id: site['station_id'],
@@ -66,7 +66,7 @@ export async function fetchStream (source) {
           url: 'https://app.cpcbccr.com/caaqms/caaqms_viewdata_v2',
           body: Buffer.from(`{"site_id":"${stationId}"}`).toString('base64'),
           resolveWithFullResponse: true,
-          timeout: 30000
+          timeout: 15000
         });
 
         try {
@@ -127,9 +127,8 @@ async function getInfo (options, stationId) {
     request.post(options, (err, res, body) => {
       log.debug(`stationId: ${stationId}, statusCode: ${res ? res.statusCode : 'unknown'}`);
       if (err) {
-        log.error(err);
+        log.error(err ? `${err.message} for stationId: ${stationId}` : 'error');
         reject(err);
-        // resolve(`{ "tableData": { "bodyContent": [] } }`);
       } else {
         resolve(body);
       }
