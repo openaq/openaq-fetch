@@ -5,17 +5,16 @@
         {
             "name": "openaq-fetch",
             "image": "flasher/openaq-fetch",
-            "memory": 7200,
+            "memory": 512,
             "command": [
                 "npm",
                 "start"
-            ]
+            ],
+            "cpu": 256
         }
     ],
-    "Properties": {
-        "RequiresCompatibilities": [
-            "EC2",
-            "FARGATE"
-        ]
-    }
+    "RequiresCompatibilities": [
+        "EC2",
+        "FARGATE"
+    ]
 }
