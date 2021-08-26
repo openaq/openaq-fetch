@@ -11,5 +11,11 @@
                 "start"
             ]
         }
-    ]
+    ],
+    "Properties": {
+        "RequiresCompatibilities": [
+            "EC2",
+            "FARGATE"
+        ]
+    }
 }
