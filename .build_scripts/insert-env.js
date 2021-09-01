@@ -1,7 +1,8 @@
 'use strict';
 
-const input = '.build_scripts/ecs-task-definition.json';
-const output = 'ecs-task-generated.json';
+const input = process.argv[2];
+const output = process.argv[3];
+const launchType = process.argv[4];
 const envFile = 'local.env';
 
 console.info('Inserting env variables into ECS task definition.');
@@ -25,10 +26,10 @@ obj['containerDefinitions'][0]['environment'] = splitEnvs;
 
 // Handle special case for CONTAINER_MEMORY if it exists
 splitEnvs.forEach(function (e) {
-  if (e.name === 'CONTAINER_MEMORY') {
+  if (e.name === 'CONTAINER_MEMORY' && launchType != 'fargate') {
     obj['containerDefinitions'][0]['memory'] = Number(e.value);
   }
-})
+});
 
 // Also set container version based on hash
 let hash = 'latest';
@@ -42,7 +43,8 @@ obj['containerDefinitions'][0]['image'] += ':' + hash;
 // And set the family name based on env var
 splitEnvs.forEach(function (e) {
   if (e.name === 'ECS_TASK_NAME') {
-    obj['family'] = e.value;
+    obj['family'] =
+      launchType == 'fargate' ? e.value + '-' + launchType : e.value;
   }
 });
 

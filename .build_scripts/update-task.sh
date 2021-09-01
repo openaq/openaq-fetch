@@ -23,7 +23,12 @@ echo "Current Docker image is $CURRENT_HASH"
 echo "Copying env variables from S3"
 $aws s3 cp s3://openaq-env-variables/openaq-fetch/$ENV_FILE local.env
 
-echo "Building new ECS task"
-node .build_scripts/insert-env.js
+echo "Building new ECS task-definition - EC2"
+node .build_scripts/insert-env.js .build_scripts/ecs-task-definition.json ecs-task-generated.json
 $aws ecs register-task-definition --cli-input-json file://ecs-task-generated.json > /dev/null 2>&1
+
+echo "Building new ECS task-definition - Fargate"
+node .build_scripts/insert-env.js .build_scripts/ecs-task-definition-fargate.json ecs-task-fargate-generated.json "fargate"
+$aws ecs register-task-definition --cli-input-json file://ecs-task-fargate-generated.json > /dev/null 2>&1
+
 echo "Finished building new ECS task"

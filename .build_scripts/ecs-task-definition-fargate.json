@@ -1,0 +1,30 @@
+{
+    "family": "openaq-fetch-fargate",
+    "taskRoleArn": "arn:aws:iam::470049585876:role/uploadsS3",
+    "containerDefinitions": [
+        {
+            "name": "openaq-fetch",
+            "image": "flasher/openaq-fetch",
+            "command": [
+                "npm",
+                "start"
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/openaq-fetch",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            }
+        }
+    ],
+    "cpu": "512",
+    "memory": "1024",
+    "networkMode": "awsvpc",
+    "executionRoleArn": "arn:aws:iam::470049585876:role/ecsTaskExecutionRole",
+    "requiresCompatibilities": [
+        "EC2",
+        "FARGATE"
+    ]
+}
