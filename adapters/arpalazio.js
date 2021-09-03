@@ -78,10 +78,13 @@ const handleProvince = async function (name, url, averagingPeriod, source) {
     }
   }).get();
 
+  const arrayOfPromises = pollutantURLs.map(dataUrl => getStream(name, dataUrl, averagingPeriod, source, url));
   return new MultiStream(
-    await Promise.all(
-      pollutantURLs.map(dataUrl => getStream(name, dataUrl, averagingPeriod, source, url))
-    )
+    await Promise.all(arrayOfPromises)
+      .catch((err) => {
+        log.verbose(`Promise error ${err}`);
+        return arrayOfPromises;
+      })
   ).mux();
 };
 
@@ -123,7 +126,7 @@ export const getStream = function (cityName, url, averagingPeriod, source, orgUr
       header
         .slice(2)
         .forEach((x, i) => {
-          if (+x) {
+          if (+x && metadata.length >= i) {
             stations[i] = Object.assign(metadata[x]);
           }
         });
