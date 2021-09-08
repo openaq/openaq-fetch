@@ -16,10 +16,12 @@ import cheerio from 'cheerio';
 import { join } from 'path';
 
 // Adding in certs to get around unverified connection issue
-require('ssl-root-cas/latest')
+var rootCas = require('ssl-root-cas').create();
+rootCas
   .inject()
   .addFile(join(__dirname, '..', '/certs/sinaica.inecc.gob.mx.chained.crt'));
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+
+const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT, ca: rootCas});
 
 exports.name = 'mexico';
 
@@ -204,14 +206,15 @@ var formatData = function (pages) {
 
 function getTimeZone (timezone) {
   switch (timezone) {
-    case '5': // Tiempo del noroeste, UTC-8 (UTC-7 en verano)
+    case 5: // Tiempo del noroeste, UTC-8 (UTC-7 en verano)
       return 'America/Tijuana';
-    case '4': // Sonora, UTC-7
+    case 4: // Sonora, UTC-7
       return 'America/Hermosillo';
-    case '3': // Tiempo del pac&#xED;fico, UTC-7 (UTC-6 en verano)
+    case 3: // Tiempo del pac&#xED;fico, UTC-7 (UTC-6 en verano)
       return 'America/Chihuahua';
-    case '8': // Tiempo del centro (UTC-6 todo el a&#xF1;o)
-    case '1': // Tiempo del centro, UTC-6 (UTC-5 en verano)
+    case 8: // Tiempo del centro (UTC-6 todo el a&#xF1;o)
+      return 'America/Mexico_City';
+    case 1: // Tiempo del centro, UTC-6 (UTC-5 en verano)
       return 'America/Mexico_City';
     default:
       throw new Error('UNKNOWN TIMEZONE: ' + timezone);
