@@ -37,7 +37,7 @@ exports.fetchData = async function (source, cb) {
   var tasks = fetchAllStationSites(await new Promise((resolve, reject) => {
     request(source.sourceURL, (error, response, body) => {
       if ((!response) || (error)) reject(new Error(error));
-      if (response.statusCode !== 200) {
+      if (response && response.statusCode !== 200) {
         reject(new Error('Invalid status code <' + response.statusCode + '>'));
       }
       resolve(body);
