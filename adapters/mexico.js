@@ -47,7 +47,7 @@ exports.fetchData = async function (source, cb) {
       return function (cb) {
         // Tried to use more maxsockets to fix the  Error: ESOCKETTIMEDOUT, did not work
         request({url: e, agent: false, pool: {maxSockets: 200}}, function (err, res, body) {
-          if (err || res.statusCode !== 200) {
+          if (err || (res && res.statusCode !== 200)) {
             return cb(err || res);
           }
           cb(null, body);
