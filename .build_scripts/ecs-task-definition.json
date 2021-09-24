@@ -8,7 +8,7 @@
             "memory": 7200,
             "command": [
                 "timeout",
-                "21m",
+                "16m",
                 "npm",
                 "start"
             ]
