@@ -4,16 +4,16 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import { acceptableParameters } from '../lib/utils';
-import { join } from 'path';
 import log from '../lib/logger';
 import JSONStream from 'JSONStream';
 import { DataStream } from 'scramjet';
+import https from 'https';
 import { FetchError, DATA_URL_ERROR } from '../lib/errors';
 
-// Adding in certs to get around unverified connection issue
-require('ssl-root-cas/latest')
-  .inject()
-  .addFile(join(__dirname, '..', '/certs/lets-encrypt-x3-cross-signed.pem.txt'));
+// From: https://github.com/node-fetch/node-fetch/issues/568#issuecomment-932200523
+const agent = new https.Agent({
+  rejectUnauthorized: false
+});
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'caaqm';
@@ -30,7 +30,8 @@ export async function fetchStream (source) {
   };
   const options = Object.assign(requestOptions, {
     url: source.url,
-    body: Buffer.from('{"region":"landing_dashboard"}').toString('base64')
+    body: Buffer.from('{"region":"landing_dashboard"}').toString('base64'),
+    agent
   });
 
   const requestObject = request(options);
@@ -66,7 +67,7 @@ export async function fetchStream (source) {
           url: 'https://app.cpcbccr.com/caaqms/caaqms_viewdata_v2',
           body: Buffer.from(`{"site_id":"${stationId}"}`).toString('base64'),
           resolveWithFullResponse: true,
-          timeout: 10000
+          timeout: 20000
         });
 
         try {
