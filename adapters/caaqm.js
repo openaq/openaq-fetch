@@ -4,18 +4,16 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import { acceptableParameters } from '../lib/utils';
-import { join } from 'path';
 import log from '../lib/logger';
 import JSONStream from 'JSONStream';
 import { DataStream } from 'scramjet';
-import https from "https";
+import https from 'https';
 import { FetchError, DATA_URL_ERROR } from '../lib/errors';
 
 // From: https://github.com/node-fetch/node-fetch/issues/568#issuecomment-932200523
 const agent = new https.Agent({
-  rejectUnauthorized: false,
+  rejectUnauthorized: false
 });
-
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'caaqm';
