@@ -7,5 +7,5 @@ done
 
 while read adapter; do
     echo "================================> $adapter <================================"
-    node index.js --source "$adapter" >> need_tofix.log
+    node index.js --source "$adapter"
 done <$adapters
