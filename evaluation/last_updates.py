@@ -92,7 +92,7 @@ def main():
         "adapter",
         "name",
         "country",
-        "sourceURL",
+        "url",
         "active",
         "locationId",
         "location",
