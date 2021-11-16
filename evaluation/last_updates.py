@@ -47,7 +47,7 @@ def fetch_data(adapter, sensor_nodes_id):
     try:
         r = requests.get(url, timeout=20)
         data = r.json()
-        if len(data["results"]) > 0:
+        if r.status_code == 200 and 'results' in data.keys() and len(data["results"]) > 0:
             item = data["results"][0]
             adapter_copy.update(
                 {
@@ -104,7 +104,8 @@ def main():
         for adapter in adapters:
             adapter_locations_lu = get_location_updates(adapter, df)
             for adapter_lu in adapter_locations_lu:
-                adapter_simple = dict((k, adapter_lu[k]) for k in adapter_lu.keys() if k in keys)
+                adapter_simple = dict(
+                    (k, adapter_lu[k]) for k in adapter_lu.keys() if k in keys)
                 vals = "|".join(map(str, adapter_simple.values()))
                 f.writelines(f"{vals}\n")
 
