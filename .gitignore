@@ -10,3 +10,4 @@ ecs-task-fargate-generated.json
 .editorconfig
 knexfile-local.js
 adapters.list
+!evaluation/data/
