@@ -1,17 +1,18 @@
 """Script to check last updates for adpaters
+    python last_updates.py \
+        --source="Australia - Queensland"
 """
-
+import os
 import glob
 import json
 import pandas as pd
 import requests
 from joblib import Parallel, delayed
 from tqdm import tqdm
+import click
+import datetime
 
 API_URL = "https://u50g7n0cbj.execute-api.us-east-1.amazonaws.com/v2/measurements?location={id}"
-SOURCE_FOLDER = "./../sources"
-ADPTERS_IDS_FILE = "data/adapters_id.csv"
-ADPTERS_LOCATION_LAST_UPDATES = "data/adapters_locations_last_updates.csv"
 
 
 def load_adapters(sources):
@@ -27,7 +28,7 @@ def load_adapters(sources):
     for jsonFile in glob.glob(f"{sources}/*.json"):
         with open(jsonFile) as json_file:
             adapters_data = json.load(json_file)
-            # adapters_data = [d for d in adapters_data if d['active']]
+            adapters_data = [d for d in adapters_data if d["active"]]
         adapters = adapters_data + adapters
     return adapters
 
@@ -44,20 +45,20 @@ def fetch_data(adapter, sensor_nodes_id):
     """
     url = API_URL.format(id=sensor_nodes_id)
     adapter_copy = adapter.copy()
+    val = {"locationId": "", "location": "", "last_update": ""}
     try:
         r = requests.get(url, timeout=20)
         data = r.json()
-        if r.status_code == 200 and 'results' in data.keys() and len(data["results"]) > 0:
+        if r.status_code == 200 and "results" in data.keys() and len(data["results"]) > 0:
             item = data["results"][0]
-            adapter_copy.update(
-                {
-                    "locationId": item["locationId"],
-                    "location": item["location"],
-                    "last_update": item["date"]["utc"].split("T")[0],
-                }
-            )
+
+            val["locationId"] = item["locationId"]
+            val["location"] = item["location"]
+            val["last_update"] = item["date"]["utc"].split("T")[0]
+
     except requests.exceptions.HTTPError as e:
-        print(e.response.text)
+        print(f"Error requesing {url} . {e.response.text}")
+    adapter_copy.update(val)
     return adapter_copy
 
 
@@ -84,30 +85,64 @@ def get_location_updates(adapter, df):
     return results
 
 
-def main():
-    df = pd.read_csv(ADPTERS_IDS_FILE)
-    adapters = load_adapters(SOURCE_FOLDER)
-    # pd.DataFrame.from_dict(adapters).to_csv("adapters.csv", columns=["name"], index=False)
-    keys = [
-        "adapter",
-        "name",
-        "country",
-        "url",
-        "active",
-        "locationId",
-        "location",
-        "last_update",
-    ]
+def apply_rules(adapter_locations_lu):
+    df = pd.DataFrame.from_dict(adapter_locations_lu)
 
-    with open(ADPTERS_LOCATION_LAST_UPDATES, "w") as f:
-        f.writelines(f'{"|".join(keys)}\n')
-        for adapter in adapters:
-            adapter_locations_lu = get_location_updates(adapter, df)
-            for adapter_lu in adapter_locations_lu:
-                adapter_simple = dict(
-                    (k, adapter_lu[k]) for k in adapter_lu.keys() if k in keys)
-                vals = "|".join(map(str, adapter_simple.values()))
-                f.writelines(f"{vals}\n")
+    # Get data from last 10 days ago
+    ten_days_ago = datetime.datetime.now() - datetime.timedelta(days=10)
+    date_limit = ten_days_ago.strftime("%Y-%m-%d")
+
+    df_update = df[(df["last_update"] >= date_limit)]
+    df_outdate = df[(df["last_update"] < date_limit)]
+
+    # Check if location has more than one location id and different updates, remove the out date locations
+    cond = df_outdate["location"].isin(df_update["location"])
+    df_outdate.drop(df_outdate[cond].index, inplace=True)
+
+    return df_outdate, df_update
+
+
+def save_csv_file(csv_path, df):
+    keys = ["name", "last_update", "location", "url", "active", "locationId"]
+    if os.path.exists(csv_path):
+        df.to_csv(csv_path, mode="a",
+                  header=False, columns=keys, index=False)
+    else:
+        df.to_csv(csv_path, columns=keys, index=False)
+
+
+@click.command(short_help="Script to get last updates for adapters")
+@click.option("--source_folder", help="Source folder for josn files", default="./../sources")
+@click.option(
+    "--adpters_ids_file",
+    help="A csv files that was exported from the DB, contains the location id for each adapter.",
+    default="data/adapters_id.csv",
+)
+@click.option(
+    "--outdate_file",
+    help="CSV path for outdate adapters",
+    default="data/adapters_outdate.csv",
+)
+@click.option(
+    "--update_file",
+    help="CSV path for update adapters",
+    default="data/adapters_update.csv",
+)
+@click.option(
+    "--source", help="Use this option to get last update for a particular adapter", default=None
+)
+def main(source_folder, adpters_ids_file, outdate_file, update_file, source):
+    df = pd.read_csv(adpters_ids_file)
+    adapters = load_adapters(source_folder)
+    if source is not None:
+        adapters = [a for a in adapters if a["name"] == source]
+
+    for adapter in adapters:
+        adapter_locations_lu = get_location_updates(adapter, df)
+        if len(adapter_locations_lu) > 0:
+            df_outdate, df_update = apply_rules(adapter_locations_lu)
+            save_csv_file(outdate_file, df_outdate)
+            save_csv_file(update_file, df_update)
 
 
 if __name__ == "__main__":
