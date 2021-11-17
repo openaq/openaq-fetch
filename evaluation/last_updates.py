@@ -131,18 +131,25 @@ def save_csv_file(csv_path, df):
 @click.option(
     "--source", help="Use this option to get last update for a particular adapter", default=None
 )
-def main(source_folder, adpters_ids_file, outdate_file, update_file, source):
+@click.option(
+    "--source", help="Use this option to get last update for a particular adapter", default=None
+)
+@click.option(
+    "--no_consider", help="List of adapters to do not consider", default="[]"
+)
+def main(source_folder, adpters_ids_file, outdate_file, update_file, source, no_consider):
     df = pd.read_csv(adpters_ids_file)
     adapters = load_adapters(source_folder)
+    no_consider = json.loads(no_consider)
     if source is not None:
         adapters = [a for a in adapters if a["name"] == source]
-
     for adapter in adapters:
-        adapter_locations_lu = get_location_updates(adapter, df)
-        if len(adapter_locations_lu) > 0:
-            df_outdate, df_update = apply_rules(adapter_locations_lu)
-            save_csv_file(outdate_file, df_outdate)
-            save_csv_file(update_file, df_update)
+        if adapter['name'] not in no_consider:
+            adapter_locations_lu = get_location_updates(adapter, df)
+            if len(adapter_locations_lu) > 0:
+                df_outdate, df_update = apply_rules(adapter_locations_lu)
+                save_csv_file(outdate_file, df_outdate)
+                save_csv_file(update_file, df_update)
 
 
 if __name__ == "__main__":
