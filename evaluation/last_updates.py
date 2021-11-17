@@ -13,6 +13,7 @@ import click
 import datetime
 
 API_URL = "https://u50g7n0cbj.execute-api.us-east-1.amazonaws.com/v2/measurements?location={id}"
+DAYS_AGO = 15
 
 
 def load_adapters(sources):
@@ -89,7 +90,7 @@ def apply_rules(adapter_locations_lu):
     df = pd.DataFrame.from_dict(adapter_locations_lu)
 
     # Get data from last 10 days ago
-    ten_days_ago = datetime.datetime.now() - datetime.timedelta(days=10)
+    ten_days_ago = datetime.datetime.now() - datetime.timedelta(days=DAYS_AGO)
     date_limit = ten_days_ago.strftime("%Y-%m-%d")
 
     df_update = df[(df["last_update"] >= date_limit)]
@@ -105,8 +106,7 @@ def apply_rules(adapter_locations_lu):
 def save_csv_file(csv_path, df):
     keys = ["name", "last_update", "location", "url", "active", "locationId"]
     if os.path.exists(csv_path):
-        df.to_csv(csv_path, mode="a",
-                  header=False, columns=keys, index=False)
+        df.to_csv(csv_path, mode="a", header=False, columns=keys, index=False)
     else:
         df.to_csv(csv_path, columns=keys, index=False)
 
