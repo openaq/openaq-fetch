@@ -81,7 +81,7 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://aepb.gov.cn/pages/Aepb15_SJZX_Air.aspx?CityCode=340100",
