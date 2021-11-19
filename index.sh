@@ -13,13 +13,13 @@ time timeout 30m npm start
 #### those adapter request huge amount of data, that sometimes made failing the fetch process and we are running them one by one.
 ###############################################################################
 
-# ARPALAZIO adapter requests ~7.5k items 
+# ARPALAZIO adapter requests ~7.5k items
 time timeout 3m node index.js --source="ARPALAZIO"
 
 # 'London Air Quality Network' adapter requests ~7.8k items
-time timeout 3m node index.js --source= "London Air Quality Network"
+time timeout 3m node index.js --source="London Air Quality Network"
 
-# GIOS adapter requests ~2k items 
+# GIOS adapter requests ~2k items
 time timeout 3m node index.js --source="GIOS"
 
 ###############################################################################
