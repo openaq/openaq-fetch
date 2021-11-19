@@ -27,7 +27,6 @@ export async function fetchData (source, cb) {
         return d;
       });
 
-      console.log(measurements);
       cb(null, { name: 'unused', measurements });
     });
   } catch (e) {
