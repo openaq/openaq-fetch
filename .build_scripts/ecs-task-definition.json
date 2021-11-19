@@ -7,10 +7,7 @@
             "image": "flasher/openaq-fetch",
             "memory": 7200,
             "command": [
-                "timeout",
-                "30m",
-                "npm",
-                "start"
+                "./index.sh"
             ]
         }
     ]
