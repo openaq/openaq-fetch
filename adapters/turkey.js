@@ -10,7 +10,7 @@ import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import { parallel } from 'async';
 import { convertUnits, acceptableParameters } from '../lib/utils';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT, jar: true}); // Allowing cookies
+const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT, jar: true }); // Allowing cookies
 
 exports.name = 'turkey';
 
@@ -22,45 +22,46 @@ exports.name = 'turkey';
 exports.fetchData = function (source, cb) {
   // Fetching both the main data page as well as a page to get all
   // coordinates for locations
-  parallel({
-    sources: (done) => {
-      request(source.url, (err, res, body) => {
-        if (err || res.statusCode !== 200) {
-          return done({message: 'Failure to load data url.'});
-        }
-
-        return done(null, body);
-      });
-    },
-    coordinates: (done) => {
-      // This url seems to have a list of all locations
-      request('http://index.havaizleme.gov.tr/Map', (err, res, body) => {
-        if (err || res.statusCode !== 200) {
-          return done({message: 'Failure to load coordinates url.'});
-        }
-
-        return done(null, body);
-      });
-    }
-  }, (err, results) => {
-    if (err) {
-      return cb(err);
-    }
-
-    // Wrap everything in a try/catch in case something goes wrong
-    try {
-      // Format the data
-      const data = formatData(results);
-
-      // Make sure the data is valid
-      if (data === undefined) {
-        return cb({message: 'Failure to parse data.'});
+  parallel(
+    {
+      sources: (done) => {
+        request(source.url, (err, res, body) => {
+          if (err || res.statusCode !== 200) {
+            return done({ message: 'Failure to load data url.' });
+          }
+          return done(null, body);
+        });
+      },
+      coordinates: (done) => {
+        // This url seems to have a list of all locations
+        request('http://index.havaizleme.gov.tr/Map', (err, res, body) => {
+          if (err || res.statusCode !== 200) {
+            return done({ message: 'Failure to load coordinates url.' });
+          }
+          return done(null, body);
+        });
       }
-      return cb(null, data);
-    } catch (e) {
-      return cb({message: 'Unknown adapter error.'});
+    },
+    (err, results) => {
+      if (err) {
+        return cb(err);
+      }
+
+      // Wrap everything in a try/catch in case something goes wrong
+      try {
+        // Format the data
+        const data = formatData(results);
+
+        // Make sure the data is valid
+        if (data === undefined) {
+          return cb({ message: 'Failure to parse data.' });
+        }
+        return cb(null, data);
+      } catch (e) {
+        return cb({ message: 'Unknown adapter error.' });
+      }
     }
-  });
+  );
 };
 
 /**
@@ -72,7 +73,9 @@ const formatData = function (data) {
   // Turn this into an object containing coordinates, there is a bit of
   // hackery going on here since we're pulling out values from JSON in code
   let coordsHTML = cheerio.load(data.coordinates).html();
-  const coordsRe = /var stations = jQuery.parseJSON\('(.*)'\);/g;
+  /*eslint-disable*/
+  const coordsRe = /var stations = jQuery.parseJSON\(\'(.*)\'\)\;/g;
+  /* eslint-enable */
   const metadata = JSON.parse(coordsRe.exec(coordsHTML)[1]);
 
   /* -- Get individual measurements -- */
@@ -82,8 +85,10 @@ const formatData = function (data) {
   let headers = {};
   $('thead>tr').each((i, row) => {
     $('th', row).each((j, elem) => {
-      const key = (i === 0) ? 'name' : 'unit';
-      if (!headers[j]) { headers[j] = {}; }
+      const key = i === 0 ? 'name' : 'unit';
+      if (!headers[j]) {
+        headers[j] = {};
+      }
       headers[j][key] = $('small', elem).text().trim().toLowerCase();
     });
   });
@@ -113,19 +118,28 @@ const formatData = function (data) {
     });
 
     // Loop over measurements and clone from base
-    $('td>table>tr>td:first-child', row).each((j, elem) => {
-      const idx = j + 2; // Need to add 2 to match headers indexing
-      let record = Object.assign({}, base);
-      record.parameter = headers[idx]['name'];
-      record.unit = headers[idx]['unit'];
-      if ($('span', elem).text() !== '') {
-        record.value = Number($('span', elem).text().replace(',', '.')); // Account for alternate numbering scheme
-      }
 
-      if (acceptableParameters.includes(headers[idx]['name']) && record.city && record.location && record.value !== undefined) {
-        records.push(record);
-      }
-    });
+    if (Object.keys(base).length === 3) {
+      $('td>table>tbody', row).each((j, elem) => {
+        const idx = j + 2; // Need to add 2 to match headers indexing
+        let record = Object.assign({}, base);
+        record.parameter = headers[idx]['name'];
+        record.unit = headers[idx]['unit'];
+
+        if ($('span', elem).text() !== '') {
+          record.value = Number($('span', elem).text().replace(',', '.')); // Account for alternate numbering scheme
+        }
+
+        if (
+          acceptableParameters.includes(headers[idx]['name']) &&
+          record.city &&
+          record.location &&
+          record.value !== undefined
+        ) {
+          records.push(record);
+        }
+      });
+    }
   });
 
   /**
@@ -149,7 +163,11 @@ const formatData = function (data) {
       return;
     }
 
-    const dateMoment = moment.tz(item.dateString, 'DD-MM-YYYY HH:mm', 'Europe/Istanbul');
+    const dateMoment = moment.tz(
+      item.dateString,
+      'DD-MM-YYYY HH:mm',
+      'Europe/Istanbul'
+    );
     const measurement = {
       date: {
         utc: dateMoment.toDate(),
@@ -164,8 +182,13 @@ const formatData = function (data) {
         latitude: locationMetadata.Lat,
         longitude: locationMetadata.Long
       },
-      attribution: [{name: 'National Air Quality Monitoring Network', url: 'http://index.havaizleme.gov.tr/Dynamic/0'}],
-      averagingPeriod: {unit: 'hours', value: 1}
+      attribution: [
+        {
+          name: 'National Air Quality Monitoring Network',
+          url: 'http://index.havaizleme.gov.tr/Dynamic/0'
+        }
+      ],
+      averagingPeriod: { unit: 'hours', value: 1 }
     };
 
     if (isNaN(item.value)) {
@@ -178,5 +201,5 @@ const formatData = function (data) {
   let measurements = [];
   records.forEach(aqRepack);
   measurements = convertUnits(measurements);
-  return {name: 'unused', measurements: measurements};
+  return { name: 'unused', measurements: measurements };
 };
