@@ -7,11 +7,13 @@
 'use strict';
 
 import { default as moment } from 'moment-timezone';
-import { REQUEST_TIMEOUT } from '../lib/constants';
-import { promiseRequest } from '../lib/utils';
-import log from '../lib/logger';
 import https from 'https';
 import _ from 'lodash';
+import { promiseRequest } from '../lib/utils';
+import log from '../lib/logger';
+import { convertUnits } from '../lib/utils';
+import { REQUEST_TIMEOUT } from '../lib/constants';
+
 
 exports.name = 'medellin';
 
@@ -64,7 +66,9 @@ export async function fetchData (source, cb) {
     );
     const measurements = items
       .map((item) => extractMeasurements(item))
-      .filter((i) => i);
+      .filter((i) => i)
+      .map((item) => convertUnits(item));
+
     cb(null, { name: 'unused', measurements });
   } catch (e) {
     cb(e);
