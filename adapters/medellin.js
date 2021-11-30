@@ -9,11 +9,9 @@
 import { default as moment } from 'moment-timezone';
 import https from 'https';
 import _ from 'lodash';
-import { promiseRequest } from '../lib/utils';
+import { promiseRequest, convertUnits } from '../lib/utils';
 import log from '../lib/logger';
-import { convertUnits } from '../lib/utils';
 import { REQUEST_TIMEOUT } from '../lib/constants';
-
 
 exports.name = 'medellin';
 
@@ -46,7 +44,6 @@ export async function fetchData (source, cb) {
       const url = `${source.url}EntregaData1/Datos_SIATA_Aire_AQ_${p}_Last.json`;
       const options = Object.assign(requestOptions, {
         url: source.url,
-        body: Buffer.from('{"region":"landing_dashboard"}').toString('base64'),
         agent
       });
       return promiseRequest(url, options)
