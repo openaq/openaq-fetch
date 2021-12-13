@@ -11,9 +11,13 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 import click
 import datetime
+import numpy as np
 
 API_URL = "https://u50g7n0cbj.execute-api.us-east-1.amazonaws.com/v2/measurements?location={id}"
 DAYS_AGO = 15
+
+# Adapter that's the api are gone
+reviewed_adapters = ["Bosnia2", "Andalucia", "Kosovo", "Chile - SINCA", "Umhverfisstofnun"]
 
 
 def load_adapters(sources):
@@ -23,7 +27,7 @@ def load_adapters(sources):
         sources (str): Path to the source json files
 
     Returns:
-        [dict]: Dictionary of all adapters dat
+        [dict]: Dictionary of all adapters data
     """
     adapters = []
     for jsonFile in glob.glob(f"{sources}/*.json"):
@@ -111,6 +115,15 @@ def save_csv_file(csv_path, df):
         df.to_csv(csv_path, columns=keys, index=False)
 
 
+def reduce_repeated_values(outdate_file, update_file):
+    df_outdate = pd.read_csv(outdate_file)
+    df_update = pd.read_csv(update_file)
+    updated_adapters = np.unique(df_update["name"].to_numpy())
+    updated_adapters = [*updated_adapters, *reviewed_adapters]
+    df_outdate_new = df_outdate[~df_outdate.name.isin(updated_adapters)]
+    df_outdate_new.to_csv(outdate_file, index=False)
+
+
 @click.command(short_help="Script to get last updates for adapters")
 @click.option("--source_folder", help="Source folder for josn files", default="./../sources")
 @click.option(
@@ -134,9 +147,7 @@ def save_csv_file(csv_path, df):
 @click.option(
     "--source", help="Use this option to get last update for a particular adapter", default=None
 )
-@click.option(
-    "--no_consider", help="List of adapters to do not consider", default="[]"
-)
+@click.option("--no_consider", help="List of adapters to do not consider", default="[]")
 def main(source_folder, adpters_ids_file, outdate_file, update_file, source, no_consider):
     df = pd.read_csv(adpters_ids_file)
     adapters = load_adapters(source_folder)
@@ -150,6 +161,7 @@ def main(source_folder, adpters_ids_file, outdate_file, update_file, source, no_
                 df_outdate, df_update = apply_rules(adapter_locations_lu)
                 save_csv_file(outdate_file, df_outdate)
                 save_csv_file(update_file, df_update)
+    reduce_repeated_values(outdate_file, update_file)
 
 
 if __name__ == "__main__":
