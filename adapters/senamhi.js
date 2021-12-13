@@ -64,7 +64,10 @@ const formatData = function (results) {
     const location = html('td', html('tr').eq(0)).eq(1).html().trim();
 
     // Convert DMS to decimal degrees for fun
-    const coordsRe = /: (\d[0-9]*)°([0-9]*)′([0-9]*\.?[0-9]*)″ .*: (\d[0-9]*)°([0-9]*)′([0-9]*\.?[0-9]*)″/gmi.exec(html('td', html('tr').eq(2)).eq(1).html().trim());
+    let coordsRe = /: (\d[0-9]*)°([0-9]*)′([0-9]*\.?[0-9]*)″ .*: (\d[0-9]*)°([0-9]*)′([0-9]*\.?[0-9]*)″/gmi.exec(html('td', html('tr').eq(2)).eq(1).html().trim());
+    if (!coordsRe) {
+      coordsRe = /: (\d[0-9]*)&#xB0;([0-9]*)&#x2032;([0-9]*\.?[0-9]*)&#x2033; .*: (\d[0-9]*)&#xB0;([0-9]*)&#x2032;([0-9]*\.?[0-9]*)&#x2033;/gmi.exec(html('td', html('tr').eq(2)).eq(1).html().trim());
+    }
     var coordinates = null;
 
     if (coordsRe && coordsRe.length > 5) {

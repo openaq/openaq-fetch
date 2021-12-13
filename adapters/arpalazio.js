@@ -25,7 +25,7 @@ const dailyParameters = ['pm25', 'pm10'];
 const hourlyParameters = difference(acceptableParameters, dailyParameters);
 
 exports.fetchStream = async function (source) {
-  const response = await rp({method: 'GET', uri: source.url, resolveWithFullResponse: true});
+  const response = await rp({method: 'GET', uri: source.url, resolveWithFullResponse: true, timeout: REQUEST_TIMEOUT});
 
   if (response.statusCode !== 200) {
     throw new FetchError(SOURCE_URL_NOT_FOUND, source, null);
@@ -61,7 +61,7 @@ exports.fetchStream = async function (source) {
 };
 
 const handleProvince = async function (name, url, averagingPeriod, source) {
-  const response = await rp({method: 'GET', uri: url, resolveWithFullResponse: true});
+  const response = await rp({method: 'GET', uri: url, resolveWithFullResponse: true, timeout: REQUEST_TIMEOUT});
 
   if (response.statusCode !== 200) {
     throw new FetchError(SOURCE_URL_CANNOT_PARSE_DATA, source, null);
@@ -126,7 +126,7 @@ export const getStream = function (cityName, url, averagingPeriod, source, orgUr
       header
         .slice(2)
         .forEach((x, i) => {
-          if (+x && metadata.length >= i) {
+          if (+x && Object.keys(metadata).indexOf(x) > -1) {
             stations[i] = Object.assign(metadata[x]);
           }
         });
