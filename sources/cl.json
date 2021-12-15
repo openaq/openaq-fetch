@@ -1,13 +1,13 @@
 [
     {
-        "url": "http://sinca.mma.gob.cl/index.php/json",
+        "url": "https://sinca.mma.gob.cl/index.php/json/listadomapa2k19",
         "adapter": "chile",
         "name": "Chile - SINCA",
         "city": "",
         "country": "CL",
         "description": "Measurements from SINCA, a Chilean agency part of the Ministry of Environment.",
         "resolution": "1 hr",
-        "sourceURL": "http://sinca.mma.gob.cl/index.php/json",
+        "sourceURL": "https://sinca.mma.gob.cl/index.php/json/listadomapa2k19",
         "contacts": [
             "info@openaq.org"
         ],

@@ -13,6 +13,7 @@ import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import async from 'async';
 import { join } from 'path';
+import cheerio from 'cheerio';
 
 // Adding in certs to get around unverified connection issue
 require('ssl-root-cas/latest')
@@ -80,7 +81,7 @@ var formatData = function (results) {
   // Measurements are stored in a 'status' object. If there are no measurements
   // 'status' will be an empty array.
   var reportingStations = _.filter(data, function (s) {
-    return _.isPlainObject(s.status);
+    return s.realtime.length > 0;
   });
 
   var paramMap = {
@@ -108,8 +109,7 @@ var formatData = function (results) {
    * @return {object} An object containing both UTC and local times
    */
   var parseDate = function (m) {
-    var date = moment.tz(m.date + m.hour, 'YYYY-MM-DDHH:mm', 'America/Santiago');
-
+    var date = moment.tz(m, 'YYYY-MM-DD HH:mm', 'America/Santiago');
     return {utc: date.toDate(), local: date.format()};
   };
 
@@ -119,7 +119,9 @@ var formatData = function (results) {
    * @return {string} It's pretty!
    */
   var parseUnit = function (u) {
-    return (u === '&micro;g/m<sup>3</sup>' || u === '&micro;g/Nm<sup>3</sup>' || u === '&micro;g/m<sup>3</sup>N') ? 'µg/m³' : u;
+    var $ = cheerio.load(u, { decodeEntities: false });
+    var str = $.text();
+    return str.indexOf('µg⁄m3') > -1 ? 'µg/m³' : null;
   };
 
   var measurements = [];
@@ -139,15 +141,18 @@ var formatData = function (results) {
         {name: s.empresa}
       ]
     };
-
-    // Loop over the parameters measured by this station
-    _.forOwn(s.status, function (value, key) {
-      var m = _.clone(base);
-      m.parameter = paramMap[key];
-      m.date = parseDate(value);
-      m.value = Number(value.uvalue);
-      m.unit = parseUnit(value.uunit);
-      measurements.push(m);
+    _.filter(s.realtime, function (valueMeasurment) {
+      _.filter(valueMeasurment.info.rows, function (value) {
+        var m = _.clone(base);
+        m.parameter = paramMap[valueMeasurment.code];
+        m.date = parseDate(value.c[0].v);
+        m.value = Number(value.c[1].v);
+        var unit = parseUnit(value.c[3].v);
+        if (unit) {
+          m.unit = unit;
+          measurements.push(m);
+        }
+      });
     });
   });
 
