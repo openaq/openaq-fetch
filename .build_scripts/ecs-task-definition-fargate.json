@@ -18,8 +18,8 @@
             }
         }
     ],
-    "cpu": "2048",
-    "memory": "16384",
+    "cpu": "1024",
+    "memory": "20480",
     "networkMode": "awsvpc",
     "executionRoleArn": "arn:aws:iam::470049585876:role/ecsTaskExecutionRole",
     "requiresCompatibilities": [
