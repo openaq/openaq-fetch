@@ -2,10 +2,10 @@
 set -x
 
 ###############################################################################
-#### Main fetchinf data process
+#### Main fetch data process
 ###############################################################################
 
-time timeout 30m npm start
+time timeout 10m npm start
 
 ###############################################################################
 #### Adapters that consume lot memory and need to be run one by one
@@ -13,14 +13,14 @@ time timeout 30m npm start
 #### those adapter request huge amount of data, that sometimes made failing the fetch process and we are running them one by one.
 ###############################################################################
 
-# ARPALAZIO adapter requests ~7.5k items
-time timeout 3m node index.js --source="ARPALAZIO"
+# # ARPALAZIO adapter requests ~7.5k items
+# time timeout 3m node index.js --source="ARPALAZIO"
 
-# 'London Air Quality Network' adapter requests ~7.8k items
-time timeout 3m node index.js --source="London Air Quality Network"
+# # 'London Air Quality Network' adapter requests ~7.8k items
+# time timeout 3m node index.js --source="London Air Quality Network"
 
-# GIOS adapter requests ~2k items
-time timeout 3m node index.js --source="GIOS"
+# # GIOS adapter requests ~2k items
+# time timeout 3m node index.js --source="GIOS"
 
 ###############################################################################
 #### Adapters that are running in fargate

@@ -6,8 +6,7 @@
             "name": "openaq-fetch",
             "image": "flasher/openaq-fetch",
             "command": [
-                "npm",
-                "start"
+                "./index.sh"
             ],
             "logConfiguration": {
                 "logDriver": "awslogs",
@@ -19,8 +18,8 @@
             }
         }
     ],
-    "cpu": "512",
-    "memory": "1024",
+    "cpu": "2048",
+    "memory": "16384",
     "networkMode": "awsvpc",
     "executionRoleArn": "arn:aws:iam::470049585876:role/ecsTaskExecutionRole",
     "requiresCompatibilities": [
