@@ -19,6 +19,6 @@
         "description": "Environmental Research Group",
         "sourceURL": "http://api.erg.ic.ac.uk/AirQuality/Information/Documentation/pdf",
         "contacts": ["info@openaq.org"],
-        "active": false
+        "active": true
     }
 ]

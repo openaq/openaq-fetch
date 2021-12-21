@@ -28,6 +28,6 @@
         "sourceURL": "http://powietrze.gios.gov.pl/pjp/content/api",
         "contacts": ["info@openaq.org"],
         "hoursToFetch": 2,
-        "active": false
+        "active": true
     }
 ]
