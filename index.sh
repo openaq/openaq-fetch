@@ -5,7 +5,7 @@ set -x
 #### Main fetch data process
 ###############################################################################
 
-time timeout 10m npm start
+time timeout 15m npm start
 
 ###############################################################################
 #### Adapters that consume lot memory and need to be run one by one
