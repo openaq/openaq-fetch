@@ -13,15 +13,15 @@ import sources from './sources';
 import log from './lib/logger';
 
 import {
-  getEnv,
+  getEnv
 } from './lib/env';
 
 import {
-  fetchCorrectedMeasurementsFromSourceStream,
+  fetchCorrectedMeasurementsFromSourceStream
 } from './lib/measurement';
 
 import {
-  streamMeasurementsToDBAndStorage,
+  streamMeasurementsToDBAndStorage
 } from './lib/db';
 
 import {
@@ -30,17 +30,17 @@ import {
   handleFetchErrors,
   handleWarnings,
   handleSigInt,
-  cleanup,
+  cleanup
 } from './lib/errors';
 
 import {
   markSourceAs,
   chooseSourcesBasedOnEnv,
-  prepareCompleteResultsMessage,
+  prepareCompleteResultsMessage
 } from './lib/adapters';
 
 import {
-  reportAndRecordFetch,
+  reportAndRecordFetch
 } from './lib/notification';
 
 const env = getEnv();
@@ -50,7 +50,7 @@ const {
   webhookKey,
   processTimeout,
   maxParallelAdapters,
-  strict,
+  strict
 } = env;
 
 const runningSources = {};
