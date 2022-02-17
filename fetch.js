@@ -12,17 +12,49 @@ import { DataStream } from 'scramjet';
 import sources from './sources';
 import log from './lib/logger';
 
-import { getEnv } from './lib/env';
-import { fetchCorrectedMeasurementsFromSourceStream } from './lib/measurement';
-import { streamMeasurementsToDBAndStorage } from './lib/db';
-import { handleProcessTimeout, handleUnresolvedPromises, handleFetchErrors, handleWarnings, handleSigInt, cleanup } from './lib/errors';
-import { markSourceAs, chooseSourcesBasedOnEnv, prepareCompleteResultsMessage } from './lib/adapters';
-import { reportAndRecordFetch } from './lib/notification';
+import {
+  getEnv,
+} from './lib/env';
+
+import {
+  fetchCorrectedMeasurementsFromSourceStream,
+} from './lib/measurement';
+
+import {
+  streamMeasurementsToDBAndStorage,
+} from './lib/db';
+
+import {
+  handleProcessTimeout,
+  handleUnresolvedPromises,
+  handleFetchErrors,
+  handleWarnings,
+  handleSigInt,
+  cleanup
+} from './lib/errors';
+
+import {
+  markSourceAs,
+  chooseSourcesBasedOnEnv,
+  prepareCompleteResultsMessage
+} from './lib/adapters';
+
+import {
+  reportAndRecordFetch
+} from './lib/notification';
 
 const env = getEnv();
-const { apiURL, webhookKey, processTimeout, maxParallelAdapters, strict } = env;
+
+const {
+  apiURL,
+  webhookKey,
+  processTimeout,
+  maxParallelAdapters,
+  strict,
+} = env;
 
 const runningSources = {};
+
 
 /**
  * Run all the data fetch tasks in parallel, simply logs out results
@@ -33,6 +65,7 @@ Promise.race([
   handleUnresolvedPromises(strict),
   handleWarnings(['MaxListenersExceededWarning'], strict),
   (async function () {
+
     if (env.dryrun) {
       log.info('--- Dry run for Testing, nothing is saved to the database. ---');
     } else {

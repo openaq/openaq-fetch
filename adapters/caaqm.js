@@ -59,7 +59,7 @@ export async function fetchStream (source) {
       });
     }, new DataStream())
     .filter((station) => {
-      return station.status === 'Live';
+      return station.status === 'Live';// && station.station_id == 'site_293';
     })
     .into(
       async (measurements, {coords, station_id: stationId}) => {
@@ -71,6 +71,7 @@ export async function fetchStream (source) {
         });
 
         try {
+
           const body = await getInfo(options, stationId);
           const {siteInfo, tableData: {bodyContent}} = JSON.parse(body);
 
@@ -101,19 +102,17 @@ export async function fetchStream (source) {
                 };
 
                 // Date
-                const date = moment.tz(`${p.date} ${p.time}`, 'DD MMM YYYY HH:mm', 'Asia/Kolkata');
+                //const date = moment.tz(`${p.date} ${p.time}`, 'DD MMM YYYY HH:mm', 'Asia/Kolkata');
+                const date = moment.tz(`${p.fromDate}`, 'DD MMM YYYY HH:mm', 'Asia/Kolkata');
                 m.date = {utc: date.toDate(), local: date.format()};
-
                 await measurements.whenWrote(m);
               })
               .run()
           );
         } catch (e) {
           const message = (e.statusCode)
-            ? `Status code ${e.statusCode} received on http request for station`
-            : `Error while parsing measurements for station`;
-
-          log.debug({message, stationId, code: e.statusCode});
+                ? `Status code ${e.statusCode} received on http request for station`
+                : `${e.message}`;
 
           throw new FetchError(DATA_URL_ERROR, source, e, message);
         }
