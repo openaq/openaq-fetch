@@ -12,15 +12,46 @@ import { DataStream } from 'scramjet';
 import sources from './sources';
 import log from './lib/logger';
 
-import { getEnv } from './lib/env';
-import { fetchCorrectedMeasurementsFromSourceStream } from './lib/measurement';
-import { streamMeasurementsToDBAndStorage } from './lib/db';
-import { handleProcessTimeout, handleUnresolvedPromises, handleFetchErrors, handleWarnings, handleSigInt, cleanup } from './lib/errors';
-import { markSourceAs, chooseSourcesBasedOnEnv, prepareCompleteResultsMessage } from './lib/adapters';
-import { reportAndRecordFetch } from './lib/notification';
+import {
+  getEnv
+} from './lib/env';
+
+import {
+  fetchCorrectedMeasurementsFromSourceStream
+} from './lib/measurement';
+
+import {
+  streamMeasurementsToDBAndStorage
+} from './lib/db';
+
+import {
+  handleProcessTimeout,
+  handleUnresolvedPromises,
+  handleFetchErrors,
+  handleWarnings,
+  handleSigInt,
+  cleanup
+} from './lib/errors';
+
+import {
+  markSourceAs,
+  chooseSourcesBasedOnEnv,
+  prepareCompleteResultsMessage
+} from './lib/adapters';
+
+import {
+  reportAndRecordFetch
+} from './lib/notification';
 
 const env = getEnv();
-const { apiURL, webhookKey, processTimeout, maxParallelAdapters, strict } = env;
+
+const {
+  apiURL,
+  webhookKey,
+  processTimeout,
+  maxParallelAdapters,
+  strict
+} = env;
 
 const runningSources = {};
 
@@ -38,7 +69,6 @@ Promise.race([
     } else {
       log.info('--- Full fetch started. ---');
     }
-
     const fetchReport = {
       itemsInserted: 0,
       timeStarted: Date.now(),
