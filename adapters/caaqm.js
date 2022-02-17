@@ -69,12 +69,9 @@ export async function fetchStream (source) {
           resolveWithFullResponse: true,
           timeout: 20000
         });
-
         try {
-
           const body = await getInfo(options, stationId);
           const {siteInfo, tableData: {bodyContent}} = JSON.parse(body);
-
           await (
             DataStream
               .from(bodyContent)
@@ -102,7 +99,7 @@ export async function fetchStream (source) {
                 };
 
                 // Date
-                //const date = moment.tz(`${p.date} ${p.time}`, 'DD MMM YYYY HH:mm', 'Asia/Kolkata');
+                // const date = moment.tz(`${p.date} ${p.time}`, 'DD MMM YYYY HH:mm', 'Asia/Kolkata');
                 const date = moment.tz(`${p.toDate}`, 'DD MMM YYYY HH:mm', 'Asia/Kolkata');
                 m.date = {utc: date.toDate(), local: date.format()};
                 await measurements.whenWrote(m);
@@ -111,8 +108,8 @@ export async function fetchStream (source) {
           );
         } catch (e) {
           const message = (e.statusCode)
-                ? `Status code ${e.statusCode} received on http request for station`
-                : `${e.message}`;
+            ? `Status code ${e.statusCode} received on http request for station`
+            : `${e.message}`;
 
           throw new FetchError(DATA_URL_ERROR, source, e, message);
         }

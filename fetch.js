@@ -30,17 +30,17 @@ import {
   handleFetchErrors,
   handleWarnings,
   handleSigInt,
-  cleanup
+  cleanup,
 } from './lib/errors';
 
 import {
   markSourceAs,
   chooseSourcesBasedOnEnv,
-  prepareCompleteResultsMessage
+  prepareCompleteResultsMessage,
 } from './lib/adapters';
 
 import {
-  reportAndRecordFetch
+  reportAndRecordFetch,
 } from './lib/notification';
 
 const env = getEnv();
@@ -55,7 +55,6 @@ const {
 
 const runningSources = {};
 
-
 /**
  * Run all the data fetch tasks in parallel, simply logs out results
  */
@@ -65,13 +64,11 @@ Promise.race([
   handleUnresolvedPromises(strict),
   handleWarnings(['MaxListenersExceededWarning'], strict),
   (async function () {
-
     if (env.dryrun) {
       log.info('--- Dry run for Testing, nothing is saved to the database. ---');
     } else {
       log.info('--- Full fetch started. ---');
     }
-
     const fetchReport = {
       itemsInserted: 0,
       timeStarted: Date.now(),
