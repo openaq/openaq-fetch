@@ -1,0 +1,14 @@
+[
+    {
+        "url": "http://www.epa.org.me/vazduh/stanica/",
+        "adapter": "montenegro",
+        "name": "Montenegro",
+        "country": "ME",
+        "description": "",
+        "sourceURL": "http://www.epa.org.me/vazduh/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
