@@ -99,7 +99,6 @@ export async function fetchStream (source) {
                 };
 
                 // Date
-                // const date = moment.tz(`${p.date} ${p.time}`, 'DD MMM YYYY HH:mm', 'Asia/Kolkata');
                 const date = moment.tz(`${p.toDate}`, 'DD MMM YYYY HH:mm', 'Asia/Kolkata');
                 m.date = {utc: date.toDate(), local: date.format()};
                 await measurements.whenWrote(m);
