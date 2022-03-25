@@ -16,12 +16,12 @@
         "adapter": "fhmzbih2",
         "name": "Bosnia2",
         "country": "BA",
-        "description": "",
+        "description": "URL no longer works - 2022-03-24",
         "sourceURL": "http://www.fhmzbih.gov.ba/latinica/ZRAK/vrijednostiPolutanata.php",
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://monitoringzrakatk.info/",
