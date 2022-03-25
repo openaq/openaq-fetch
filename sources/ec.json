@@ -5,11 +5,11 @@
       "name": "Quito REMMAQ",
       "city": "Quito",
       "country": "EC",
-      "description": "",
+      "description": "Seems to be down as of 2022-03-25, probably earlier",
       "sourceURL": "http://www.quitoambiente.gob.ec/ambiente/",
       "contacts": [
           "info@openaq.org"
       ],
-      "active": true
+      "active": false
   }
 ]
