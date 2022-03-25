@@ -16,7 +16,7 @@ import { join } from 'path';
 import cheerio from 'cheerio';
 
 // Adding in certs to get around unverified connection issue
-require('ssl-root-cas/latest')
+require('ssl-root-cas')
   .inject()
   .addFile(join(__dirname, '..', '/certs/OrganizationSSL.crt.txt'));
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
