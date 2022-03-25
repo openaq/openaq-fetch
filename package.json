@@ -28,7 +28,7 @@
     "jsonschema": "^1.2.0",
     "knex": "^0.15.2",
     "knex-postgis": "^0.2.2",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.21",
     "moment": "^2.22.2",
     "moment-timezone": "^0.5.21",
     "pg": "^7.4.3",
