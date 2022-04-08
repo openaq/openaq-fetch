@@ -10,6 +10,7 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false,
+        "notes": "Updated API. Working on updating the adapter"
     }
 ]

@@ -36,6 +36,7 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false,
+        "notes": "Seems to be down. Last record I see is from April 1, 2022"
     }
 ]

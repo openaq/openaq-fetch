@@ -26,7 +26,7 @@ exports.fetchData = function (source, cb) {
       const url = `${source.url}/355000000I-000259?format=json&token=${process.env.TW_EPA_TOKEN}`;
       request(url, (err, res, body) => {
         if (err || res.statusCode !== 200) {
-          return done({message: 'Failure to load data url'});
+          return done({message: `Failure to load data url (${url})`});
         }
 
         return done(null, body);

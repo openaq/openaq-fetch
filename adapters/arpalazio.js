@@ -79,6 +79,7 @@ const handleProvince = async function (name, url, averagingPeriod, source) {
   }).get();
 
   const arrayOfPromises = pollutantURLs.map(dataUrl => getStream(name, dataUrl, averagingPeriod, source, url));
+
   return new MultiStream(
     await Promise.all(arrayOfPromises)
       .catch((err) => {
@@ -102,6 +103,9 @@ const getParameters = function (averagingPeriod) {
 export const getStream = function (cityName, url, averagingPeriod, source, orgUrl) {
   const { metadata } = source;
   const match = url.match(/[\w]{2}_([\w.]{2,})_([\d]{4})(?:_gg)?.txt/);
+  if (!match || match.length < 2) {
+    log.verbose(`Failed to match url ${url}`);
+  }
   const parameter = match[1].toLowerCase().replace('.', '');
   const year = match[2];
   const unit = getUnit(parameter);
