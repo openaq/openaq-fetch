@@ -10,7 +10,7 @@ export async function fetchData (source, cb) {
   try {
     request.get(source.url, (err, res, body) => {
       if (err || res.statusCode !== 200) {
-        return cb({ message: 'Failed to load entry point url' }, null);
+        return cb({ message: `Failed to load entry point url ${source.url}` }, null);
       }
       const data = JSON.parse(body);
 
