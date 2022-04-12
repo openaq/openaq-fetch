@@ -13,3 +13,4 @@ adapters.list
 src/package.json
 src/node_modules
 cdk/cdk.out
+/docs/adapter-update.md
