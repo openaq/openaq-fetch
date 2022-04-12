@@ -54,6 +54,8 @@
     "@babel/preset-env": "^7.16.11",
     "@babel/register": "^7.17.7",
     "@babel/runtime": "^7.17.9",
+    "@k-foss/ts-esnode": "^2.0.2",
+    "aws-cdk": "^2.20.0",
     "chai": "^4.1.2",
     "eslint": "^8.13.0",
     "eslint-config-standard": "^16.0.3",
@@ -62,6 +64,7 @@
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-standard": "^5.0.0",
     "mocha": "^9.2.2",
-    "shell-escape": "^0.2.0"
+    "shell-escape": "^0.2.0",
+    "typescript": "^4.6.3"
   }
 }

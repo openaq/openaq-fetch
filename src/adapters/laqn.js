@@ -22,14 +22,16 @@ export async function fetchData (source, cb) {
     let dateNow = moment().tz('Europe/London');
     let startDate = dateNow.format('DD MMM YYYY');
     let endDate = dateNow.add(1, 'days').format('DD MMM YYYY');
+
     let siteCodesResponse = await promiseRequest(
       `${source.url}/AirQuality/Information/MonitoringSites/GroupName=All/Json`
     );
     let allSites = JSON.parse(siteCodesResponse).Sites.Site;
+    // assuming these are all marked once they are closed
+    allSites = allSites.filter(s => !s['@DateClosed']);
     let siteLookup = _.keyBy(allSites, '@SiteCode');
     let dataPromises = allSites.map((site) =>
       promiseRequest(`${source.url}/AirQuality/Data/Site/SiteCode=${site['@SiteCode']}/StartDate=${startDate}/EndDate=${endDate}/Json`)
-        // in case a request fails, handle gracefully
         .catch(error => { log.warn(error || `Unable to load data for site: ${site['@SiteCode']}`); return null; })
         .then(data => formatData(data, siteLookup)));
 

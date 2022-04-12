@@ -6,9 +6,9 @@ import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'defra';
+export const name = 'defra';
 
-exports.fetchData = function (source, cb) {
+export function fetchData (source, cb) {
   request({url: source.url, headers: {'User-Agent': 'OpenAQ'}}, function (err, res, body) {
     if (err || res.statusCode !== 200) {
       return cb({message: 'Failure to load data url.'});

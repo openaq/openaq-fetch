@@ -5,6 +5,7 @@ const { DataStream } = sj;
 
 import { validate } from 'jsonschema';
 import log from './logger.js';
+import { resolve } from 'path';
 import {
   ADAPTER_ERROR,
   MeasurementValidationError,
@@ -13,7 +14,11 @@ import {
   forwardErrors
 } from './errors.js';
 import { getAdapterForSource } from './adapters.js';
-import { readFileSync, existsSync, readdirSync } from 'fs';
+import {
+  readFileSync,
+  existsSync,
+  readdirSync
+} from 'fs';
 
 import {
   ignore,
@@ -35,7 +40,6 @@ import moment from 'moment';
  */
 
 const measurementSchema = JSON.parse(readFileSync(`./lib/measurement-schema.json`, 'utf8'));
-
 
 async function getStreamFromAdapter (adapter, source) {
   log.debug(`Getting stream for "${source.name}" from "${adapter.name}"`);

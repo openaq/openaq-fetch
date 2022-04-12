@@ -95,7 +95,8 @@ let _env = process.env;
  * Read values from local file and add them to the global _env
  * this is to help with local testing
  */
-const readEnvFromLocalFile = (envFile) => {
+export const readEnvFromLocalFile = (envFile) => {
+  console.log('reading from env from', envFile);
   let envs = readFileSync(envFile, 'utf8');
   envs.split('\n').forEach(function (e) {
     if (e) {
@@ -175,7 +176,7 @@ export default () => {
     strict,
     dryrun,
     debug,
-    source,
+    source: "London Air Quality Network",
     maxParallelAdapters
   };
 };

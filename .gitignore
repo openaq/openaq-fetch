@@ -10,3 +10,6 @@ ecs-task-fargate-generated.json
 .editorconfig
 knexfile-local.js
 adapters.list
+src/package.json
+src/node_modules
+cdk/cdk.out
