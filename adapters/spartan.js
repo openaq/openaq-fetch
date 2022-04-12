@@ -1,6 +1,6 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import AdmZip from 'adm-zip';

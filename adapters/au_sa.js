@@ -1,16 +1,16 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
-import { cloneDeep } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep.js';
 import { default as moment } from 'moment-timezone';
 // note: this is the 'synchronous' version (lost hours to this!)
-import { default as parse } from 'csv-parse/lib/sync';
+import { parse } from 'csv-parse/sync';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'au_sa';
+export const name = 'au_sa';
 
-exports.fetchData = function (source, cb) {
+export function fetchData (source, cb) {
   // Fetch the data
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {

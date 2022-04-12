@@ -2,8 +2,8 @@
 
 import { default as moment } from 'moment-timezone';
 import _ from 'lodash';
-import log from '../lib/logger';
-import { promiseRequest, unifyParameters, unifyMeasurementUnits } from '../lib/utils';
+import log from '../lib/logger.js';
+import { promiseRequest, unifyParameters, unifyMeasurementUnits } from '../lib/utils.js';
 
 export const name = 'laqn';
 

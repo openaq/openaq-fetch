@@ -4,22 +4,22 @@
  */
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import { parallel } from 'async';
-import { convertUnits, acceptableParameters } from '../lib/utils';
+import { convertUnits, acceptableParameters } from '../lib/utils.js';
 const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT, jar: true }); // Allowing cookies
 
-exports.name = 'turkey';
+export const name = 'turkey';
 
 /**
  * Fetches the data for a given source and returns an appropriate object
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
  */
-exports.fetchData = function (source, cb) {
+export function fetchData (source, cb) {
   // Fetching both the main data page as well as a page to get all
   // coordinates for locations
   parallel(

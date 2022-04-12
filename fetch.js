@@ -7,22 +7,26 @@
  */
 'use strict';
 
-import { DataStream } from 'scramjet';
+//import { DataStream } from 'scramjet';
+import sj from 'scramjet';
+const { DataStream } = sj;
 
-import sources from './sources';
-import log from './lib/logger';
+import sources from './sources/index.cjs';
+import log from './lib/logger.js';
 
-import {
-  getEnv
-} from './lib/env';
+import _env from './lib/env.js';
+
+//import {
+//  getEnv
+//} from './lib/env.cjs';
 
 import {
   fetchCorrectedMeasurementsFromSourceStream
-} from './lib/measurement';
+} from './lib/measurement.js';
 
 import {
   streamMeasurementsToDBAndStorage
-} from './lib/db';
+} from './lib/db.js';
 
 import {
   handleProcessTimeout,
@@ -31,19 +35,19 @@ import {
   handleWarnings,
   handleSigInt,
   cleanup
-} from './lib/errors';
+} from './lib/errors.js';
 
 import {
   markSourceAs,
   chooseSourcesBasedOnEnv,
   prepareCompleteResultsMessage
-} from './lib/adapters';
+} from './lib/adapters.js';
 
 import {
   reportAndRecordFetch
-} from './lib/notification';
+} from './lib/notification.js';
 
-const env = getEnv();
+const env = _env();
 
 const {
   apiURL,

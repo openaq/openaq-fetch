@@ -1,12 +1,12 @@
 'use strict';
 
 import { default as baseRequest } from 'request';
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import cheerio from 'cheerio';
 import { default as moment } from 'moment-timezone';
 import { flattenDeep, isFinite } from 'lodash';
 import { parallel } from 'async';
-import { acceptableParameters, convertUnits } from '../lib/utils';
+import { acceptableParameters, convertUnits } from '../lib/utils.js';
 import Iconv from 'iconv';
 
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
