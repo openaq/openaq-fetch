@@ -6,7 +6,7 @@
  * `node index.js --help`.
  */
 'use strict';
-
+import moment from 'moment';
 //import { DataStream } from 'scramjet';
 import sj from 'scramjet';
 const { DataStream } = sj;
@@ -63,7 +63,23 @@ const runningSources = {};
  * Run all the data fetch tasks in parallel, simply logs out results
  */
 export function handler (event, context) {
-  console.log('invoked using', event);
+  // the event may have passed a source, in which case we need to filter
+  let current_sources;
+  // if we have have more than one of these running we will need to make
+  // sure that we dont overwrite another process
+  let suffix = '';
+  if(event.Records) {
+    current_sources = event.Records.map( rcd => {
+      return JSON.parse(rcd.body);
+    }).flat();
+    suffix = `_${event.Records[0].messageId}`;
+  } else {
+    current_sources = sources;
+  }
+
+  // and the final file name
+  env.key = `realtime/${moment().format('YYYY-MM-DD/X')}${suffix}.ndjson`;
+
   return Promise.race([
     handleSigInt(runningSources),
     handleProcessTimeout(processTimeout, runningSources),
@@ -84,9 +100,9 @@ export function handler (event, context) {
       };
 
       // create a DataStream from sources
-      return DataStream.fromArray(Object.values(sources))
+      return DataStream.fromArray(Object.values(current_sources))
       // flatten the sources
-        .flatten()
+      //  .flatten()
       // set parallel limits
         .setOptions({maxParallel: maxParallelAdapters})
       // filter sources - if env is set then choose only matching source,

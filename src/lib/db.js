@@ -1,4 +1,3 @@
-import moment from 'moment';
 import S3UploadStream from 's3-upload-stream';
 //import { DataStream } from 'scramjet';
 import sj from 'scramjet';
@@ -91,9 +90,11 @@ export function streamMeasurementsToDBAndStorage (sourcesStream, {
   doSaveToS3,
   s3ChunkSize,
   dryrun,
-  bucketName
+  bucketName,
+  key,
 }) {
   if (dryrun) {
+    log.info(`[Dry Run] File would be saved to ${key}`);
     return sourcesStream.do(async ({ stream: measurementStream }) => {
       return measurementStream
         .do(m => log.verbose(JSON.stringify(m)))
@@ -105,7 +106,6 @@ export function streamMeasurementsToDBAndStorage (sourcesStream, {
 
     let s3stream = null;
     if (doSaveToS3) {
-      const key = `realtime/${moment().format('YYYY-MM-DD/X')}.ndjson`;
       s3stream = saveResultsToS3(output, s3, bucketName, key, s3ChunkSize);
     }
 

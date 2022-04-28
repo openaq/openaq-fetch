@@ -100,7 +100,6 @@ export function chooseSourcesBasedOnEnv (stream, {source}, runningSources) {
       }
     )
     .catch(ignore);
-
   return out;
 }
 

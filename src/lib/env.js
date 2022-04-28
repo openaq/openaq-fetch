@@ -176,7 +176,7 @@ export default () => {
     strict,
     dryrun,
     debug,
-    source: "London Air Quality Network",
+    source,
     maxParallelAdapters
   };
 };

@@ -1,6 +1,8 @@
 import * as cdk from '@aws-cdk/core';
 import * as lambda from "@aws-cdk/aws-lambda";
+import { SqsEventSource } from "@aws-cdk/aws-lambda-event-sources";
 import * as s3 from "@aws-cdk/aws-s3";
+import * as sqs from "@aws-cdk/aws-sqs";
 import { execSync } from "child_process";
 import { readFileSync, copyFileSync, readdirSync } from 'fs';
 //import { readEnvFromLocalFile } from '../src/lib/env.js';
@@ -44,9 +46,31 @@ export class RealtimeFetcherStack extends cdk.Stack {
             `--modules-folder ../src/node_modules`,
         ].join(" ");
         execSync(cmd);
+        env.QUEUE_NAME = `${id}-queue`;
 
         const bucket = s3.Bucket.fromBucketName(this, "Data", env.AWS_BUCKET_NAME);
-        const handler = new lambda.Function(
+
+        const queue = new sqs.Queue(this, "RealtimeFetcherQueue", {
+            queueName: env.QUEUE_NAME,
+            visibilityTimeout: cdk.Duration.seconds(300),
+        });
+
+        const scheduler = new lambda.Function(
+            this,
+            `${id}-scheduler-lambda`,
+            {
+                description: "Lambda implementation of the realtime scheduler",
+                code: lambda.Code.fromAsset(
+                    '../src'
+                ),
+                handler: 'scheduler.handler',
+                memorySize: 128,
+                runtime: lambda.Runtime.NODEJS_14_X,
+                timeout: cdk.Duration.seconds(30),
+                environment: env,
+            });
+
+        const fetcher = new lambda.Function(
             this,
             `${id}-lambda`,
             {
@@ -61,11 +85,25 @@ export class RealtimeFetcherStack extends cdk.Stack {
                 environment: env,
             });
 
-        bucket.grantReadWrite(handler)
+        bucket.grantReadWrite(fetcher)
+        queue.grantSendMessages(scheduler);
+        queue.grantConsumeMessages(fetcher);
+
+        fetcher.addEventSource(
+            new SqsEventSource(queue, {
+                batchSize: 1,
+            })
+        );
+
+        // finally we create our cron/event
+        //new events.Rule(this, `${interval}Rule`, {
+        //    schedule: events.Schedule.rate(duration),
+        //    targets: [new eventTargets.LambdaFunction(scheduler)],
+        //});
+
 
     }
 }
-
 
 
 const stack = new RealtimeFetcherStack(app, 'realtime-fetcher')

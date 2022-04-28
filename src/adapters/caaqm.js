@@ -1,14 +1,17 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
-import { acceptableParameters } from '../lib/utils';
-import log from '../lib/logger';
+import { acceptableParameters } from '../lib/utils.js';
+import log from '../lib/logger.js';
 import JSONStream from 'JSONStream';
-import { DataStream } from 'scramjet';
+
+import sj from 'scramjet';
+const { DataStream } = sj;
+
 import https from 'https';
-import { FetchError, DATA_URL_ERROR } from '../lib/errors';
+import { FetchError, DATA_URL_ERROR } from '../lib/errors.js';
 
 // From: https://github.com/node-fetch/node-fetch/issues/568#issuecomment-932200523
 const agent = new https.Agent({
