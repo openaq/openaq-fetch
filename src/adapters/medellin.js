@@ -9,11 +9,11 @@
 import { default as moment } from 'moment-timezone';
 import https from 'https';
 import _ from 'lodash';
-import { promiseRequest, convertUnits } from '../lib/utils';
-import log from '../lib/logger';
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { promiseRequest, convertUnits } from '../lib/utils.js';
+import log from '../lib/logger.js';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
 
-exports.name = 'medellin';
+export const name = 'medellin';
 
 const agent = new https.Agent({
   rejectUnauthorized: false

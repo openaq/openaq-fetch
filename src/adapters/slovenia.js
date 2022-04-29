@@ -1,16 +1,16 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import { convertUnits } from '../lib/utils.js';
 import { default as baseRequest } from 'request';
-import { cloneDeep } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep.js';
 import { default as moment } from 'moment-timezone';
-import { convertUnits } from '../lib/utils';
 import cheerio from 'cheerio';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'slovenia';
+export const name = 'slovenia';
 
-exports.fetchData = function (source, cb) {
+export function fetchData (source, cb) {
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
       return cb({message: 'Failure to load data url.'});

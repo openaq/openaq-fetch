@@ -1,8 +1,8 @@
 'use strict';
 
 import _ from 'lodash';
-import log from '../lib/logger';
-import { promisePostRequest, unifyMeasurementUnits } from '../lib/utils';
+import log from '../lib/logger.js';
+import { promisePostRequest, unifyMeasurementUnits } from '../lib/utils.js';
 
 export const name = 'rwanda';
 

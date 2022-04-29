@@ -1,12 +1,13 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import { unifyMeasurementUnits } from '../lib/utils.js';
+
 import { default as baseRequest } from 'request';
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
-import parallelLimit from 'async/parallelLimit';
+import parallelLimit from 'async/parallelLimit.js';
 import Bottleneck from 'bottleneck';
-import { unifyMeasurementUnits } from '../lib/utils';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 // Default rate limiting on API is set to 5 requests/sec.

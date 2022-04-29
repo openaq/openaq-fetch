@@ -1,17 +1,18 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import {removeUnwantedParameters} from '../lib/utils.js';
+
 import { default as baseRequest } from 'request';
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import async from 'async';
-import {removeUnwantedParameters} from '../lib/utils';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'netherlands';
+export const name = 'netherlands';
 
-exports.fetchData = function (source, cb) {
+export function fetchData (source, cb) {
   var finalURL = source.url;
   request(finalURL, function (err, res, body) {
     if (err || res.statusCode !== 200) {

@@ -4,9 +4,9 @@
  */
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
-import { cloneDeep } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep.js';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});

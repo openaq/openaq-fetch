@@ -1,15 +1,18 @@
 'use strict';
 
-import { acceptableParameters } from '../lib/utils';
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { acceptableParameters } from '../lib/utils.js';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
 import cheerio from 'cheerio';
-import { chunk, flattenDeep, includes, find } from 'lodash';
+import chunk from 'lodash/chunk.js';
+import includes from 'lodash/includes.js';
+import flattenDeep from 'lodash/flattenDeep.js';
+import find from 'lodash/find.js';
 import { default as moment } from 'moment-timezone';
 import { parallel } from 'async';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'andalucia';
+export const name = 'andalucia';
 
 export function fetchData (source, callback) {
   let baseUrl = source.url;

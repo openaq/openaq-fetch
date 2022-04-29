@@ -1,10 +1,11 @@
 import request from 'request';
 import rp from 'request-promise-native';
 import { parse as JSONStream } from 'JSONStream';
-import { DataStream } from 'scramjet';
-import { FetchError, DATA_URL_ERROR } from '../lib/errors';
-import log from '../lib/logger';
-import { acceptableParameters } from '../lib/utils';
+import sj from 'scramjet';
+const { DataStream } = sj;
+import { FetchError, DATA_URL_ERROR } from '../lib/errors.js';
+import log from '../lib/logger.js';
+import { acceptableParameters } from '../lib/utils.js';
 import moment from 'moment-timezone';
 
 const resolveParameter = (param) => param.toLowerCase().replace('c6h6', 'bc').replace('.', '');

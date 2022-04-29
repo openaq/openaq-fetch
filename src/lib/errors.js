@@ -13,6 +13,7 @@ export const ADAPTER_ERROR = Symbol('Adapter error');
 export const ADAPTER_NOT_FOUND = Symbol('Adapter not found');
 export const ADAPTER_NAME_INVALID = Symbol('Adapter name invalid');
 export const DATA_URL_ERROR = Symbol('Source data url error');
+export const DATA_PARSE_ERROR = Symbol('Source data parsing error');
 
 export const STREAM_END = Symbol('End stream');
 

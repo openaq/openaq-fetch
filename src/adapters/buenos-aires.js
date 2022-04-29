@@ -1,12 +1,12 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import { acceptableParameters, convertUnits } from '../lib/utils.js';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import { parallel } from 'async';
-import { flattenDeep } from 'lodash';
-import { acceptableParameters, convertUnits } from '../lib/utils';
+import flattenDeep from 'lodash/flattenDeep.js';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'buenos-aires';

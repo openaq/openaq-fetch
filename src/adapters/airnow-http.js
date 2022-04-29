@@ -1,12 +1,14 @@
 'use strict';
 
-import log from '../lib/logger';
+import log from '../lib/logger.js';
+import { acceptableParameters } from '../lib/utils.js';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import { MeasurementValidationError } from '../lib/errors.js';
+
 import { default as moment } from 'moment-timezone';
-import { acceptableParameters } from '../lib/utils';
-import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
-import { StringStream } from 'scramjet';
-import { MeasurementValidationError } from '../lib/errors';
+import sj from 'scramjet';
+const { StringStream } = sj;
 
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
@@ -69,7 +71,7 @@ function getLocations (url) {
   return _locationsStream[url];
 }
 
-exports.fetchStream = async function (source) {
+export async function fetchStream (source) {
   const locations = await getLocations(source.url);
 
   log.debug(`Got ${Object.keys(locations).length} locations.`);

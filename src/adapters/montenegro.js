@@ -7,8 +7,8 @@
  */
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
-import { removeUnwantedParameters, unifyMeasurementUnits, unifyParameters } from '../lib/utils';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import { removeUnwantedParameters, unifyMeasurementUnits, unifyParameters } from '../lib/utils.js';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import async from 'async';
@@ -17,14 +17,14 @@ import cheerio from 'cheerio';
 // Adding in certs to get around unverified connection issue
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'montenegro';
+export const name = 'montenegro';
 
 /**
  * Fetches the data for a given source and returns an appropriate object
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
  */
-exports.fetchData = async function (source, cb) {
+export async function fetchData (source, cb) {
   // Fetches pages with valid data
   var tasks = [];
 

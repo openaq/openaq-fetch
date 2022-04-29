@@ -4,21 +4,22 @@
  */
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import { unifyMeasurementUnits, removeUnwantedParameters, unifyParameters } from '../lib/utils.js';
+
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import _ from 'lodash';
-import { unifyMeasurementUnits, removeUnwantedParameters, unifyParameters } from '../lib/utils';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'southafrica';
+export const name = 'southafrica';
 
 /**
  * Fetches the data for a given source and returns an appropriate object
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
  */
-exports.fetchData = function (source, cb) {
+export function fetchData (source, cb) {
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
       return cb({message: 'Failure to load data url.'});

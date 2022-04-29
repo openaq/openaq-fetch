@@ -68,7 +68,7 @@ export function handler (event, context) {
   // if we have have more than one of these running we will need to make
   // sure that we dont overwrite another process
   let suffix = '';
-  if(event.Records) {
+  if(event && event.Records) {
     current_sources = event.Records.map( rcd => {
       return JSON.parse(rcd.body);
     }).flat();

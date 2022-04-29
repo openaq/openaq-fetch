@@ -1,14 +1,15 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
-import { flatten, cloneDeep } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep.js';
+import flatten from 'lodash/flatten.js';
 import { default as moment } from 'moment-timezone';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'au_act';
+export const name = 'au_act';
 
-exports.fetchData = function (source, cb) {
+export function fetchData (source, cb) {
   // get the time 1 day ago in AEST
   var timeAgo = moment().tz('Australia/Sydney').subtract(1, 'days').format('YYYY-MM-DDTHH:mm:ss');
 

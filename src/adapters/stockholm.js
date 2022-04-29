@@ -1,19 +1,19 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import { acceptableParameters } from '../lib/utils.js';
+import log from '../lib/logger.js';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
-import { acceptableParameters } from '../lib/utils';
-import log from '../lib/logger';
 
 const request = baseRequest
   .defaults({ timeout: REQUEST_TIMEOUT })
   .defaults({ strictSSL: false });
 
-exports.name = 'stockholm';
+export const name = 'stockholm';
 
-exports.fetchData = function (source, cb) {
+export function fetchData (source, cb) {
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
       return cb({ message: 'Failure to load data url.' });

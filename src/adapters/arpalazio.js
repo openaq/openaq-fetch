@@ -1,18 +1,20 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import { FetchError, DATA_URL_ERROR, DATA_PARSE_ERROR } from '../lib/errors.js';
+import log from '../lib/logger.js';
+import { acceptableParameters, convertUnits } from '../lib/utils.js';
 import { default as baseRequest } from 'request';
 import { default as rp } from 'request-promise-native';
 import { default as moment } from 'moment-timezone';
-import { StringStream, MultiStream } from 'scramjet';
+import sj from 'scramjet';
+const { StringStream, MultiStream } = sj;
+
 import cheerio from 'cheerio';
-import log from '../lib/logger';
-import { acceptableParameters, convertUnits } from '../lib/utils';
-import { difference } from 'lodash';
-import { FetchError, SOURCE_URL_NOT_FOUND, SOURCE_URL_CANNOT_PARSE_DATA } from '../lib/errors';
+import difference from 'lodash/difference.js';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'arpalazio';
+export const name = 'arpalazio';
 const timezone = 'Europe/Rome';
 
 const baseUrl = 'http://www.arpalazio.net/main/aria/sci/annoincorso/';
@@ -24,18 +26,18 @@ const dailyAvgPeriod = {unit: 'hours', value: 24};
 const dailyParameters = ['pm25', 'pm10'];
 const hourlyParameters = difference(acceptableParameters, dailyParameters);
 
-exports.fetchStream = async function (source) {
+export async function fetchStream (source) {
   const response = await rp({method: 'GET', uri: source.url, resolveWithFullResponse: true, timeout: REQUEST_TIMEOUT});
 
   if (response.statusCode !== 200) {
-    throw new FetchError(SOURCE_URL_NOT_FOUND, source, null);
+    throw new FetchError(DATA_URL_ERROR, source, null);
   }
 
   let $;
   try {
     $ = cheerio.load(response.body);
   } catch (e) {
-    throw new FetchError(SOURCE_URL_CANNOT_PARSE_DATA, source, e);
+    throw new FetchError(DATA_PARSE_ERROR, source, e);
   }
 
   const provinces = $('#provincia option')
@@ -64,7 +66,7 @@ const handleProvince = async function (name, url, averagingPeriod, source) {
   const response = await rp({method: 'GET', uri: url, resolveWithFullResponse: true, timeout: REQUEST_TIMEOUT});
 
   if (response.statusCode !== 200) {
-    throw new FetchError(SOURCE_URL_CANNOT_PARSE_DATA, source, null);
+    throw new FetchError(DATA_PARSE_ERROR, source, null);
   }
   log.verbose(`Loading province information from ${url}`);
 

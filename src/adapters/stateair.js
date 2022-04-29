@@ -1,17 +1,18 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import { convertUnits } from '../lib/utils.js';
 import { default as baseRequest } from 'request';
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import { parallel } from 'async';
-import { convertUnits } from '../lib/utils';
+
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'stateair';
+export const name = 'stateair';
 
-exports.fetchData = function (source, cb) {
+export function fetchData (source, cb) {
   // Generic fetch function
   const getData = (url, done) => {
     return request(url, (err, res, body) => {

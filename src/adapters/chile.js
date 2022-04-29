@@ -7,7 +7,7 @@
  */
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
@@ -16,19 +16,21 @@ import { join } from 'path';
 import cheerio from 'cheerio';
 
 // Adding in certs to get around unverified connection issue
-require('ssl-root-cas')
-  .inject()
-  .addFile(join(__dirname, '..', '/certs/OrganizationSSL.crt.txt'));
+// 2022-04-29 - this should no longer be needed
+//require('ssl-root-cas')
+//  .inject()
+//  .addFile(join(__dirname, '..', '/certs/OrganizationSSL.crt.txt'));
+
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'chile';
+export const name = 'chile';
 
 /**
  * Fetches the data for a given source and returns an appropriate object
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
  */
-exports.fetchData = function (source, cb) {
+export function fetchData (source, cb) {
   // Fetch both the measurements and meta-data about the locations
   var sources = [source.url, 'http://sinca.mma.gob.cl/index.php/json/listado'];
   var tasks = [];

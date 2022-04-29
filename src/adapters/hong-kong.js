@@ -4,21 +4,21 @@
  */
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import { convertUnits } from '../lib/utils.js';
 import { default as baseRequest } from 'request';
 import cheerio from 'cheerio';
 import { default as moment } from 'moment-timezone';
-import { convertUnits } from '../lib/utils';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'hong-kong';
+export const name = 'hong-kong';
 
 /**
  * Fetches the data for a given source and returns an appropriate object
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
  */
-exports.fetchData = (source, cb) => {
+export const fetchData = (source, cb) => {
   request(`${source.url}/24pc_Eng.xml`, function (err, res, body) {
     if (err || res.statusCode !== 200) {}
 

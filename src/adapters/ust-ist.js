@@ -1,7 +1,7 @@
 'use strict';
 
 import { default as moment } from 'moment-timezone';
-import { acceptableParameters, promiseRequest } from '../lib/utils';
+import { acceptableParameters, promiseRequest } from '../lib/utils.js';
 
 export const name = 'ust-ist';
 

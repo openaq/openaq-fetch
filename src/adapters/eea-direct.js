@@ -1,11 +1,12 @@
-import { acceptableParameters } from '../lib/utils';
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { acceptableParameters } from '../lib/utils.js';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import log from '../lib/logger.js';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import tzlookup from 'tz-lookup';
-import { MultiStream, DataStream, StringStream } from 'scramjet';
+import sj from 'scramjet';
+const { MultiStream, DataStream, StringStream } = sj;
 import { default as JSONStream } from 'JSONStream';
-import log from '../lib/logger';
 
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 const stationsLink = 'http://battuta.s3.amazonaws.com/eea-stations-all.json';
