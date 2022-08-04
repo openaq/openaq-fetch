@@ -27,7 +27,8 @@ export function fetchData (source, cb) {
       sources: (done) => {
         request(source.url, (err, res, body) => {
           if (err || res.statusCode !== 200) {
-            return done({ message: 'Failure to load data url.' });
+            const message = `Failure to load data from ${source.url}`;
+            return done({ message });
           }
           return done(null, body);
         });
@@ -36,7 +37,8 @@ export function fetchData (source, cb) {
         // This url seems to have a list of all locations
         request('http://index.havaizleme.gov.tr/Map', (err, res, body) => {
           if (err || res.statusCode !== 200) {
-            return done({ message: 'Failure to load coordinates url.' });
+            const message = `Failure to load coordinates`;
+            return done({ message });
           }
           return done(null, body);
         });
