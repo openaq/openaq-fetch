@@ -74,7 +74,12 @@ export async function fetchStream (source) {
         });
         try {
           const body = await getInfo(options, stationId);
-          const {siteInfo, tableData: {bodyContent}} = JSON.parse(body);
+          const data = JSON.parse(body);
+          if(!data.tableData) {
+            const message = data.status || 'URL did not return tableData';
+            throw new FetchError(DATA_URL_ERROR, source, null, message);
+          }
+          const {siteInfo, tableData: {bodyContent}} = data;
           await (
             DataStream
               .from(bodyContent)
