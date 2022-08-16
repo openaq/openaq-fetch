@@ -18,7 +18,9 @@ export async function handler(event, context) {
   }
   // if we pass the source than we can override the active flag
   // we do that by going back to the sources list
-  if(process.env.SOURCE) {
+  if(event.source) {
+    sources = sources_list.filter(d=>d.name == event.source);
+  } else if(process.env.SOURCE) {
     sources = sources_list.filter(d=>d.name == process.env.SOURCE);
   }
   sources = sources.map( source => ({
