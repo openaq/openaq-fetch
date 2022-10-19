@@ -363,11 +363,7 @@
          attribution: [
            {
              name: 'Abu Dhabi Air Quality',
-             url: 'https://www.adairquality.com/',
-           },
-           {
-             name: 'Abu Dhabi Environment and Protected Areas Authority',
-             url: 'https://www.epa.gov.ae/',
+             url: 'https://www.adairquality.ae/',
            },
          ],
          averagingPeriod: { unit: 'hours', value: 1 }
