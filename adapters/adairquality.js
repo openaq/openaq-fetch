@@ -286,12 +286,12 @@
  
  //keys are from adairquality.com and values are OpenAQ names of parameters
  const validParameters = {
-   PM10: 'pm10',
-   O3: 'o3',
-   SO2: 'so2',
-   NO2: 'no2',
-   CO: 'co',
- };
+  PM10: { 'value': 'pm10', 'unit' : 'µg/m3' },
+  O3: { 'value' : 'o3', 'unit' : 'µg/m3 ' },
+  SO2: {'value' : 'so2' , 'unit' : 'µg/m3 '},
+  NO2: {'value' : 'no2', 'unit' : 'µg/m3 ' },
+  CO: { 'value' : 'co', 'unit' : 'mg/m3'},
+};
  
  function parseDate(dateString) {
    /**
@@ -340,7 +340,8 @@
        return key in validParameters;
      }).map(o => {
        return {
-         "parameter": validParameters[o[0]],
+         "parameter": validParameters[o[0].value],
+         "unit": validParameters[o[0].unit],
          "value": o[1]
        }
      });
@@ -352,6 +353,7 @@
            local: latestMeasurements.DateTime.toISO(),
          },
          value: measurement.value,
+         unit: measurement.unit,
          location: 'AE',
          city: location.city,
          coordinates: {
