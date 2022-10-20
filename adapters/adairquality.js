@@ -6,7 +6,7 @@
 
  import * as fs from 'fs';
  
- const REQUEST_TIMEOUT = 60000;
+ import { REQUEST_TIMEOUT } from '../lib/constants';
  import { default as baseRequest } from 'request';
  import { DateTime } from 'luxon';
  import { parallel } from 'async';
