@@ -10,13 +10,11 @@
  import { default as baseRequest } from 'request';
  import { DateTime } from 'luxon';
  import { parallel } from 'async';
+ import { convertUnits } from '../lib/utils';
  const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
  
- function convertUnits(input) {
-   return input;
- }
-
  exports.name = 'adairquality';
+ 
  /**
   * Fetches the data for a given source and returns an appropriate object
   * @param {object} source A valid source object
