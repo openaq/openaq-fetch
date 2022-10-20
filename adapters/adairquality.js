@@ -7,20 +7,16 @@
  import * as fs from 'fs';
  
  const REQUEST_TIMEOUT = 60000;
- //import { REQUEST_TIMEOUT } from '../lib/constants';
  import { default as baseRequest } from 'request';
  import { DateTime } from 'luxon';
- 
- //  import { default as moment } from 'moment-timezone';
  import { parallel } from 'async';
- //import { convertUnits } from '../lib/utils';
  const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
  
  function convertUnits(input) {
    return input;
  }
 
- exports.name = 'adairquality-ae';
+ exports.name = 'adairquality';
  /**
   * Fetches the data for a given source and returns an appropriate object
   * @param {object} source A valid source object
@@ -52,9 +48,6 @@
  
  const BASE_URL =
    'https://www.adairquality.ae/AirQualityService/RestServiceImpl.svc/Json/';
- 
- // const urls = ['https://www.adairquality.ae/AirQualityService/RestServiceImpl.svc/Json/EAD_AlAinSchool?_=1664290671112']
- // const locations_url = "https://services.arcgis.com/kuR0ZmzEAOg4q3DU/ArcGIS/rest/services/Air_Quality_Monitoring_Stations/FeatureServer/0/query?where=ObjectId%3E0&f=geojson"
  
  const stations = [
    {
@@ -238,12 +231,11 @@
      city: 'Abu Al Abyad',
    },
  ];
- // console.log(typeof stations)
+
  const requests = stations.map((station) => {
-   // map over the stations array
    return (done) => {
      request(`${BASE_URL}${station.slug}`, (err, res, body) => {
-       // make a request for each station err = error, res = response, body = body of the response
+      
        if (err || res.statusCode !== 200) {
          return done({ message: `Failure to load data url (${url})` });
        }
@@ -259,20 +251,15 @@
   * @param {object} results Fetched source data and other metadata
   * @return {object} Parsed and standarized data our system can use
   */
-   // fetch the data, source = stations, cb = callback
-   // Fetching both the main data page as well as a page to get all
-   // coordinates for locations
+  
    parallel(requests, (err, results) => {
      if (err) {
        return cb(err);
      }
-     // Wrap everything in a try/catch in case something goes wrong
      try {
-       // Format the data
-       const data = formatData(results); // format the data, results = data from the requests
-       // Make sure the data is valid
+       const data = formatData(results); 
        if (data === undefined) {
-         // undefined = no data
+      
          return cb({ message: 'Failure to parse data.' });
        }
        return cb(null, data);
@@ -282,15 +269,12 @@
    });
  }
  
- 
- 
- //keys are from adairquality.com and values are OpenAQ names of parameters
  const validParameters = {
   PM10: { 'value': 'pm10', 'unit' : 'µg/m3' },
-  O3: { 'value' : 'o3', 'unit' : 'µg/m3 ' },
-  SO2: {'value' : 'so2' , 'unit' : 'µg/m3 '},
-  NO2: {'value' : 'no2', 'unit' : 'µg/m3 ' },
-  CO: { 'value' : 'co', 'unit' : 'mg/m3'},
+  O3: { 'value' : 'o3', 'unit' : 'µg/m3' },
+  SO2: { 'value' : 'so2', 'unit' : 'µg/m3' },
+  NO2: { 'value' : 'no2', 'unit' : 'µg/m3' },
+  CO: { 'value' : 'co', 'unit' : 'mg/m3' },
 };
  
  function parseDate(dateString) {
