@@ -1,6 +1,6 @@
 /**
  * This code is responsible for implementing all methods related to fetching
- * and returning data for the Taiwanese data sources.
+ * and returning data for the Turkiye data sources.
  */
 
  'use strict';
