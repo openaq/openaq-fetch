@@ -11,5 +11,18 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "https://sim.csb.gov.tr/SERVICES/airquality",
+        "adapter": "turkiye",
+        "name": "Turkey",
+        "city": "",
+        "country": "TR",
+        "description": "Turkey environment and urban ministry air quality data",
+        "sourceURL": "https://sim.csb.gov.tr/Services/GetAirQualityStations?type=0",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
