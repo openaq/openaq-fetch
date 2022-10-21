@@ -12,7 +12,6 @@
   "author": "Joe Flasher",
   "license": "MIT",
   "dependencies": {
-    "JSONStream": "^1.3.4",
     "adm-zip": "^0.4.11",
     "async": "^2.6.1",
     "aws-sdk": "^2.305.0",
@@ -26,9 +25,11 @@
     "ftp": "^0.3.10",
     "iconv": "^2.3.0",
     "jsonschema": "^1.2.0",
+    "JSONStream": "^1.3.4",
     "knex": "^0.15.2",
     "knex-postgis": "^0.2.2",
     "lodash": "^4.17.10",
+    "luxon": "^3.0.4",
     "moment": "^2.22.2",
     "moment-timezone": "^0.5.21",
     "pg": "^7.4.3",
@@ -42,6 +43,7 @@
     "ssl-root-cas": "^1.3.1",
     "transliteration": "^1.6.6",
     "tz-lookup": "^6.1.8",
+    "wellknown": "^0.5.0",
     "winston": "^2.4.4",
     "winston-papertrail": "^1.0.2",
     "yargs": "^12.0.1"
