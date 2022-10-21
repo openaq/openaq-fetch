@@ -2,6 +2,7 @@
  * This code is responsible for implementing all methods related to fetching
  * and returning data for the Taiwanese data sources.
  */
+
  'use strict';
 
  import * as fs from 'fs';
@@ -13,7 +14,7 @@
  import {parse} from 'wellknown';
  const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
  
- exports.name = 'turkiye';
+ exports.name = 'Turkiye';
  
  /**
   * Fetches the data for a given source and returns an appropriate object
@@ -23,10 +24,7 @@
   
  exports.fetchData = function (source, cb) {
  
-     const ALL_DATA =
-     'https://sim.csb.gov.tr/Services/GetAirQualityStations?type=0';
- 
-     request(ALL_DATA, (err, res, body) => {
+     request(source.url, (err, res, body) => {
          if (err || res.statusCode !== 200) {
          return cb({ message: 'Failure to load data url' });
          }

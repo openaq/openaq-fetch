@@ -1,7 +1,7 @@
 [
     {
         "url": "http://index.havaizleme.gov.tr/Dynamic/0",
-        "adapter": "turkey",
+        "adapter": "Turkey",
         "name": "Turkey",
         "city": "",
         "country": "TR",
@@ -13,13 +13,13 @@
         "active": true
     },
     {
-        "url": "https://sim.csb.gov.tr/SERVICES/airquality",
-        "adapter": "turkiye",
+        "url": "https://sim.csb.gov.tr/Services/GetAirQualityStations?type=0",
+        "adapter": "Turkiye",
         "name": "Turkey",
         "city": "",
         "country": "TR",
         "description": "Turkey environment and urban ministry air quality data",
-        "sourceURL": "https://sim.csb.gov.tr/Services/GetAirQualityStations?type=0",
+        "sourceURL": "https://sim.csb.gov.tr/SERVICES/airquality",
         "contacts": [
             "info@openaq.org"
         ],
