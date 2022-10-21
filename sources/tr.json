@@ -15,7 +15,7 @@
     {
         "url": "https://sim.csb.gov.tr/Services/GetAirQualityStations?type=0",
         "adapter": "Turkiye",
-        "name": "Turkey",
+        "name": "Turkiye",
         "city": "",
         "country": "TR",
         "description": "Turkey environment and urban ministry air quality data",

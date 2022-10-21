@@ -14,7 +14,7 @@
  import {parse} from 'wellknown';
  const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
  
- exports.name = 'Turkiye';
+ exports.name = 'turkiye';
  
  /**
   * Fetches the data for a given source and returns an appropriate object
