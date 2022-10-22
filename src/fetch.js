@@ -73,7 +73,7 @@ export function handler (event, context) {
       return JSON.parse(rcd.body);
     }).flat();
     suffix = `_${event.Records[0].messageId}`;
-  } else if(event.source) {
+  } else if(event && event.source) {
     current_sources = sources.filter(d=>d.name == event.source);
     console.log(event.source, current_sources);
   } else {

@@ -2,6 +2,7 @@
 import { readFileSync } from 'fs';
 import _yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
+import moment from 'moment';
 const yargs = _yargs(hideBin(process.argv));
 
 
@@ -83,6 +84,11 @@ let _argv = yargs
     alias: 'e',
     group: 'Main options:'
   })
+  .options('datetime', {
+    describe: 'The date/time to query for, if the adapter handles it',
+    alias: 't',
+    group: 'Main options:'
+  })
   .help('h')
   .alias('h', 'help')
   .alias('?', 'help')
@@ -121,6 +127,7 @@ export default () => {
     debug,
     source,
     important,
+    datetime,
     verbose: _verbose,
     quiet: _quiet,
     strict: _strict
@@ -150,6 +157,13 @@ export default () => {
   const psqlPoolMin = +_env.PSQL_POOL_MIN || 2;
   const psqlPoolMax = +_env.PSQL_POOL_MAX || 20;
 
+  if(datetime) {
+    datetime = moment.utc(datetime, true);
+    if(!datetime.isValid()) {
+      throw new Error('Invalid date/time');
+    }
+  }
+
   const logLevel = _quiet ? 'none'
     : _verbose ? 'verbose'
       : debug ? 'debug'
@@ -177,6 +191,7 @@ export default () => {
     dryrun,
     debug,
     source,
+    datetime,
     maxParallelAdapters
   };
 };

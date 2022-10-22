@@ -136,11 +136,22 @@ function normalizeDate (measurement) {
   return measurement;
 }
 
+function checkLocation (measurement) {
+  if(measurement.country === ''
+     && measurement.coordinates
+     && measurement.coordinates.latitude
+     && measurement.coordinates.longitude) {
+    measurement.country = '--';
+  }
+  return measurement;
+}
+
 function fixMeasurements (stream, source) {
   return stream
     .do(normalizeDate)
     .do(unifyMeasurementUnits)
     .do(unifyParameters)
+    .do(checkLocation)
     .map(({
       date,
       parameter,
@@ -229,6 +240,9 @@ export function fetchCorrectedMeasurementsFromSourceStream (stream, env) {
         .use(handleMeasurementErrors, failures, source)
         .use(forwardErrors, stream, source, failures, env)
       ;
+      if(env.datetime) {
+        source.datetime = env.datetime;
+      }
 
       try {
         log.debug(`Looking up adapter for source "${source && source.name}"`);

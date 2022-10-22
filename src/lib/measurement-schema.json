@@ -68,9 +68,9 @@
             "type": "number"
         },
         "date": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["utc", "local"],
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["utc", "local"],
             "properties": {
                 "utc": {
                     "type": "string",

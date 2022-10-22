@@ -17,20 +17,21 @@ export const name = 'airnow-http';
 const getDate = (day, time, offset) => {
   // Grab date from page, add time string and convert to date
   const dateString = `${day} ${time}`;
-
+  if(!dateString || !offset) {
+    return false;
+  }
   // A bit odd looking here based on what we're getting in the files
   const utc = moment.utc(dateString, 'MM/DD/YYYY HH:mm');
   const local = moment.utc(dateString, 'MM/DD/YYYY HH:mm').utcOffset(offset);
 
-  return {utc: utc.toDate(), local: local.format()};
+  return {utc: utc.toDate(), local: local.format(), raw: `${dateString}(${offset})`};
 };
 
 // Helper to convert city name
 const convertCity = function (city) {
   if (!city) {
-    return;
+    return '';
   }
-
   return city.split(',')[0].trim();
 };
 
@@ -73,19 +74,26 @@ function getLocations (url) {
 
 export async function fetchStream (source) {
   const locations = await getLocations(source.url);
-
   log.debug(`Got ${Object.keys(locations).length} locations.`);
 
-  const dateString = moment.utc().subtract(1.1, 'hours').format('YYYYMMDDHH');
+  const dateString = source.datetime
+        ? source.datetime.format('YYYYMMDDHH')
+        : moment.utc().subtract(1.1, 'hours').format('YYYYMMDDHH');
+
   const url = `${source.url}airnow/today/HourlyData_${dateString}.dat`;
 
-  log.debug(`Fetching AirNow measurements from "${url}"`);
+  log.info(`Fetching AirNow measurements from "${url}"`);
   return StringStream.from(request(url))
     .lines('\n')
     .parse(async m => {
       m = m.split('|');
       const parameter = m[5] && m[5].toLowerCase().replace('.', '');
       const station = locations[m[2]];
+      const datetime = getDate(m[0], m[1], Number(m[4]));
+
+      if (!datetime) {
+        throw new MeasurementValidationError(source, `Cannot parse date ${m[0]} ${m[1]} offset: ${m[4]}`, m);
+      }
 
       if (!parameter) {
         throw new MeasurementValidationError(source, `Cannot parse parameter ${m[5]}`, m);
@@ -100,7 +108,7 @@ export async function fetchStream (source) {
         city: station.city,
         country: station.country,
         location: m[3].trim(),
-        date: getDate(m[0], m[1], Number(m[4])),
+        date: datetime,
         parameter: (parameter === 'ozone') ? 'o3' : parameter,
         unit: m[6].toLowerCase(),
         value: Number(m[7]),
