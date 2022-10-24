@@ -66,9 +66,9 @@
      const filtered = Object.entries(location["Values"]).filter(([key, _]) => { 
          return key in validParameters;
      })
-        .filter(([_, value]) => { 
-            return value !== null;
-        })
+    // filter out null values
+     .filter(o => o[1])
+    // map to the correct format
      .map(o => {
          return {
          "parameter": validParameters[o[0]].value, 
