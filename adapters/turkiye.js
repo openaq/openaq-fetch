@@ -66,7 +66,7 @@
      const filtered = Object.entries(location["Values"]).filter(([key, _]) => { 
          return key in validParameters;
      })
-        .filter(([_, value]) => { // filter out null values. _ is the key, value is value
+        .filter(([_, value]) => { 
             return value !== null;
         })
      .map(o => {
