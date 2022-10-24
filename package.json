@@ -26,8 +26,8 @@
     "iconv": "^2.3.0",
     "jsonschema": "^1.2.0",
     "JSONStream": "^1.3.4",
-    "knex": "^0.15.2",
-    "knex-postgis": "^0.2.2",
+    "knex": "^2.3.0",
+    "knex-postgis": "^0.14.3",
     "lodash": "^4.17.10",
     "luxon": "^3.0.4",
     "moment": "^2.22.2",
@@ -57,7 +57,7 @@
     "eslint-plugin-node": "^5.2.1",
     "eslint-plugin-promise": "^3.8.0",
     "eslint-plugin-standard": "^3.1.0",
-    "mocha": "^5.2.0",
+    "mocha": "^10.1.0",
     "shell-escape": "^0.2.0"
   }
 }
