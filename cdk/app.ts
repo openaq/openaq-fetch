@@ -1,4 +1,6 @@
 import * as cdk from '@aws-cdk/core';
+import * as events from "@aws-cdk/aws-events";
+import * as eventTargets from "@aws-cdk/aws-events-targets";
 import * as lambda from "@aws-cdk/aws-lambda";
 import { SqsEventSource } from "@aws-cdk/aws-lambda-event-sources";
 import * as s3 from "@aws-cdk/aws-s3";
@@ -10,7 +12,11 @@ import { readFileSync, copyFileSync, readdirSync } from 'fs';
 
 const env = {
     // testing for one source to start
-    SOURCE: "London Air Quality Network",
+    SOURCE: "AirNow",
+    //SOURCE: "London Air Quality Network",
+    OFFSET: "8",
+    SUFFIX: 'airnow_',
+    LOG_LEVEL: 'debug',
 }
 const reserved_keys = [
     "AWS_ACCESS_KEY_ID",
@@ -72,7 +78,7 @@ export class RealtimeFetcherStack extends cdk.Stack {
 
         const fetcher = new lambda.Function(
             this,
-            `${id}-lambda`,
+            `${id}-fetcher-lambda`,
             {
                 description: "Lambda implementation of the realtime fetcher",
                 code: lambda.Code.fromAsset(
@@ -96,10 +102,10 @@ export class RealtimeFetcherStack extends cdk.Stack {
         );
 
         // finally we create our cron/event
-        //new events.Rule(this, `${interval}Rule`, {
-        //    schedule: events.Schedule.rate(duration),
-        //    targets: [new eventTargets.LambdaFunction(scheduler)],
-        //});
+        new events.Rule(this, `${id}-scheduler-cron`, {
+            schedule: events.Schedule.rate(cdk.Duration.minutes(60)),
+            targets: [new eventTargets.LambdaFunction(scheduler)],
+        });
 
 
     }

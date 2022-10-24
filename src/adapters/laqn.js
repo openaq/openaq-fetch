@@ -19,7 +19,11 @@ const unitLookup = {
 
 export async function fetchData (source, cb) {
   try {
-    let dateNow = moment().tz('Europe/London');
+
+    let dateNow = source.datetime
+        ? moment(source.datetime).tz('Europe/London')
+        : moment().tz('Europe/London');
+
     let startDate = dateNow.format('DD MMM YYYY');
     let endDate = dateNow.add(1, 'days').format('DD MMM YYYY');
 

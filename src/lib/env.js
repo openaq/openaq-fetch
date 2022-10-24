@@ -46,7 +46,7 @@ let _argv = yargs
   .options('important', {
     boolean: true,
     describe: 'Show only warnings and errors.',
-    alias: '1',
+    alias: 'i',
     group: 'Logging options:'
   })
   .options('verbose', {
@@ -89,6 +89,11 @@ let _argv = yargs
     alias: 't',
     group: 'Main options:'
   })
+  .options('offset', {
+    describe: 'The number of hours back from the current time to search for',
+    alias: 'o',
+    group: 'Main options:'
+  })
   .help('h')
   .alias('h', 'help')
   .alias('?', 'help')
@@ -128,6 +133,7 @@ export default () => {
     source,
     important,
     datetime,
+    offset,
     verbose: _verbose,
     quiet: _quiet,
     strict: _strict
@@ -156,13 +162,9 @@ export default () => {
   const psqlDatabase = _env.PSQL_DATABASE || 'openaq-local';
   const psqlPoolMin = +_env.PSQL_POOL_MIN || 2;
   const psqlPoolMax = +_env.PSQL_POOL_MAX || 20;
+  const suffix = _env.SUFFIX || '';
 
-  if(datetime) {
-    datetime = moment.utc(datetime, true);
-    if(!datetime.isValid()) {
-      throw new Error('Invalid date/time');
-    }
-  }
+  offset = +(offset || _env.OFFSET);
 
   const logLevel = _quiet ? 'none'
     : _verbose ? 'verbose'
@@ -192,6 +194,8 @@ export default () => {
     debug,
     source,
     datetime,
+    offset,
+    suffix,
     maxParallelAdapters
   };
 };

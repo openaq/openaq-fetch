@@ -240,8 +240,21 @@ export function fetchCorrectedMeasurementsFromSourceStream (stream, env) {
         .use(handleMeasurementErrors, failures, source)
         .use(forwardErrors, stream, source, failures, env)
       ;
+
       if(env.datetime) {
-        source.datetime = env.datetime;
+        source.datetime = moment.utc(env.datetime, true);
+        if(!source.datetime.isValid()) {
+          throw new Error('Invalid date/time');
+        }
+        log.debug(`Using env datetime of ${env.datetime}`);
+      } else if(source.offset) {
+        source.datetime = moment.utc().subtract(source.offset, 'hours');
+        log.debug(`Using source offset of ${source.offset} hours to set datettime`);
+      } else if(env.offset) {
+        source.datetime = moment.utc().subtract(env.offset, 'hours');
+        log.debug(`Using env offset of ${env.offset} hours to set datettime`);
+      } else {
+        log.debug(`No offset or datetime being used`);
       }
 
       try {

@@ -63,19 +63,19 @@ const runningSources = {};
  * Run all the data fetch tasks in parallel, simply logs out results
  */
 export function handler (event, context) {
+  log.debug(event);
   // the event may have passed a source, in which case we need to filter
   let current_sources;
   // if we have have more than one of these running we will need to make
   // sure that we dont overwrite another process
-  let suffix = '';
+  let suffix = env.suffix || '';
   if(event && event.Records) {
     current_sources = event.Records.map( rcd => {
       return JSON.parse(rcd.body);
     }).flat();
-    suffix = `_${event.Records[0].messageId}`;
+    suffix = `_${suffix}${event.Records[0].messageId}`;
   } else if(event && event.source) {
     current_sources = sources.filter(d=>d.name == event.source);
-    console.log(event.source, current_sources);
   } else {
     current_sources = sources;
   }
