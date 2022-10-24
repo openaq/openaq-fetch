@@ -14,7 +14,7 @@
     },
     {
         "url": "https://sim.csb.gov.tr/Services/GetAirQualityStations?type=0",
-        "adapter": "Turkiye",
+        "adapter": "turkiye",
         "name": "Turkiye",
         "city": "",
         "country": "TR",

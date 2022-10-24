@@ -45,12 +45,12 @@
      }
     
  const validParameters = {
-     PM25: {'value': 'pm25', 'unit': 'µg/m³'},
-     PM10: { 'value': 'pm10', 'unit' : 'µg/m3' },
-     O3: { 'value' : 'o3', 'unit' : 'µg/m3 ' },
-     SO2: {'value' : 'so2' , 'unit' : 'µg/m3 '},
-     NO2: {'value' : 'no2', 'unit' : 'µg/m3 ' },
-     CO: { 'value' : 'co', 'unit' : 'mg/m3'},
+     PM25: { 'value' : 'pm25', 'unit' : 'µg/m³' },
+     PM10: { 'value' : 'pm10', 'unit' : 'µg/m³' },
+     O3: { 'value' : 'o3', 'unit' : 'µg/m³' },
+     SO2: { 'value' : 'so2' , 'unit' : 'µg/m³' },
+     NO2: { 'value' : 'no2', 'unit' : 'µg/m³' },
+     CO: { 'value' : 'co', 'unit' : 'mg/m³' },
  };
  
  /**
@@ -65,7 +65,8 @@
      let coords = parse(location['Location']).coordinates;
      const filtered = Object.entries(location["Values"]).filter(([key, _]) => { 
          return key in validParameters;
-     }).map(o => {
+     }).filter(o => o.value)
+     .map(o => {
          return {
          "parameter": validParameters[o[0]].value, 
          "unit": validParameters[o[0]].unit, 
@@ -81,8 +82,12 @@
          parameter: tr.parameter,
          date: {
          // time in Turkey is UTC+3
-         local: location.Values.Date,
-         utc: DateTime.fromISO(location.Values.Date, { zone: 'Europe/Istanbul' }).toUTC().toISO(), 
+         local: DateTime.fromISO(location.Values.Date, {
+            zone : 'Europe/Istanbul'
+         }).toISO({suppressMilliseconds: true }),
+         utc: DateTime.fromISO(location.Values.Date, { 
+            zone: 'Europe/Istanbul'
+         }), 
          },
          coordinates: {
          latitude: coords[1],
