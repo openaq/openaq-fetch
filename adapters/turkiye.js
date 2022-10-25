@@ -74,7 +74,7 @@ function formatData (locations) {
       });
     const data = filtered.map((tr) => {
       return {
-        location: 'TR',
+        location: location.Name,
         city: location.City_Title,
         value: tr.value,
         unit: tr.unit,
