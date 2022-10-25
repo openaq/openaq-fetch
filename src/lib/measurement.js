@@ -141,7 +141,7 @@ function checkLocation (measurement) {
      && measurement.coordinates
      && measurement.coordinates.latitude
      && measurement.coordinates.longitude) {
-    measurement.country = '--';
+    measurement.country = '99';
   }
   return measurement;
 }

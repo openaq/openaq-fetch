@@ -8,7 +8,7 @@ export async function handler(event, context) {
   // default to all active sources
   let sources = sources_list.filter(d=>d.active);
   const sqs = new SQS();
-  //const datetime = moment().format('YYYY-MM-DD hh:mm:ss');
+  //const datetime = moment.utc().format('YYYY-MM-DD hh:mm:ss');
   // only run one time interval/resolution
   console.log(event)
   if(process.env.RESOLUTION) {

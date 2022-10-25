@@ -62,7 +62,7 @@ export async function fetchStream (source) {
       });
     }, new DataStream())
     .filter((station) => {
-      return station.status === 'Live';// && station.station_id == 'site_293';
+      return station.status === 'Live';//&& station.station_id == 'site_5625';
     })
     .into(
       async (measurements, {coords, station_id: stationId}) => {
