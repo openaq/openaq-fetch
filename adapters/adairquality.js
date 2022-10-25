@@ -13,8 +13,7 @@ import {flatMap} from 'lodash';
 const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
 
 exports.name = 'adairquality-ae';
-// const BASE_URL = source
-const BASE_URL = 'https://www.adairquality.ae/AirQualityService/RestServiceImpl.svc/Json/';
+
 /**
   * Fetches the data for a given source and returns an appropriate object
   * @param {object} source A valid source object
@@ -204,24 +203,24 @@ const stations = [
   }
 ];
 
-const requests = stations.map((station) => {
-  return (done) => {
-    request(`${BASE_URL}${station.slug}`, (err, res, body) => {
-      if (err || res.statusCode !== 200) {
-        return done({ message: `Failure to load data url` }); // (${url})
-      }
-      let data = Object.assign(station, { body: body }); // add the body to the station object
-      return done(null, data);
-    });
-  };
-});
-
 exports.fetchData = function (source, cb) {
   /**
   * Given fetched data, turn it into a format our system can use.
   * @param {object} results Fetched source data and other metadata
   * @return {object} Parsed and standarized data our system can use
   */
+
+  const requests = stations.map((station) => {
+    return (done) => {
+      request(`${source.url}${station.slug}`, (err, res, body) => {
+        if (err || res.statusCode !== 200) {
+          return done({ message: `Failure to load data url (${source.url}${station.slug})` });
+        }
+        let data = Object.assign(station, { body: body }); // add the body to the station object
+        return done(null, data);
+      });
+    };
+  });
 
   parallel(requests, (err, results) => {
     if (err) {
@@ -253,17 +252,17 @@ function parseDate (dateString) {
     * @param {string} dateString date as string in format 'dd/mm/yyyy hh:mm:ss AM'
     * @return {DateTime} luxon DateTime with the appropriate timezone
     */
-  const pattern = 
-    /(\d{1,2})\/(\d{1,2})\/(\d{4})\s(\d{1,2})\:(\d{2})\:(\d{2})\s([A|P]M)/;
+  const pattern =
+    /(\d{1,2})\/(\d{1,2})\/(\d{4})\s(\d{1,2}):(\d{2}):(\d{2})\s([A|P]M)/;
   const regex = new RegExp(pattern);
   const groups = regex.exec(dateString);
   let hour = parseInt(groups[4]);
   const minutes = groups[5];
   const seconds = groups[6];
-  if (groups[7] == 'PM' && hour != 12) {
+  if (groups[7] === 'PM' && hour !== 12) {
     hour = hour + 12;
   }
-  if (groups[7] == 'AM' && hour == 12) {
+  if (groups[7] === 'AM' && hour === 12) {
     hour = 0;
   }
   const d = DateTime.fromISO(
@@ -293,19 +292,19 @@ function formatData (locations) {
     const filtered = Object.entries(latestMeasurements).filter(([key, _]) => {
       return key in validParameters;
     }).filter((o) => o[1])
-    .map(o => {
-      return {
-        'parameter': validParameters[o[0].value],
-        'unit': validParameters[o[0].unit],
-        'value': o[1]
-      };
-    });
+      .map(o => {
+        return {
+          'parameter': validParameters[o[0]].value,
+          'unit': validParameters[o[0]].unit,
+          'value': o[1]
+        };
+      });
     const data = filtered.map((measurement) => {
       return {
         parameter: measurement.parameter,
         date: {
           utc: latestMeasurements.DateTime.toUTC(), // .toUTC().toISO(),
-          local: latestMeasurements.DateTime.toISO()
+          local: latestMeasurements.DateTime.toISO({suppressMilliseconds: true})
         },
         value: measurement.value,
         unit: measurement.unit,
