@@ -303,7 +303,7 @@ function formatData (locations) {
       return {
         parameter: measurement.parameter,
         date: {
-          utc: latestMeasurements.DateTime.toUTC(), // .toUTC().toISO(),
+          utc: latestMeasurements.DateTime.toUTC(),
           local: latestMeasurements.DateTime.toISO({suppressMilliseconds: true})
         },
         value: measurement.value,
