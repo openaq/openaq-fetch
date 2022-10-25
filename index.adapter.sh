@@ -7,5 +7,5 @@ done
 
 while read adapter; do
     echo "================================> $adapter <================================"
-    node index.js --source "$adapter" -b
+    node index.js --source "$adapter"
 done <$adapters
