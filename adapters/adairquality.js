@@ -8,12 +8,13 @@ import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { DateTime } from 'luxon';
 import { parallel } from 'async';
-import flatMap from 'lodash';
+import {flatMap} from 'lodash';
 
 const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
 
-exports.name = 'adairquality';
-
+exports.name = 'adairquality-ae';
+// const BASE_URL = source
+const BASE_URL = 'https://www.adairquality.ae/AirQualityService/RestServiceImpl.svc/Json/';
 /**
   * Fetches the data for a given source and returns an appropriate object
   * @param {object} source A valid source object
@@ -205,9 +206,9 @@ const stations = [
 
 const requests = stations.map((station) => {
   return (done) => {
-    request(`${source.url}${station.slug}`, (err, res, body) => {
+    request(`${BASE_URL}${station.slug}`, (err, res, body) => {
       if (err || res.statusCode !== 200) {
-        return done({ message: `Failure to load data url (${url})` });
+        return done({ message: `Failure to load data url` }); // (${url})
       }
       let data = Object.assign(station, { body: body }); // add the body to the station object
       return done(null, data);
@@ -239,11 +240,11 @@ exports.fetchData = function (source, cb) {
 };
 
 const validParameters = {
-  PM10: { 'value': 'pm10', 'unit': 'µg/m3' },
-  O3: { 'value': 'o3', 'unit': 'µg/m3' },
-  SO2: { 'value': 'so2', 'unit': 'µg/m3' },
-  NO2: { 'value': 'no2', 'unit': 'µg/m3' },
-  CO: { 'value': 'co', 'unit': 'mg/m3' }
+  PM10: { 'value': 'pm10', 'unit': 'µg/m³' },
+  O3: { 'value': 'o3', 'unit': 'µg/m³' },
+  SO2: { 'value': 'so2', 'unit': 'µg/m³' },
+  NO2: { 'value': 'no2', 'unit': 'µg/m³' },
+  CO: { 'value': 'co', 'unit': 'mg/m³' }
 };
 
 function parseDate (dateString) {
@@ -252,16 +253,17 @@ function parseDate (dateString) {
     * @param {string} dateString date as string in format 'dd/mm/yyyy hh:mm:ss AM'
     * @return {DateTime} luxon DateTime with the appropriate timezone
     */
-  const pattern = /(\d{1,2})\/(\d{1,2})\/(\d{4})\s(\d{1,2})\:(\d{2})\:(\d{2})\s([A|P]M)/;
+  const pattern = 
+    /(\d{1,2})\/(\d{1,2})\/(\d{4})\s(\d{1,2})\:(\d{2})\:(\d{2})\s([A|P]M)/;
   const regex = new RegExp(pattern);
   const groups = regex.exec(dateString);
   let hour = parseInt(groups[4]);
   const minutes = groups[5];
   const seconds = groups[6];
-  if (groups[7] === 'PM' && hour !== 12) {
+  if (groups[7] == 'PM' && hour != 12) {
     hour = hour + 12;
   }
-  if (groups[7] === 'AM' && hour === 12) {
+  if (groups[7] == 'AM' && hour == 12) {
     hour = 0;
   }
   const d = DateTime.fromISO(
@@ -290,7 +292,8 @@ function formatData (locations) {
     const latestMeasurements = measurementsSorted[0];
     const filtered = Object.entries(latestMeasurements).filter(([key, _]) => {
       return key in validParameters;
-    }).map(o => {
+    }).filter((o) => o[1])
+    .map(o => {
       return {
         'parameter': validParameters[o[0].value],
         'unit': validParameters[o[0].unit],
@@ -301,7 +304,7 @@ function formatData (locations) {
       return {
         parameter: measurement.parameter,
         date: {
-          utc: latestMeasurements.DateTime.toUTC().toISO(),
+          utc: latestMeasurements.DateTime.toUTC(), // .toUTC().toISO(),
           local: latestMeasurements.DateTime.toISO()
         },
         value: measurement.value,
@@ -323,5 +326,5 @@ function formatData (locations) {
     });
     out.push(data);
   }
-  return {name: 'unused', measurements: flatMap(out)};
+  return { name: 'unused', measurements: flatMap(out) };
 }
