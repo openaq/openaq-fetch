@@ -8,6 +8,7 @@ import Coordinates from 'coordinate-parser';
 import { default as moment } from 'moment-timezone';
 import flattenDeep from 'lodash/flattenDeep.js';
 import { parallel } from 'async';
+import log from '../lib/logger.js';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'tuzlanski';
@@ -21,6 +22,8 @@ export function fetchData (source, cb) {
     const $ = cheerio.load(body);
     let tasks = [];
     const stations = getActiveStations($, source.url);
+
+    log.info(`Found ${stations.length} stations`);
 
     stations.forEach((e, i) => {
       tasks.push(handleStation(e));
@@ -40,6 +43,7 @@ export function fetchData (source, cb) {
 
 const handleStation = function (stationUrl) {
   return function (done) {
+    log.debug(`Fetching data for ${stationUrl}`);
     request(stationUrl, (err, res, body) => {
       if (err || res.statusCode !== 200) {
         return done({message: 'Failure to load station url.'});
@@ -100,6 +104,7 @@ const formatData = function (results, cb) {
       m.parameter = renameParameter($(e).text().split('*')[0]);
       m.value = Number($(e).next().text().split(' ')[0].replace(',', '.'));
       m.unit = $(e).next().text().split(' ')[1];
+      log.debug(m);
       if (m.value) {
         measurements.push(m);
       }
@@ -123,6 +128,7 @@ const getTime = function (text) {
 const getActiveStations = function ($, baseUrl) {
   let stations = new Set();
   let elements = $('.btn-station-ico--active').parent('a');
+  log.debug(`Getting stations from ${baseUrl}`);
   elements.map(function (i, e) {
     stations.add(baseUrl + $(e).attr('href'));
   });
@@ -130,6 +136,7 @@ const getActiveStations = function ($, baseUrl) {
 };
 
 const renameParameter = function (parameter) {
+  log.debug(`Renaming parameter: ${parameter}`);
   switch (parameter) {
     case 'NO₂':
       return 'no2';
