@@ -4,9 +4,19 @@ import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
 import cloneDeep from 'lodash/cloneDeep.js';
 import { default as moment } from 'moment-timezone';
+
+import {
+  FetchError,
+  AdapterError,
+  MeasurementValidationError,
+  DATA_URL_ERROR,
+  DATA_PARSE_ERROR
+} from '../lib/errors.js';
+
 // note: this is the 'synchronous' version (lost hours to this!)
 import { parse } from 'csv-parse/sync';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+import log from '../lib/logger.js';
 
 export const name = 'au_sa';
 
@@ -14,19 +24,21 @@ export function fetchData (source, cb) {
   // Fetch the data
   request(source.url, function (err, res, body) {
     if (err || res.statusCode !== 200) {
-      return cb({message: 'Failure to load data url.'});
+      //return cb({message: 'Failure to load data url.'});
+      throw new FetchError(DATA_URL_ERROR, source, null);
     }
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
       var data = formatData(body, source);
       if (data === undefined) {
-        return cb({message: 'Failure to parse data.'});
+        //return cb({message: 'Failure to parse data.'});
+        throw new FetchError(DATA_URL_ERROR, source, null);
       }
       cb(null, data);
     } catch (e) {
-      console.error(e);
-      return cb({message: 'Unknown adapter error.'});
+      //return cb({message: 'Unknown adapter error.'});
+      throw new AdapterError(source, e.message, e);
     }
   });
 };
@@ -112,11 +124,11 @@ var formatData = function (data, source) {
   var dateObject = {utc: date.toDate(), local: date.format()};
 
   // loop through the remaining csv rows, which each contain a location
-  for (var i = 1; i < rows.length; i++) {
+  // the second and third rows now have the column names
+  for (var i = 3; i < rows.length; i++) {
+
     var row = rows[i];
-
     var siteName = row[2];
-
     var siteRef = row[3].replace(/_dm.jpg$/, '');
 
     var parameterValues = {
@@ -128,6 +140,12 @@ var formatData = function (data, source) {
       'pm25': parseValue(row[9])
     };
 
+    const location = siteLocations[siteRef];
+
+    if (!location) {
+      throw new MeasurementValidationError(source, `Cannot find location`, row);
+    }
+
     // base measurement properties
     var baseMeasurement = {
       location: siteName,
@@ -138,8 +156,8 @@ var formatData = function (data, source) {
       sourceType: 'government',
       mobile: false,
       coordinates: {
-        latitude: siteLocations[siteRef][1],
-        longitude: siteLocations[siteRef][0]
+        latitude: location[1],
+        longitude: location[0]
       },
       attribution: [{
         name: 'Environment Protection Authority (EPA), South Australia',
