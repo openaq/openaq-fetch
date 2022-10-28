@@ -24,5 +24,18 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "https://www.adairquality.ae/AirQualityService/RestServiceImpl.svc/Json/",
+        "adapter": "adairquality",
+        "name": "adairquality-ae",
+        "city": "",
+        "country": "AE",
+        "description": "",
+        "sourceURL": "https://www.adairquality.ae/#/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
