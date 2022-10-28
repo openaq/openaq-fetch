@@ -10,31 +10,42 @@
 
 import {
   REQUEST_TIMEOUT
-} from '../lib/constants';
+} from '../lib/constants.js';
 import {
   acceptableParameters
-} from '../lib/utils';
+} from '../lib/utils.js';
+import cheerio from 'cheerio';
+import log from '../lib/logger.js';
+import { default as baseRequest } from 'request';
+import { default as moment } from 'moment-timezone';
 
-const moment = require('moment-timezone');
-const baseRequest = require('request-promise-native');
 const request = baseRequest.defaults({
   timeout: REQUEST_TIMEOUT
 });
-const cheerio = require('cheerio');
-const log = require('../lib/logger');
 
-module.exports.name = 'kosovo';
+export const name = 'kosovo';
 
-module.exports.fetchData = async function (source, callback) {
-  log.debug('fetchData', source);
-  try {
-    var result = await getKosovoAQ(source);
-    log.debug(result);
-    return callback(null, result);
-  } catch (error) {
-    console.error('Error: ' + error);
-    return callback(error);
-  }
+export function fetchData (source, cb) {
+  request(source.url, (err, res, body) => {
+
+    if (err || res.statusCode !== 200) {
+      return cb({ message: 'Failure to load data url' });
+    }
+    try {
+      const $ = cheerio.load(body);
+      const rawTable = $('table[BORDER=2]')
+            .find('tbody')
+            .get(0);
+      const data = getTable(rawTable)
+            .filter(measurement => acceptableParameters.includes(measurement.parameter));
+      if (data === undefined) {
+        return cb({ message: 'Failure to parse data.' });
+      }
+      return cb(null, data);
+    } catch (e) {
+      return cb(e);
+    }
+  });
 };
 
 const averagingPeriod = {
@@ -106,18 +117,6 @@ const staticData = {
   }
 };
 
-function getKosovoAQlatestRawJSON (html) {
-  return cheerio.load(html);
-}
-
-function getKosovoAQHTML (url) {
-  return new Promise(function (resolve, reject) {
-    return request(url)
-      .then(html => resolve(html))
-      .catch(error => reject(error));
-  });
-}
-
 function getParameterAndUnit (header) {
   const parunit = header.split('[');
   const parameterUnit = {
@@ -180,44 +179,16 @@ function getMeasurements (rawStations, parameters) {
 function getTable (rawData) {
   const trs = rawData.children.filter(child => child.name === 'tr');
   log.debug('--------------- raw rows -------------');
-  log.debug(trs);
   const rawHeaders = trs.shift();
   let headers = getRow(rawHeaders.children);
   headers.splice(0, 2); // Remove station and date header columns.
   log.debug('--------------- headers -------------');
-  log.debug(headers);
   const parameters = getParameters(headers);
   log.debug('--------------- parameters -------------');
-  log.debug(parameters);
   const rawStations = trs.map(tr => getRow(tr.children));
   log.debug('--------------- raw stations -------------');
-  log.debug(rawStations);
-
   const measurements = getMeasurements(rawStations, parameters);
   log.debug('--------------- stations -------------');
   log.debug(measurements);
   return measurements;
-}
-
-async function getKosovoAQ (source) {
-  return new Promise(function (resolve, reject) {
-    getKosovoAQHTML(source.url)
-      .then(html => {
-        log.debug('--------------- html -------------');
-        log.debug(html);
-        const rawJSON = getKosovoAQlatestRawJSON(html);
-        log.debug('--------------- raw JSON -------------');
-        log.debug(rawJSON);
-        const rawTable = rawJSON('table[BORDER=2]').find('tbody').get(0);
-
-        log.debug('--------------- raw JSON table -------------');
-        log.debug(rawTable);
-        const table = getTable(rawTable).filter(measurement => acceptableParameters.includes(measurement.parameter));
-        resolve({
-          name: module.exports.name,
-          measurements: table
-        });
-      })
-      .catch(error => reject(error));
-  });
 }
