@@ -107,7 +107,6 @@ let _env = process.env;
  * this is to help with local testing
  */
 export const readEnvFromLocalFile = (envFile) => {
-  console.log('reading from env from', envFile);
   let envs = readFileSync(envFile, 'utf8');
   envs.split('\n').forEach(function (e) {
     if (e) {

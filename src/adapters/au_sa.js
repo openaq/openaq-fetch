@@ -37,8 +37,8 @@ export function fetchData (source, cb) {
       }
       cb(null, data);
     } catch (e) {
-      //return cb({message: 'Unknown adapter error.'});
-      throw new AdapterError(source, e.message, e);
+      return cb({message: 'Unknown adapter error.'});
+      //throw new AdapterError(source, e.message, e);
     }
   });
 };
