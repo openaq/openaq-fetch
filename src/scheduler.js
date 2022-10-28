@@ -10,7 +10,6 @@ export async function handler(event, context) {
   const sqs = new SQS();
   //const datetime = moment.utc().format('YYYY-MM-DD hh:mm:ss');
   // only run one time interval/resolution
-  console.log(event)
   if(process.env.RESOLUTION) {
     sources = sources.filter(d=>d.resolution == process.env.RESOLUTION);
   }
@@ -29,8 +28,6 @@ export async function handler(event, context) {
   //  ...source,
   //  datetime,
   //}));
-
-  console.debug(`Scheduling ${sources.length} sources`);
 
   try {
     //console.log(source);
