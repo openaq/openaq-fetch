@@ -35,7 +35,7 @@ export class RealtimeFetcherStack extends cdk.Stack {
 
         const queue = new sqs.Queue(this, "RealtimeFetcherQueue", {
             queueName: env.QUEUE_NAME,
-            visibilityTimeout: cdk.Duration.seconds(300),
+            visibilityTimeout: cdk.Duration.seconds(900),
         });
 
         const scheduler = new lambda.Function(
