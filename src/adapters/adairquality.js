@@ -308,7 +308,7 @@ function formatData (locations) {
         },
         value: measurement.value,
         unit: measurement.unit,
-        location: 'AE',
+        location: location.name,
         city: location.city,
         coordinates: {
           latitude: location.coordinates.latitude,
@@ -316,7 +316,7 @@ function formatData (locations) {
         },
         attribution: [
           {
-            name: 'Abu Dhabi Air Quality',
+            name: "Environment Agency - Abu Dhabi",
             url: 'https://www.adairquality.ae/'
           }
         ],
