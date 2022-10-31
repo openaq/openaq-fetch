@@ -324,7 +324,7 @@ function formatData (locations) {
         },
         attribution: [
           {
-            name: 'Abu Dhabi Air Quality',
+            name: "Environment Agency - Abu Dhabi",
             url: 'https://www.adairquality.ae/'
           }
         ],
