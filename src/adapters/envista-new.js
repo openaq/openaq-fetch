@@ -42,7 +42,7 @@ export function fetchData (source, cb) {
       }
       results = flattenDeep(results);
       results = convertUnits(results);
-      console.log(results);
+      // console.log(results);
       return cb(err, {name: 'unused', measurements: results});
     });
   });
