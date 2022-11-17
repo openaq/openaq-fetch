@@ -42,7 +42,7 @@ export function fetchData (source, cb) {
       }
       results = flattenDeep(results);
       results = convertUnits(results);
-      // console.log(results);
+      console.log(results);
       return cb(err, {name: 'unused', measurements: results});
     });
   });
@@ -118,18 +118,18 @@ const formatChannels = function (base, station, datapoint) {
 };
 
 const hasAcceptedParameters = function (station) {
-  const stationParameters = station.monitors.map(monitor => monitor.name.toLowerCase());
+  const stationParameters = station.monitors.map(monitor => monitor.name.toLowerCase().split('.').join(""));
   const stationAcceptableParameters = difference(acceptableParameters, stationParameters);
   return Boolean(stationAcceptableParameters);
 };
 
 const isAcceptedParameter = function (parameter) {
-  return acceptableParameters.includes(parameter.toLowerCase());
+  return acceptableParameters.includes(parameter.toLowerCase().split('.').join(""));
 };
 
 const getMeasurement = function (base, station, channel) {
   let measurement = Object.assign({}, base);
-  let parameterName = channel.name.toLowerCase();
+  let parameterName = channel.name.toLowerCase().split('.').join("");
   measurement.parameter = parameterName;
   measurement.value = channel.value;
   measurement.unit = getUnit(station, channel);
