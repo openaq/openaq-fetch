@@ -45,7 +45,7 @@ const validParameters = {
   O3: { value: 'o3', unit: 'µg/m³' },
   SO2: { value: 'so2', unit: 'µg/m³' },
   NO2: { value: 'no2', unit: 'µg/m³' },
-  CO: { value: 'co', unit: 'mg/m³' }
+  CO: { value: 'co', unit: 'µg/m³' }
 };
 
 /**
