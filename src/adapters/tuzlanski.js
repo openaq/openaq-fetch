@@ -33,8 +33,7 @@ export function fetchData (source, cb) {
       // Turn into a single array
       results = flattenDeep(results);
 
-      // Be kind, convert unifyMeasurementUnits
-      // results = unifyParameters(results);
+      // Be kind, convert 
       results = convertUnits(results);
       console.log(results);
       return cb(err, {name: 'unused', measurements: results});
