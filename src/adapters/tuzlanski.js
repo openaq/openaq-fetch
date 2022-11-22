@@ -1,7 +1,7 @@
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { convertUnits } from '../lib/utils.js';
+import { convertUnits, unifyMeasurementUnits, unifyParameters } from '../lib/utils.js';
 import { default as baseRequest } from 'request';
 import cheerio from 'cheerio';
 import Coordinates from 'coordinate-parser';
@@ -33,9 +33,10 @@ export function fetchData (source, cb) {
       // Turn into a single array
       results = flattenDeep(results);
 
-      // Be kind, convert
+      // Be kind, convert unifyMeasurementUnits
+      // results = unifyParameters(results);
       results = convertUnits(results);
-
+      console.log(results);
       return cb(err, {name: 'unused', measurements: results});
     });
   });
@@ -49,6 +50,7 @@ const handleStation = function (stationUrl) {
         return done({message: 'Failure to load station url.'});
       }
       formatData(body, (measurements) => {
+        
         return done(null, measurements);
       });
     });
@@ -98,14 +100,16 @@ const formatData = function (results, cb) {
   }
 
   let measurements = [];
-  $('.data-values').find('.row').eq(1).find('.row').first().children().each((i, e) => {
+  $('.data-values').find('.row').eq(1).find('.row').first().children().each((i, e) => { //
     let m = Object.assign({}, base);
+    let regExp = /\(([^)]+)\)/;
     if (i % 2 === 0) {
-      m.parameter = renameParameter($(e).text().split('*')[0]);
+      m.parameter = renameParameter($(e).text().split('*')[0].split(' ')[0]);
       m.value = Number($(e).next().text().split(' ')[0].replace(',', '.'));
-      m.unit = $(e).next().text().split(' ')[1];
-      log.debug(m);
+      m.unit = regExp.exec($(e).text().split('*')[0])[1];
+      // log.debug(m);
       if (m.value) {
+        unifyMeasurementUnits(m);
         measurements.push(m);
       }
     }
