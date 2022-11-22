@@ -35,7 +35,7 @@ export function fetchData (source, cb) {
 
       // Be kind, convert 
       results = convertUnits(results);
-      console.log(results);
+      // console.log(results);
       return cb(err, {name: 'unused', measurements: results});
     });
   });
