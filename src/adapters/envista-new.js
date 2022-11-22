@@ -6,7 +6,23 @@ import { default as moment } from 'moment';
 const { difference, flattenDeep } = pkg;
 import pkg from 'lodash';
 import { parallel, parallelLimit } from 'async';
-import { acceptableParameters, convertUnits } from '../lib/utils.js';
+import { convertUnits, unifyMeasurementUnits } from '../lib/utils.js';
+const acceptableParameters = [ // expanded params can be added by uncommenting these lines
+  // 'no',
+  // 'nox',
+  // 'ws',
+  // 'wd',
+  // 'rh',
+  // 'temp', // unit is °C, change to °F or C ?
+  // 'benzene',
+  'pm25',
+  'pm10',
+  'co',
+  'so2',
+  'no2',
+  'bc',
+  'o3',
+];
 
 const requestHeaders = baseRequest.defaults({
   timeout: REQUEST_TIMEOUT,
@@ -42,7 +58,7 @@ export function fetchData (source, cb) {
       }
       results = flattenDeep(results);
       results = convertUnits(results);
-      // console.log(results);
+      // console.dir(results, { 'maxArrayLength': null });
       return cb(err, {name: 'unused', measurements: results});
     });
   });
@@ -128,11 +144,12 @@ const isAcceptedParameter = function (parameter) {
 };
 
 const getMeasurement = function (base, station, channel) {
-  let measurement = Object.assign({}, base);
+  let measurement = Object.assign({}, base); 
   let parameterName = channel.name.toLowerCase().split('.').join("");
   measurement.parameter = parameterName;
-  measurement.value = channel.value;
+  measurement.value = channel.value
   measurement.unit = getUnit(station, channel);
+  measurement = unifyMeasurementUnits(measurement);
   return measurement;
 };
 
