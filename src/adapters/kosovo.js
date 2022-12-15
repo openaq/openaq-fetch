@@ -1,194 +1,88 @@
+import { parallel } from 'async';
+import { DateTime } from 'luxon';
+//import { convertUnits } from '../lib/utils';
+// const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
+// import {parse} from 'wellknown';
+import fetch from 'node-fetch';
+function convertUnits(input) {
+  return input;
+}
 /**
- * This code is responsible for implementing all methods related to fetching
- * and returning data for a Kosovo sources (HTML page)
- *
- * Please note:
- * There seems to be a discrepancy between the measurements value in the Web-pages for map and table.
- * Here we use the data from the table Web-page.
+ * Fetches the data for a given source and returns an appropriate object
+ * @param {object} source A valid source object
+ * @param {function} cb A callback of the form cb(err, data)
  */
-'use strict';
 
-import {
-  REQUEST_TIMEOUT
-} from '../lib/constants.js';
-import {
-  acceptableParameters
-} from '../lib/utils.js';
-import cheerio from 'cheerio';
-import log from '../lib/logger.js';
-import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
+//get the unix timestamp for now and 24 hours ago
+let now = new Date();
+let yesterday = new Date(now);
+yesterday.setDate(yesterday.getDate() - 1);
+now = now.getTime()
+yesterday = yesterday.getTime()
 
-const request = baseRequest.defaults({
-  timeout: REQUEST_TIMEOUT
-});
+// console.log(yesterday)
+// console.log(now)
 
-export const name = 'kosovo';
+// this will be location[n].location to match the station
+const locations = "https://airqualitykosova.rks-gov.net/dataservices/chart/AQStations/all?lang=en";
+const ALL_DATA = // would be response[n].items.station
+  `https://airqualitykosova.rks-gov.net/dataservices/chart/stationDataTable?stationsListStr=%5B%7B%22id%22:10%7D,%7B%22id%22:11%7D,%7B%22id%22:4%7D,%7B%22id%22:3%7D,%7B%22id%22:5%7D,%7B%22id%22:6%7D,%7B%22id%22:13%7D,%7B%22id%22:9%7D,%7B%22id%22:12%7D,%7B%22id%22:8%7D,%7B%22id%22:1%7D,%7B%22id%22:2%7D,%7B%22id%22:7%7D%5D&resolution=hour&startTime=${yesterday}&endTime=${now}&parameterListStr=%5B%7B%22id%22:1,%22name%22:%22pm10%22,%22unit%22:%22%C2%B5g/m3%22,%22label%22:%22PM10%22,%22sortOrder%22:1,%22aqReporting%22:true,%22indexed%22:true%7D,%7B%22id%22:2,%22name%22:%22pm25%22,%22unit%22:%22%C2%B5g/m3%22,%22label%22:%22PM2.5%22,%22sortOrder%22:2,%22aqReporting%22:true,%22indexed%22:true%7D,%7B%22id%22:3,%22name%22:%22no2%22,%22unit%22:%22%C2%B5g/m3%22,%22label%22:%22NO2%22,%22sortOrder%22:3,%22aqReporting%22:true,%22indexed%22:true%7D,%7B%22id%22:5,%22name%22:%22o3%22,%22unit%22:%22%C2%B5g/m3%22,%22label%22:%22O3%22,%22sortOrder%22:5,%22aqReporting%22:true,%22indexed%22:true%7D,%7B%22id%22:6,%22name%22:%22so2%22,%22unit%22:%22%C2%B5g/m3%22,%22label%22:%22SO2%22,%22sortOrder%22:6,%22aqReporting%22:true,%22indexed%22:true%7D,%7B%22id%22:7,%22name%22:%22co%22,%22unit%22:%22mg/m3%22,%22label%22:%22CO%22,%22sortOrder%22:7,%22aqReporting%22:true,%22indexed%22:false%7D,%7B%22id%22:8,%22name%22:%22index%22,%22unit%22:%22level%22,%22label%22:%22Index%22,%22sortOrder%22:8,%22aqReporting%22:true,%22indexed%22:false%7D%5D&valueTypeStr=AVG&timeZoneName=Europe/Belgrade&lang=en`;
 
-export function fetchData (source, cb) {
-  request(source.url, (err, res, body) => {
-
-    if (err || res.statusCode !== 200) {
-      return cb({ message: 'Failure to load data url' });
-    }
-    try {
-      const $ = cheerio.load(body);
-      const rawTable = $('table[BORDER=2]')
-            .find('tbody')
-            .get(0);
-      const data = getTable(rawTable)
-            .filter(measurement => acceptableParameters.includes(measurement.parameter));
-      if (data === undefined) {
-        return cb({ message: 'Failure to parse data.' });
-      }
-      return cb(null, data);
-    } catch (e) {
-      return cb(e);
-    }
-  });
-};
-
-const averagingPeriod = {
-  unit: 'hours',
-  value: 1
-};
-const attribution = [{
-  name: 'Kosovo AQ',
-  url: 'http://kosovo-airquality.com/secure/index2.html'
-}];
-
-// geo locations source: http://kosovo-airquality.com/secure/Kosovo.html
-const staticData = {
-  Drenas: {
-    coordinates: {
-      latitude: 42.625568,
-      longitude: 20.89621
-    },
-    city: 'Drenas'
-  },
-  Gjilan: {
-    coordinates: {
-      latitude: 42.461143,
-      longitude: 21.467201
-    },
-    city: 'Gjilan'
-  },
-  'Hani i Elezit': {
-    coordinates: {
-      latitude: 42.153961,
-      longitude: 21.29601
-    },
-    city: 'Hani i Elezit'
-  },
-  Mitrovice: {
-    coordinates: {
-      latitude: 42.891794,
-      longitude: 20.868936
-    },
-    city: 'Mitrovice'
-  },
-  Peje: {
-    coordinates: {
-      latitude: 42.659691,
-      longitude: 20.284598
-    },
-    city: 'Peje'
-  },
-  'Prishtine - IHMK': {
-    coordinates: {
-      latitude: 42.648872,
-      longitude: 21.137121
-    },
-    city: 'Prishtine'
-  },
-  'Prishtine, Rilindje': {
-    coordinates: {
-      latitude: 42.659656,
-      longitude: 21.157309
-    },
-    city: 'Prishtine'
-  },
-  Prizren: {
-    coordinates: {
-      latitude: 42.215859,
-      longitude: 20.741556
-    },
-    city: 'Prizren'
-  }
-};
-
-function getParameterAndUnit (header) {
-  const parunit = header.split('[');
-  const parameterUnit = {
-    parameter: parunit[0].toLowerCase().replace('.', ''),
-    unit: parunit[1].toLowerCase().replace(']', '')
-  };
-  return parameterUnit;
+  const getStations = async () => {
+    const response = await fetch(locations);
+    let data = await response.json();
+    return data;
 }
 
-function getParameters (rawParameters) {
-  return rawParameters.map(rawParameter => getParameterAndUnit(rawParameter));
+const getMeasurements = async () => {
+    const response = await fetch(ALL_DATA);
+    console.log(response.url)
+    let data = await response.json();
+    data = data.items;
+    data.map(measurement => { 
+            // console.log(measurement.time.split(' '))
+            let [date, time] = measurement.time.split(' ');
+            //apend minutes and seconds to time +1 GMT
+            time = time + ':00:00';
+            const [year, month, day] = date.split('-');
+            const d = DateTime.fromISO(
+                `${year}-${month}-${day}T${time}`,
+                {
+                    zone: 'Europe/Belgrade',
+                }
+                );
+            measurement.time = d;
+        });
+    return data;
 }
 
-function getDate (rawDate) {
-  const dateMoment = moment.tz(rawDate, 'DD.MM.YYYY HH:mm:ss', 'Europe/Belgrade'); // No name for Pristina?
-  return {
-    utc: dateMoment.toDate(),
-    local: dateMoment.format()
-  };
+const getData = async () => {
+    const stations = await getStations();
+    const measurements = await getMeasurements();
+    const data = stations.map(station => {
+        // //find the last measurement that matches the station.location by time
+        const measurement = measurements.filter(measurement => measurement.station === station.location).sort((a, b) => b.time.toISO() - a.time.toISO()).pop();
+        // console.log(measurement);
+        return {
+            stationName: station.location,
+            coordinates: {
+                latitude: station.y,
+                longitude: station.x
+            },
+            date: {
+                utc: measurement.time.toUTC().toISO(),
+                local: measurement.time.toISO()
+            },
+            pm10: measurement.pm10,
+            pm25: measurement.pm25,
+            so2: measurement.so2,
+            no2: measurement.no2,
+            co: measurement.co,
+            o3: measurement.o3,
+            unit: "µg/m³"
+        }
+    })
+    return data;
 }
 
-function getRow (tr) {
-  const tds = tr.filter(column => column.name === 'td');
-  const row = tds.map(td => td.children && td.children.length > 0 ? td.children[0].data : null);
-  return row;
-}
-
-function getStationMeasurements (rawStation, parameters) {
-  const location = rawStation.shift();
-  const measurement = {
-    location: location,
-    city: staticData[location].city,
-    date: getDate(rawStation.shift()),
-    coordinates: staticData[location].coordinates,
-    attribution: attribution,
-    averagingPeriod: averagingPeriod
-  };
-
-  const stationMeasurements = [];
-  rawStation.forEach((rawMeasurement, index) => {
-    if (rawMeasurement) {
-      stationMeasurements.push(Object.assign({
-        parameter: parameters[index].parameter,
-        unit: parameters[index].unit,
-        value: Number(rawMeasurement.replace(',', '.'))
-      }, measurement));
-    }
-  });
-  return stationMeasurements;
-}
-
-function getMeasurements (rawStations, parameters) {
-  const measurements = [];
-  rawStations.forEach((rawStation) =>
-    measurements.push(...getStationMeasurements(rawStation, parameters))
-  );
-  return measurements;
-}
-
-function getTable (rawData) {
-  const trs = rawData.children.filter(child => child.name === 'tr');
-  log.debug('--------------- raw rows -------------');
-  const rawHeaders = trs.shift();
-  let headers = getRow(rawHeaders.children);
-  headers.splice(0, 2); // Remove station and date header columns.
-  log.debug('--------------- headers -------------');
-  const parameters = getParameters(headers);
-  log.debug('--------------- parameters -------------');
-  const rawStations = trs.map(tr => getRow(tr.children));
-  log.debug('--------------- raw stations -------------');
-  const measurements = getMeasurements(rawStations, parameters);
-  log.debug('--------------- stations -------------');
-  log.debug(measurements);
-  return measurements;
-}
+getData().then(data => console.log(data));
