@@ -1,3 +1,8 @@
+/**
+ * This code is responsible for implementing all methods related to fetching
+ * and returning data for the Kosovo data sources.
+ */
+
 import { parallel } from 'async';
 import { DateTime } from 'luxon';
 import fetch from 'node-fetch';
