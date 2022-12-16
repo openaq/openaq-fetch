@@ -20,30 +20,27 @@ yesterday.setDate(yesterday.getDate() - 1);
 now = now.getTime()
 yesterday = yesterday.getTime()
 
-// this will be location[n].location to match the station
-const locations = "https://airqualitykosova.rks-gov.net/dataservices/chart/AQStations/all?lang=en";
-
-//this will build the url for the data
-let string1 = 'https://airqualitykosova.rks-gov.net/dataservices/chart/stationDataTable?stationsListStr='
+// This will build the url for the data. Locations come from source.url
+let string1 = 'https://airqualitykosova.rks-gov.net/dataservices/chart/stationDataTable?stationsListStr=';
 let json1 =
-    [{"id":10},{"id":11},{"id":4},{"id":3},{"id":5},{"id":6},{"id":13},{"id":9},{"id":12},{"id":8},{"id":1},{"id":2},{"id":7}]
-let string2 = `&resolution=hour&startTime=${yesterday}&endTime=${now}&parameterListStr=`  
+    [{"id":10},{"id":11},{"id":4},{"id":3},{"id":5},{"id":6},{"id":13},{"id":9},{"id":12},{"id":8},{"id":1},{"id":2},{"id":7}];
+let string2 = `&resolution=hour&startTime=${yesterday}&endTime=${now}&parameterListStr=`;  
 let json2 =
     [{"id":1,"name":"pm10","unit":" µg/m3","label":"PM10","sortOrder":1,"aqReporting":true,"indexed":true},
     {"id":2,"name":"pm25","unit":" µg/m3","label":"PM2.5","sortOrder":2,"aqReporting":true,"indexed":true},
     {"id":3,"name":"no2","unit":" µg/m3","label":"NO2","sortOrder":3,"aqReporting":true,"indexed":true},
     {"id":5,"name":"o3","unit":" µg/m3","label":"O3","sortOrder":5,"aqReporting":true,"indexed":true},
-    {"id":6,"name":"so2","unit":" µg/m3","label":"SO2","sortOrder":6,"aqReporting":true,"indexed":true},
-    {"id":7,"name":"co","unit":"mg/m3","label":"CO","sortOrder":7,"aqReporting":true,"indexed":false},
-    {"id":8,"name":"index","unit":"level","label":"Index","sortOrder":8,"aqReporting":true,"indexed":false}]
-let string3 = '&valueTypeStr=AVG&timeZoneName=Europe/Belgrade&lang=en'
+    {"id":6,"name":"so2","unit": " µg/m3","label":"SO2","sortOrder":6,"aqReporting":true,"indexed":true},
+    {"id":7,"name":"co","unit": "mg/m3","label":"CO","sortOrder":7,"aqReporting":true,"indexed":false},
+    {"id":8,"name":"index","unit":"level","label":"Index","sortOrder":8,"aqReporting":true,"indexed":false}];
+let string3 = '&valueTypeStr=AVG&timeZoneName=Europe/Belgrade&lang=en';
 
 // combine the above in one string and url encode them
-const ALL_DATA = string1 + encodeURIComponent(JSON.stringify(json1)) + string2 + encodeURIComponent(JSON.stringify(json2)) + string3
+const ALL_DATA = string1 + encodeURIComponent(JSON.stringify(json1)) + string2 + encodeURIComponent(JSON.stringify(json2)) + string3;
 
 export async function fetchData (source, cb) {
     try {  
-        let data = await getData();
+        let data = await getData(source.url);
         data = await formatData(data);
         return cb(null, data);
         } catch (error) {
@@ -51,9 +48,9 @@ export async function fetchData (source, cb) {
      }
 }  
 
-const getStations = async () => {
+const getStations = async (url) => {
     try {    
-        const response = await fetch(locations);
+        const response = await fetch(url);
         let data = await response.json();
         return data;
     } catch (error) {
@@ -86,9 +83,9 @@ const getMeasurements = async () => {
 };
 
 
-const getData = async () => {
+const getData = async (url) => {
     let format = "yyyy-MM-dd\'T\'HH:mm:ss+hh:mm";
-    const stations = await getStations();
+    const stations = await getStations(url);
     const measurements = await getMeasurements();
     const data = stations.map(station => {
         // //find the last measurement that matches the station.location by time
