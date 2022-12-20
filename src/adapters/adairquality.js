@@ -9,7 +9,6 @@ import { default as baseRequest } from 'request';
 import { DateTime } from 'luxon';
 import { parallel } from 'async';
 import flatten from 'lodash/flatten.js';
-
 const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
 
 export const name = 'adairquality-ae';
@@ -269,7 +268,7 @@ function parseDate (dateString) {
     `${groups[3]}-${groups[1].padStart(2, '0')}-${groups[2].padStart(
       2,
       '0'
-    )}T${hour}:${minutes}:${seconds}`,
+    )}T${groups[4].padStart(2, '0')}:${minutes}:${seconds}`,
     {
       zone: 'Asia/Dubai'
     }
@@ -286,7 +285,7 @@ function formatData (locations) {
         const date = parseDate(o.DateTime);
         o.DateTime = date;
         return o;
-      });
+      })
     const measurementsSorted = measurements.sort((a, b) => b.DateTime - a.DateTime);
     const latestMeasurements = measurementsSorted[0];
     const filtered = Object.entries(latestMeasurements).filter(([key, _]) => {
@@ -303,7 +302,7 @@ function formatData (locations) {
       return {
         parameter: measurement.parameter,
         date: {
-          utc: latestMeasurements.DateTime.toUTC(),
+          utc: latestMeasurements.DateTime.toUTC().toISO(),
           local: latestMeasurements.DateTime.toISO({suppressMilliseconds: true})
         },
         value: measurement.value,
