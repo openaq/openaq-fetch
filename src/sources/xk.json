@@ -13,17 +13,16 @@
         "active": true
     },
     {
-        "url": "http://kosovo-airquality.com/secure/ValueTable.html",
+        "url": "https://airqualitykosova.rks-gov.net/dataservices/chart/AQStations/all?lang=en",
         "adapter": "kosovo",
         "name": "Kosovo",
         "city": "",
         "country": "XK",
-        "description": "Kosovo data from kosovo-airquality.com",
-        "sourceURL": "http://kosovo-airquality.com/secure/index2.html",
+        "description": "Kosovo data from airqualitykosovo.rks-gov.net",
+        "sourceURL": "https://airqualitykosova.rks-gov.net/en/",
         "contacts": [
-            "info@openaq.org",
-            "jo.torsmyr@gmail.com"
+            "info@openaq.org"
         ],
-        "active": false
+        "active": true
     }
 ]

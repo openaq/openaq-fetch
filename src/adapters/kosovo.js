@@ -1,194 +1,144 @@
 /**
  * This code is responsible for implementing all methods related to fetching
- * and returning data for a Kosovo sources (HTML page)
- *
- * Please note:
- * There seems to be a discrepancy between the measurements value in the Web-pages for map and table.
- * Here we use the data from the table Web-page.
+ * and returning data for the Kosovo data sources.
  */
-'use strict';
 
-import {
-  REQUEST_TIMEOUT
-} from '../lib/constants.js';
-import {
-  acceptableParameters
-} from '../lib/utils.js';
-import cheerio from 'cheerio';
-import log from '../lib/logger.js';
-import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
+import { parallel } from 'async';
+import { DateTime } from 'luxon';
+import fetch from 'node-fetch';
 
-const request = baseRequest.defaults({
-  timeout: REQUEST_TIMEOUT
-});
+/**
+ * Fetches the data for a given source and returns an appropriate object
+ * @param {object} source A valid source object
+ * @param {function} cb A callback of the form cb(err, data)
+ */
 
-export const name = 'kosovo';
+//get the unix timestamp for now and 24 hours ago
+let now = new Date();
+let yesterday = new Date(now);
+yesterday.setDate(yesterday.getDate() - 1);
+now = now.getTime()
+yesterday = yesterday.getTime()
 
-export function fetchData (source, cb) {
-  request(source.url, (err, res, body) => {
+// This will build the url for the data. Locations come from source.url
+let string1 = 'https://airqualitykosova.rks-gov.net/dataservices/chart/stationDataTable?stationsListStr=';
+let json1 =
+    [{"id":10},{"id":11},{"id":4},{"id":3},{"id":5},{"id":6},{"id":13},{"id":9},{"id":12},{"id":8},{"id":1},{"id":2},{"id":7}];
+let string2 = `&resolution=hour&startTime=${yesterday}&endTime=${now}&parameterListStr=`;  
+let json2 =
+    [{"id":1,"name":"pm10","unit":" µg/m3","label":"PM10","sortOrder":1,"aqReporting":true,"indexed":true},
+    {"id":2,"name":"pm25","unit":" µg/m3","label":"PM2.5","sortOrder":2,"aqReporting":true,"indexed":true},
+    {"id":3,"name":"no2","unit":" µg/m3","label":"NO2","sortOrder":3,"aqReporting":true,"indexed":true},
+    {"id":5,"name":"o3","unit":" µg/m3","label":"O3","sortOrder":5,"aqReporting":true,"indexed":true},
+    {"id":6,"name":"so2","unit": " µg/m3","label":"SO2","sortOrder":6,"aqReporting":true,"indexed":true},
+    {"id":7,"name":"co","unit": "mg/m3","label":"CO","sortOrder":7,"aqReporting":true,"indexed":false},
+    {"id":8,"name":"index","unit":"level","label":"Index","sortOrder":8,"aqReporting":true,"indexed":false}];
+let string3 = '&valueTypeStr=AVG&timeZoneName=Europe/Belgrade&lang=en';
 
-    if (err || res.statusCode !== 200) {
-      return cb({ message: 'Failure to load data url' });
+// combine the above in one string and url encode them
+const ALL_DATA = string1 + encodeURIComponent(JSON.stringify(json1)) + string2 + encodeURIComponent(JSON.stringify(json2)) + string3;
+
+export async function fetchData (source, cb) {
+    try {  
+        let data = await getData(source.url);
+        data = await formatData(data);
+        return cb(null, data);
+        } catch (error) {
+        return cb (error);
+     }
+}  
+
+const getStations = async (url) => {
+    try {    
+        const response = await fetch(url);
+        let data = await response.json();
+        return data;
+    } catch (error) {
+        throw error;
     }
+}
+
+const getMeasurements = async () => {
     try {
-      const $ = cheerio.load(body);
-      const rawTable = $('table[BORDER=2]')
-            .find('tbody')
-            .get(0);
-      const data = getTable(rawTable)
-            .filter(measurement => acceptableParameters.includes(measurement.parameter));
-      if (data === undefined) {
-        return cb({ message: 'Failure to parse data.' });
-      }
-      return cb(null, data);
-    } catch (e) {
-      return cb(e);
+        const response = await fetch(ALL_DATA);
+        console.log(response.url)
+        let data = await response.json();
+        data = data.items;
+        data.map(measurement => { 
+                let [date, time] = measurement.time.split(' ');
+                time = time + ':00:00';
+                const [year, month, day] = date.split('-');
+                const d = DateTime.fromISO(
+                    `${year}-${month}-${day}T${time}`,
+                    {
+                        zone: 'Europe/Belgrade',
+                    }
+                    );
+                measurement.time = d;
+            });
+        return data;
+    } catch (error) {
+        throw error;
     }
-  });
 };
 
-const averagingPeriod = {
-  unit: 'hours',
-  value: 1
+
+const getData = async (url) => {
+    let format = "yyyy-MM-dd\'T\'HH:mm:ss+hh:mm";
+    const stations = await getStations(url);
+    const measurements = await getMeasurements();
+    const data = stations.map(station => {
+        // //find the last measurement that matches the station.location by time
+        const measurement = measurements
+        .filter(measurement => measurement.station === station.location)
+        .sort((a, b) => b.time.toISO() - a.time.toISO()).pop();
+        return {
+            stationName: station.location,
+            coordinates: {
+                latitude: station.y,
+                longitude: station.x
+            },
+            date: {
+                utc: measurement.time.toUTC().toISO(),
+                local: measurement.time.toFormat(format)
+            },
+            values: {
+                pm10: measurement.pm10,
+                pm25: measurement.pm25,
+                so2: measurement.so2,
+                no2: measurement.no2,
+                co: measurement.co,
+                o3: measurement.o3,
+            },
+            unit: "µg/m³"
+        }
+    })
+    return data;
+}
+ 
+function formatData (locations) {
+    let out = [];
+    locations.forEach(location => {
+        let filtered = Object.entries(location.values)
+        .filter(([key, value]) => value !== null)
+        filtered.forEach(([key, value]) => {
+            out.push({
+                location: location.stationName,
+                city: location.stationName,
+                coordinates: location.coordinates,
+                parameter: key,
+                value: value,
+                unit: location.unit,
+                date: location.date,
+                attribution: [
+                    {
+                        name: 'Air Quality Kosova',
+                        url: 'https://airqualitykosova.rks-gov.net/en/'
+                      }
+                ],
+                averagingPeriod: { unit: 'hours', value: 1 }
+            })
+        })
+    })
+    return { name: 'unused', measurements: out };
 };
-const attribution = [{
-  name: 'Kosovo AQ',
-  url: 'http://kosovo-airquality.com/secure/index2.html'
-}];
-
-// geo locations source: http://kosovo-airquality.com/secure/Kosovo.html
-const staticData = {
-  Drenas: {
-    coordinates: {
-      latitude: 42.625568,
-      longitude: 20.89621
-    },
-    city: 'Drenas'
-  },
-  Gjilan: {
-    coordinates: {
-      latitude: 42.461143,
-      longitude: 21.467201
-    },
-    city: 'Gjilan'
-  },
-  'Hani i Elezit': {
-    coordinates: {
-      latitude: 42.153961,
-      longitude: 21.29601
-    },
-    city: 'Hani i Elezit'
-  },
-  Mitrovice: {
-    coordinates: {
-      latitude: 42.891794,
-      longitude: 20.868936
-    },
-    city: 'Mitrovice'
-  },
-  Peje: {
-    coordinates: {
-      latitude: 42.659691,
-      longitude: 20.284598
-    },
-    city: 'Peje'
-  },
-  'Prishtine - IHMK': {
-    coordinates: {
-      latitude: 42.648872,
-      longitude: 21.137121
-    },
-    city: 'Prishtine'
-  },
-  'Prishtine, Rilindje': {
-    coordinates: {
-      latitude: 42.659656,
-      longitude: 21.157309
-    },
-    city: 'Prishtine'
-  },
-  Prizren: {
-    coordinates: {
-      latitude: 42.215859,
-      longitude: 20.741556
-    },
-    city: 'Prizren'
-  }
-};
-
-function getParameterAndUnit (header) {
-  const parunit = header.split('[');
-  const parameterUnit = {
-    parameter: parunit[0].toLowerCase().replace('.', ''),
-    unit: parunit[1].toLowerCase().replace(']', '')
-  };
-  return parameterUnit;
-}
-
-function getParameters (rawParameters) {
-  return rawParameters.map(rawParameter => getParameterAndUnit(rawParameter));
-}
-
-function getDate (rawDate) {
-  const dateMoment = moment.tz(rawDate, 'DD.MM.YYYY HH:mm:ss', 'Europe/Belgrade'); // No name for Pristina?
-  return {
-    utc: dateMoment.toDate(),
-    local: dateMoment.format()
-  };
-}
-
-function getRow (tr) {
-  const tds = tr.filter(column => column.name === 'td');
-  const row = tds.map(td => td.children && td.children.length > 0 ? td.children[0].data : null);
-  return row;
-}
-
-function getStationMeasurements (rawStation, parameters) {
-  const location = rawStation.shift();
-  const measurement = {
-    location: location,
-    city: staticData[location].city,
-    date: getDate(rawStation.shift()),
-    coordinates: staticData[location].coordinates,
-    attribution: attribution,
-    averagingPeriod: averagingPeriod
-  };
-
-  const stationMeasurements = [];
-  rawStation.forEach((rawMeasurement, index) => {
-    if (rawMeasurement) {
-      stationMeasurements.push(Object.assign({
-        parameter: parameters[index].parameter,
-        unit: parameters[index].unit,
-        value: Number(rawMeasurement.replace(',', '.'))
-      }, measurement));
-    }
-  });
-  return stationMeasurements;
-}
-
-function getMeasurements (rawStations, parameters) {
-  const measurements = [];
-  rawStations.forEach((rawStation) =>
-    measurements.push(...getStationMeasurements(rawStation, parameters))
-  );
-  return measurements;
-}
-
-function getTable (rawData) {
-  const trs = rawData.children.filter(child => child.name === 'tr');
-  log.debug('--------------- raw rows -------------');
-  const rawHeaders = trs.shift();
-  let headers = getRow(rawHeaders.children);
-  headers.splice(0, 2); // Remove station and date header columns.
-  log.debug('--------------- headers -------------');
-  const parameters = getParameters(headers);
-  log.debug('--------------- parameters -------------');
-  const rawStations = trs.map(tr => getRow(tr.children));
-  log.debug('--------------- raw stations -------------');
-  const measurements = getMeasurements(rawStations, parameters);
-  log.debug('--------------- stations -------------');
-  log.debug(measurements);
-  return measurements;
-}
