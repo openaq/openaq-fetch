@@ -7,34 +7,40 @@
  */
 'use strict';
 
-import { unifyMeasurementUnits, unifyParameters, removeUnwantedParameters } from '../lib/utils';
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { unifyMeasurementUnits, unifyParameters, removeUnwantedParameters } from '../lib/utils.js';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import async from 'async';
 import cheerio from 'cheerio';
 import { join } from 'path';
+import sslRootCas from 'ssl-root-cas';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Adding in certs to get around unverified connection issue
-var rootCas = require('ssl-root-cas').create();
+const rootCas = sslRootCas.create();
+const certificatePath = join(__dirname, '../..', '/certs/sinaica.inecc.gob.mx.chained.crt');
+console.log(certificatePath)
 rootCas
   .inject()
-  .addFile(join(__dirname, '..', '/certs/sinaica.inecc.gob.mx.chained.crt'));
+  .addFile(certificatePath);
 
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT, ca: rootCas});
 
-exports.name = 'mexico';
-
+export const name = 'mexico';
 /**
  * Fetches the data for a given source and returns an appropriate object
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
  */
-exports.fetchData = async function (source, cb) {
+export async function fetchData (source, cb) {
   // Goes through the main page of the source, and finds all the links to station pages
   // And then maps all those links into requests
   // Request may need some calibration, because the code may often get Error: ESOCKETTIMEDOUT, could not find any way to bypass that
-  var tasks = fetchAllStationSites(await new Promise((resolve, reject) => {
+  let tasks = fetchAllStationSites(await new Promise((resolve, reject) => {
     request(source.sourceURL, (error, response, body) => {
       if ((!response) || (error)) reject(new Error(error));
       if (response && response.statusCode !== 200) {
@@ -61,7 +67,7 @@ exports.fetchData = async function (source, cb) {
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-      var data = formatData(results);
+      let data = formatData(results);
       if (data === undefined) {
         return cb({message: 'Failure to parse data.'});
       }
@@ -78,8 +84,8 @@ exports.fetchData = async function (source, cb) {
  * @param {string} url String of baseurl for sites
  * @return {array} Array of urls
  */
-var fetchAllStationSites = function (page, url) {
-  var $ = cheerio.load(page);
+let fetchAllStationSites = function (page, url) {
+  let $ = cheerio.load(page);
   return $('#selPickHeadEst option').map(function () {
     return (url + $(this).val());
   }).get();
@@ -90,7 +96,7 @@ var fetchAllStationSites = function (page, url) {
  * @param {array} pages Fetched source data and other metadata
  * @return {object} Parsed and standarized data our system can use
  */
-var formatData = function (pages) {
+let formatData = function (pages) {
 /**
  * Fetches the city from a htmlstring and adds it to template
  * @param {string} place HTML string from the page, which displays location
@@ -121,7 +127,7 @@ var formatData = function (pages) {
     place = place.split('<br>');
     const locationMarkers = ['Municipio:', 'Colonia:', 'Estado:'];
     for (let i of locationMarkers) {
-      var found = false;
+      let found = false;
       for (let j in place) {
         if (place[j].search(i) !== -1) {
           template['city'] = place[j].replace(i, '').trim();
@@ -132,12 +138,12 @@ var formatData = function (pages) {
     }
   };
 
-  var measurements = [];
+  let measurements = [];
   // Loops through each oage
   pages.forEach(page => {
-    var $ = cheerio.load(page);
+    let $ = cheerio.load(page);
     // base template
-    var template = {
+    let template = {
       attribution: [{ name: 'SINAICA', url: 'https://sinaica.inecc.gob.mx/index.php' }],
       averagingPeriod: {unit: 'hours', value: 1}
     };
@@ -152,13 +158,13 @@ var formatData = function (pages) {
       // Tries to find location, and values in the document script of the page, and then adds them to measurements
       try {
         // base documentscript
-        var values = $('script')
+        let values = $('script')
           .toArray()
           .map(script => $(script).html())
           .filter(script => script.search('conts = {') !== -1)[0];
 
         // Metadata from the documentscript, turns it into json to get latitude, longitude and location
-        var meta = values.substring(values.indexOf('est = {'));
+        let meta = values.substring(values.indexOf('est = {'));
         meta = meta.substring(String('est = {').length - 1, meta.indexOf('};') + 1);
         meta = JSON.parse(meta);
         template['coordinates'] = {
@@ -166,10 +172,10 @@ var formatData = function (pages) {
           longitude: Number(meta.long)
         };
         template['location'] = meta.nombre;
-        var timezone = getTimeZone(meta.zonaHoraria);
+        let timezone = getTimeZone(meta.zonaHoraria);
 
         // formats the data and values from the documentscript into readable data
-        var data = values.substring(values.indexOf('conts = {'));
+        let data = values.substring(values.indexOf('conts = {'));
         data = data.substring(String('conts = {').length - 1, data.indexOf('};') + 1);
         data = JSON.parse(data);
         // Loops through all parameters of the site
@@ -178,7 +184,7 @@ var formatData = function (pages) {
           param.forEach(d => {
             if (d != null) {
               const dateMoment = moment.tz(d.fecha + ' ' + d.hora, 'YYYY-MM-DD H', timezone);
-              var m = Object.assign({
+              let m = Object.assign({
                 unit: (d.parametro === 'PM10' || d.parametro === 'PM2.5') ? 'µg/m3' : 'ppm',
                 value: Number(d.valorAct),
                 parameter: d.parametro,
