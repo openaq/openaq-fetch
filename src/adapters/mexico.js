@@ -22,8 +22,8 @@ const __dirname = dirname(__filename);
 
 // Adding in certs to get around unverified connection issue
 const rootCas = sslRootCas.create();
-const certificatePath = join(__dirname, '../..', '/certs/sinaica.inecc.gob.mx.chained.crt');
-console.log(certificatePath)
+const certificatePath = join(__dirname, '..', '/certs/sinaica.inecc.gob.mx.chained.crt');
+
 rootCas
   .inject()
   .addFile(certificatePath);

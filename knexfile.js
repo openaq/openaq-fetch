@@ -18,7 +18,7 @@ export default {
     user: psqlUser,
     password: psqlPassword,
     database: psqlDatabase,
-    ssl: { rejectUnauthorized: false },
+    //ssl: { rejectUnauthorized: false },
   },
   pool: {
     min: psqlPoolMin,

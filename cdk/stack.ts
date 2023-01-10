@@ -35,14 +35,14 @@ export class RealtimeFetcherStack extends cdk.Stack {
 
         const queue = new sqs.Queue(this, "RealtimeFetcherQueue", {
             queueName: env.QUEUE_NAME,
-            visibilityTimeout: cdk.Duration.seconds(900),
+            visibilityTimeout: cdk.Duration.seconds(1800),
         });
 
         const scheduler = new lambda.Function(
             this,
             `${id}-scheduler-lambda`,
             {
-                description: "Lambda implementation of the realtime scheduler",
+                description: `Scheduler for ${id}-fetcher`,
                 code: lambda.Code.fromAsset(
                     '../src'
                 ),
@@ -57,12 +57,12 @@ export class RealtimeFetcherStack extends cdk.Stack {
             this,
             `${id}-fetcher-lambda`,
             {
-                description: "Lambda implementation of the realtime fetcher",
+                description: `Fetcher for ${id}`,
                 code: lambda.Code.fromAsset(
                     '../src'
                 ),
                 handler: 'fetch.handler',
-                memorySize: 512,
+                memorySize: 1024,
                 runtime: lambda.Runtime.NODEJS_14_X,
                 timeout: cdk.Duration.seconds(900),
                 environment: env,
