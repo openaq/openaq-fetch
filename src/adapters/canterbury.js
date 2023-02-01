@@ -5,34 +5,43 @@
  * This is a two-stage adapter requiring loading multiple urls before parsing
  * data.
  */
+
 'use strict';
 
-import { unifyMeasurementUnits, unifyParameters } from '../lib/utils';
-import { REQUEST_TIMEOUT } from '../lib/constants';
+import { unifyMeasurementUnits, unifyParameters } from '../lib/utils.js';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import async from 'async';
+import querystring from 'querystring';
 
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
-exports.name = 'canterbury';
+// stations can be found with source.stationURL
+
+export const name = 'canterbury';
 
 /**
  * Fetches the data for a given source and returns an appropriate object
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
  */
-exports.fetchData = function (source, cb) {
+
+export function fetchData (source, cb) {
   // Fetches all data for each station for today, data is for each 10 minutes
-  var tasks = Object.keys(stations).map(key => {
-    const date = moment().date() + '%2F' + moment().month() + '%2F' + moment().year();
+  let tasks = Object.keys(stations).map(key => {
+    let today = moment().format("DD/MM/YYYY");
+    let date = querystring.escape(today);
     const url = source.url.replace('$station', key).replace('$date', date).replace('$date', date);
+    
     return function (cb) {
       request(url, function (err, res, body) {
         if (err || res.statusCode !== 200) {
           return cb(err || res);
         }
-        cb(null, [body, stations[key]]);
+        body = JSON.parse(body);   
+        body = body.data.item[body.data.item.length - 1]; // get the last item in the array 
+        cb(null, [body, stations[key]]); //
       });
     };
   });
@@ -44,7 +53,7 @@ exports.fetchData = function (source, cb) {
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-      var data = formatData(results);
+      let data = formatData(results);
       if (data === undefined) {
         return cb({message: 'Failure to parse data.'});
       }
@@ -61,12 +70,17 @@ exports.fetchData = function (source, cb) {
  * @param {array} results Fetched source data and other metadata
  * @return {object} Parsed and standarized data our system can use
  */
-var formatData = function (results) {
-  var measurements = [];
+
+async function formatData (results) {
+  console.log(results);
+  // filter out undefined values
+  results = results.filter(r => r[0] !== undefined);
+  let measurements = [];
   // Legal types, for some reason the JSON converts signs and spaces into unicode,
   // and data has wind and temperature data also, which needs to be filtered out
-  var legalParams = ['PM10', 'PM2.5', 'SO2', 'CO', 'NO2', 'O3'];
-  results.forEach(r => {
+  let legalParams = ['PM10', 'PM2.5', 'SO2', 'CO', 'NO2', 'O3'];
+    results.forEach(r => {
+    // console.log(r)
     const template = {
       city: r[1].city,
       location: r[1].location,
@@ -74,13 +88,11 @@ var formatData = function (results) {
       attribution: [{name: 'Environment Canterbury', url: 'https://ecan.govt.nz/'}],
       averagingPeriod: {unit: 'hours', value: 0.166666} // this should be aproximate to 10 minutes, not sure if this is OK
     };
-    // Parses the data from the site
-    r[0] = JSON.parse(r[0]);
     // Runs through all data items for the site
-    r[0].data.item.forEach(d => {
+      r.forEach(d => {
       // Gets the datemoment and correct timezone of time from item
       const dateMoment = moment.tz(d.DateTime, 'Pacific/Auckland');
-      var measurement = Object.assign({
+      let measurement = Object.assign({
         'date': {
           utc: dateMoment.toDate(),
           local: dateMoment.format()
@@ -114,9 +126,10 @@ var formatData = function (results) {
 };
 /* There are a lot of more stations, but they dont seem to be reporting for some reason,
   Managed to find the coordinates from this site: https://ecan.govt.nz/data/air-quality-data/,
-  according to main source site, there should be atleast 30 stations, but none of them are sadly report by the date of 24/06/2020
+  according to main source site, there should be atleast 30 stations, undefined data is sorted out in formatData
 */
 const stations = {
+
   '1': {
     location: 'St Albans',
     city: 'Christchurch',
@@ -181,6 +194,38 @@ const stations = {
       longitude: 171.249643
     }
   },
+  '11': {
+    location: 'Washdyke Flat Road',
+    city: 'Washdyke',
+    coordinates: {
+      latitude: -44.356735,
+      longitude: 171.2363,
+    }
+  },
+  '12': {
+    location: 'Waimate Stadium',
+    city: 'Waimate',
+    coordinates: {
+      latitude: -44.735729,
+      longitude: 171.0499,
+    }
+  },
+  '36': {
+    location: 'Christchurch - Burnside',
+    city: 'Burnside',
+    coordinates: {
+      latitude: -43.492848,
+      longitude: 172.5931,
+    }
+  },
+  '54': {
+    location: 'Timaru Grey Rd',
+    city: 'Timaru',
+    coordinates: {
+      latitude: -44.399174,
+      longitude: 171.2462,
+    }
+  },
   '64': {
     location: 'Waimate Kennedy',
     city: 'Waimate',
@@ -196,5 +241,14 @@ const stations = {
       latitude: -44.356199,
       longitude: 171.242334
     }
-  }
+  },
+  '87': {
+    location: 'Christchurch - St Albans EP',
+    city: 'St Albans EP',
+    coordinates: {
+      latitude: -43.508568,
+      longitude: 172.635835,
+    }
+  },
+
 };
