@@ -72,7 +72,7 @@ To test an individual adapter, you can use something like:
 For a more detailed description of the command line options available, use: `node index.js --help`
 
 ## Deployment
-Deployment is handled automatically via Travis on the `master` branch and is deployed to Amazon's ECS.
+Deployment is is being built from the lambda-deployment branch. Any development for openaq-fetch should be branched/merged from/to the lambda-deployment branch until further notice.
 
 ## Data Source Criteria
 
