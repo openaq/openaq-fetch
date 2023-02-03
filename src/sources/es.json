@@ -23,5 +23,17 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "https://analisi.transparenciacatalunya.cat/resource/tasf-thgu.json",
+        "name": "Spain Catalonia",
+        "adapter": "catalonia",
+        "country": "ES",
+        "description": "Data from Catalonian Department of Territory and Sustainability",
+        "sourceURL": "http://mediambient.gencat.cat/ca/05_ambits_dactuacio/atmosfera/qualitat_de_laire/vols-saber-que-respires/visor-de-dades/",
+        "contacts": [
+          "info@openaq.org"
+        ],
+        "active": true
     }
 ]
