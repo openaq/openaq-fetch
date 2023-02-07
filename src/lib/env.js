@@ -28,6 +28,7 @@ const yargs = _yargs(hideBin(process.argv));
  * @param {boolean} dryrun
  * @param {boolean} debug
  * @param {string} source
+ * @param {string} adapter
  * @param {number} maxParallelAdapters
  */
 
@@ -70,6 +71,12 @@ let _argv = yargs
   .options('source', {
     describe: 'Run the fetch process with only the defined source using source name.',
     alias: 's',
+    nargs: 1,
+    group: 'Main options:'
+  })
+  .options('adapter', {
+    describe: 'Run the fetch process with only the defined adapter in the source list',
+    alias: 'a',
     nargs: 1,
     group: 'Main options:'
   })
@@ -130,6 +137,7 @@ export default () => {
     dryrun,
     debug,
     source,
+    adapter,
     important,
     datetime,
     offset,
@@ -195,6 +203,7 @@ export default () => {
     datetime,
     offset,
     suffix,
+    adapter,
     maxParallelAdapters
   };
 };

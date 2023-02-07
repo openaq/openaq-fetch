@@ -66,6 +66,7 @@ export function handler (event, context) {
   log.debug(event);
   // the event may have passed a source, in which case we need to filter
   let current_sources;
+
   // if we have have more than one of these running we will need to make
   // sure that we dont overwrite another process
   let suffix = env.suffix || '';
@@ -76,6 +77,10 @@ export function handler (event, context) {
     suffix = `_${suffix}${event.Records[0].messageId}`;
   } else if(event && event.source) {
     current_sources = sources.filter(d=>d.name == event.source);
+  } else if(event && event.adapter) {
+    current_sources = sources.filter(d=>d.adapter == event.adapter);
+  } else if(env.adapter) {
+    current_sources = sources.filter(d=>d.adapter == env.adapter);
   } else {
     current_sources = sources;
   }
