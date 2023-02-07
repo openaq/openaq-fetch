@@ -17,7 +17,7 @@ export function fetchStream (source) {
   const out = new DataStream();
   out.name = 'unused';
 
-  log.debug('Fetch stream called');
+  log.debug(`Fetch stream called: ${source.name}`);
 
   fetchMetadata(source)
     .then((stations) => fetchPollutants(source, stations))
@@ -71,7 +71,10 @@ function fetchPollutants (source, stations) {
   return new MultiStream(
     pollutants.map(pollutant => {
       const url = source.url + source.country + '_' + pollutant + '.csv';
-      const timeLastInsert = moment().utc().subtract(2, 'hours');
+      const offset = source.offset || 2;
+      const timeLastInsert = source.datetime
+            ? source.datetime
+            : moment().utc().subtract(offset, 'hours');
       let header;
 
       return new StringStream()

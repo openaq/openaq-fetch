@@ -241,6 +241,7 @@ export function fetchCorrectedMeasurementsFromSourceStream (stream, env) {
         .use(forwardErrors, stream, source, failures, env)
       ;
 
+
       if(env.datetime) {
         source.datetime = moment.utc(env.datetime, true);
         if(!source.datetime.isValid()) {
@@ -252,6 +253,7 @@ export function fetchCorrectedMeasurementsFromSourceStream (stream, env) {
         log.debug(`Using source offset of ${source.offset} hours to set datettime`);
       } else if(env.offset) {
         source.datetime = moment.utc().subtract(env.offset, 'hours');
+        source.offset = env.offset;
         log.debug(`Using env offset of ${env.offset} hours to set datettime`);
       } else {
         log.debug(`No offset or datetime being used`);
