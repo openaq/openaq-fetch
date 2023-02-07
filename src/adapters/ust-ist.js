@@ -1,3 +1,6 @@
+/** adapted from magnus' code @magsyg PR #754 OpenAQ Fetch repo
+ * this adapter pulls data for Trinidad and Tobago
+ */
 'use strict';
 
 import { default as moment } from 'moment-timezone';
