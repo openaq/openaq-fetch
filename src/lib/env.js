@@ -152,6 +152,9 @@ export default () => {
   if (!source && _env.SOURCE) {
     source = _env.SOURCE;
   }
+  if (!adapter && _env.ADAPTER) {
+    adapter = _env.ADAPTER;
+  }
 
   const apiURL = _env.API_URL || 'http://localhost:3004/v1/webhooks'; // The url to ping on completion
   const webhookKey = _env.WEBHOOK_KEY || '123'; // Secret key to auth with API
