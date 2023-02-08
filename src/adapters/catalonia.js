@@ -1,7 +1,9 @@
 /**
  * This code is responsible for implementing all methods related to fetching
- * and returning data for the Catalonian data sources.
+ * and returning data for the Catalonian data sources. credit to @magsyg
+ * based off of openaq-fetch PR #711 
  */
+
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
@@ -17,19 +19,14 @@ export const name = 'catalonia';
  * @param {function} cb A callback of the form cb(err, data)
  */
 export function fetchData (source, cb) {
-  // Due to the catalonian datesource being massive and unsorted, only fetches for current day
-  const fetchURL = (source.url )//+ '?any=' + moment().year().toString() + '&mes=' + (moment().month() + 1).toString() + '&dia=' + (moment().date()).toString());
-  console.log(moment().year().toString() + '-' + (moment().month() + 1).toString() + '-' + (moment().date()).toString());
+  const fetchURL = (source.url)
   request(fetchURL, function (err, res, body) {
     if (err || res.statusCode !== 200) {
       return cb({message: 'Failure to load data url.'});
     }
-    // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
       const data = formatData(body);
-      console.log(data)
-
       // Make sure the data is valid
       if (data === undefined) {
         return cb({message: 'Failure to parse data.'});
@@ -46,7 +43,8 @@ export function fetchData (source, cb) {
  * @param {array} results Fetched source data and other metadata
  * @return {object} Parsed and standarized data our system can use
  */
-const formatData = function (data) {
+
+function formatData(data) {
   // Wrap the JSON.parse() in a try/catch in case it fails
   try {
     data = JSON.parse(data);
@@ -65,12 +63,13 @@ const formatData = function (data) {
     const param = item.contaminant.toLowerCase().replace('.', '');
     // Filtering out params that are not requested, this filter can be removed if desired
     if (String(param).localeCompare('nox') !== 0 &&
-        String(param).localeCompare('h2s') !== 0 &&
-        String(param).localeCompare('no') !== 0 &&
-        String(param).localeCompare('c6h6') !== 0 &&
-        String(param).localeCompare('cl2') !== 0 &&
-        String(param).localeCompare('hg') !== 0 &&
-        String(param).localeCompare('pm1') !== 0) {
+      String(param).localeCompare('h2s') !== 0 &&
+      String(param).localeCompare('no') !== 0 &&
+      String(param).localeCompare('c6h6') !== 0 &&
+      String(param).localeCompare('cl2') !== 0 &&
+      String(param).localeCompare('hg') !== 0 &&
+      String(param).localeCompare('pm1') !== 0) {
+
       const template = {
         location: ('nom_estaci' in item) ? item.nom_estaci : item.municipi,
         city: item.municipi,
@@ -80,10 +79,11 @@ const formatData = function (data) {
           longitude: Number(item.longitud)
         },
         unit: item.unitats,
-        attribution: [{name: 'GENCAT', url: 'http://mediambient.gencat.cat/ca/05_ambits_dactuacio/atmosfera/qualitat_de_laire/vols-saber-que-respires/visor-de-dades/'}],
-        averagingPeriod: {unit: 'hours', value: 1}
+        attribution: [{ name: 'GENCAT', url: 'https://mediambient.gencat.cat/ca/05_ambits_dactuacio/atmosfera/qualitat_de_laire/vols-saber-que-respires/visor-de-dades/' }],
+        averagingPeriod: { unit: 'hours', value: 1 }
       };
-        // Loop through all hours and check if there is any data for that hour on that day
+
+      // Loop through all hours and check if there is any data for that hour on that day
       for (let i = 1; i < 25; i++) {
         dateMoment = moment(dateMoment).add(1, 'hours').format('YYYY-MM-DD HH:mm');
         dateMoment = moment.tz(dateMoment, 'YYYY-MM-DD HH:mm', 'Europe/Madrid');
@@ -105,7 +105,7 @@ const formatData = function (data) {
     return aq;
   };
   // Needed to make all the lists from each day into one big array instead of multiple lists
-  function concatAll (list) {
+  function concatAll(list) {
     let results = [];
     list.forEach(function (subArray) {
       subArray.forEach(function (subArrayValue) {
@@ -114,6 +114,20 @@ const formatData = function (data) {
     });
     return results;
   }
-  const measurements = concatAll(Object.values(data.map(aqRepack)));
-  return {name: 'unused', measurements: measurements};
-};
+  const allData = concatAll(Object.values(data.map(aqRepack)));
+  const measurements = getLatestMeasurements(allData);  
+
+  return { name: 'unused', measurements: measurements };
+}
+
+const getLatestMeasurements = function (measurements) {
+  const latestMeasurements = {};
+  
+  measurements.forEach((measurement) => {
+    const key =  measurement.location + ' ' + measurement.parameter;
+    if (!latestMeasurements[key] || measurement.date.local > latestMeasurements[key].date.local) {
+      latestMeasurements[key] = measurement;
+    }
+  });
+  return Object.values(latestMeasurements);
+}
