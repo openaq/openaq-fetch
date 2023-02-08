@@ -33,7 +33,6 @@ export function fetchData (source, cb) {
   _.forEach(stations, function (e) {
     for (let i in parameterIDs) {
       const sourceURL = source.url.replace('$station', e.key).replace('$parameter', parameterIDs[i]) + moment().valueOf();
-    //   console.log(sourceURL);
       let task = function (cb) {
         // Have to use Jar true here, because if it does not have it, it will get stuck in a redirect loop
         request({jar: true, url: sourceURL}, function (err, res, body) {
@@ -55,7 +54,6 @@ export function fetchData (source, cb) {
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-    //   console.log(results)
       let data = formatData(results);
       if (data === undefined) {
         return cb({message: 'Failure to parse data.'});
@@ -93,8 +91,8 @@ let formatData = function (results) {
   };
   // Loops through all items
   results.forEach(item => {
+
     item = parseToJSON(item);
-    // console.log(item)
     // If values are empty or something fails, dont run
     if (item !== undefined) {
       const template = {
@@ -129,16 +127,44 @@ let formatData = function (results) {
       }
     }
   });
-  // Removes unwanted parameters if some parameters are wrong
-  //   measurements = removeUnwantedParameters(measurements); // OLD loses pm10 and pm25
+  
+  // corrects the parameter names
   measurements = correctMeasurementParameter(measurements);
-  console.log(measurements)
-//   console.dir(measurements, {depth: null, colors: true});
+  // filters out the measurements that are not the latest
+  measurements = getLatestMeasurements(measurements);
+
   return {
     name: 'unused',
     measurements: measurements
   };
 };
+
+function correctMeasurementParameter(measurements) {
+  
+    measurements.forEach(measurement => {
+      if (measurement.parameter === "pm-10") {
+        measurement.parameter = "pm10";
+      } 
+      else if (measurement.parameter === "pm-25") {
+        measurement.parameter = "pm25";
+      }
+    });
+        return measurements;
+  }
+ 
+  
+function getLatestMeasurements(measurements) {
+    const latestMeasurements = {};
+    
+    measurements.forEach((measurement) => {
+      const key = measurement.parameter + measurement.location;
+      if (!latestMeasurements[key] || measurement.date.local > latestMeasurements[key].date.local) {
+        latestMeasurements[key] = measurement;
+      }
+    });
+  
+    return Object.values(latestMeasurements);
+  }
 
 const stations = [
 
@@ -179,15 +205,3 @@ const stations = [
   }
 
 ];
-
-function correctMeasurementParameter(measurements) {
-    measurements.forEach(measurement => {
-      if (measurement.parameter === "pm-10") {
-        measurement.parameter = "pm10";
-      } else if (measurement.parameter === "pm-25") {
-        measurement.parameter = "pm25";
-      }
-    });
-    return measurements;
-  }
-  
