@@ -1,13 +1,14 @@
 /**
  * This code is responsible for implementing all methods related to fetching
  * and returning data for data sources for Trindidad and Tobago
+ * adapted from magnus' code @magsyg PR #754 OpenAQ Fetch repo
  *
  * This is a two-stage adapter requiring loading multiple urls before parsing
  * data.
  */
 'use strict';
 
-import { unifyParameters, unifyMeasurementUnits, removeUnwantedParameters } from '../lib/utils.js';
+import { unifyParameters, unifyMeasurementUnits, removeUnwantedParameters, acceptableParameters } from '../lib/utils.js';
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
 import _ from 'lodash';
@@ -32,6 +33,7 @@ export function fetchData (source, cb) {
   _.forEach(stations, function (e) {
     for (let i in parameterIDs) {
       const sourceURL = source.url.replace('$station', e.key).replace('$parameter', parameterIDs[i]) + moment().valueOf();
+    //   console.log(sourceURL);
       let task = function (cb) {
         // Have to use Jar true here, because if it does not have it, it will get stuck in a redirect loop
         request({jar: true, url: sourceURL}, function (err, res, body) {
@@ -53,6 +55,7 @@ export function fetchData (source, cb) {
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
+    //   console.log(results)
       let data = formatData(results);
       if (data === undefined) {
         return cb({message: 'Failure to parse data.'});
@@ -69,6 +72,7 @@ export function fetchData (source, cb) {
  * @param {array} results Fetched source data and other metadata
  * @return {object} Parsed and standarized data our system can use
  */
+
 let formatData = function (results) {
   let measurements = [];
   /**
@@ -90,6 +94,7 @@ let formatData = function (results) {
   // Loops through all items
   results.forEach(item => {
     item = parseToJSON(item);
+    // console.log(item)
     // If values are empty or something fails, dont run
     if (item !== undefined) {
       const template = {
@@ -100,7 +105,7 @@ let formatData = function (results) {
           latitude: Number(item.meta.latitude),
           longitude: Number(item.meta.longitude)
         },
-        attribution: [{name: 'EMA', url: 'http://ei.weblakes.com/RTTPublic/DshBrdAQI'}],
+        attribution: [{name: 'EMA', url: 'https://ei.weblakes.com/RTTPublic/DshBrdAQI'}],
         averagingPeriod: {unit: 'hours', value: 1}
       };
       // Units are mostly ug/m3, but CO is mg/m3, according to site
@@ -125,7 +130,10 @@ let formatData = function (results) {
     }
   });
   // Removes unwanted parameters if some parameters are wrong
-  measurements = removeUnwantedParameters(measurements);
+  //   measurements = removeUnwantedParameters(measurements); // OLD loses pm10 and pm25
+  measurements = correctMeasurementParameter(measurements);
+  console.log(measurements)
+//   console.dir(measurements, {depth: null, colors: true});
   return {
     name: 'unused',
     measurements: measurements
@@ -133,6 +141,7 @@ let formatData = function (results) {
 };
 
 const stations = [
+
   {
     key: '16',
     city: 'Couva',
@@ -153,5 +162,32 @@ const stations = [
     location: 'Signal Hill',
     latitude: 11.17455,
     longitude: -60.76007
+  },
+  {
+    key: '50',
+    city: 'San Fernando',
+    location: 'San Fernando',
+    latitude: 10.26801,
+    longitude: -61.46705
+  },
+  {
+    key: '52',
+    city: 'Arima',
+    location: 'Arima',
+    latitude: 10.64849,
+    longitude: -61.28440
   }
+
 ];
+
+function correctMeasurementParameter(measurements) {
+    measurements.forEach(measurement => {
+      if (measurement.parameter === "pm-10") {
+        measurement.parameter = "pm10";
+      } else if (measurement.parameter === "pm-25") {
+        measurement.parameter = "pm25";
+      }
+    });
+    return measurements;
+  }
+  
