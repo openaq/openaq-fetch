@@ -1,7 +1,7 @@
 /**
  * This code is responsible for implementing all methods related to fetching
  * and returning data for the data sources from New Zealand.
- *
+ * adapted from openaq-fetch PR #756 credit to @magsyg
  * This is a two-stage adapter requiring loading multiple urls before parsing
  * data.
  */
@@ -72,7 +72,6 @@ export function fetchData (source, cb) {
  */
 
 async function formatData (results) {
-  console.log(results);
   // filter out undefined values
   results = results.filter(r => r[0] !== undefined);
   let measurements = [];
@@ -119,17 +118,20 @@ async function formatData (results) {
       });
     });
   });
+  //  filter out duplicates
+  measurements = measurements.filter((m, i, a) => a.findIndex(t => (t.date.utc === m.date.utc && t.parameter === m.parameter)) === i);
   return {
     name: 'unused',
     measurements: measurements
   };
 };
+
 /* There are a lot of more stations, but they dont seem to be reporting for some reason,
   Managed to find the coordinates from this site: https://ecan.govt.nz/data/air-quality-data/,
   according to main source site, there should be atleast 30 stations, undefined data is sorted out in formatData
 */
-const stations = {
 
+const stations = {
   '1': {
     location: 'St Albans',
     city: 'Christchurch',
@@ -250,5 +252,4 @@ const stations = {
       longitude: 172.635835,
     }
   },
-
 };
