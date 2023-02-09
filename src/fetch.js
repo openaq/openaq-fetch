@@ -64,17 +64,37 @@ const runningSources = {};
  */
 export function handler (event, context) {
   log.debug(event);
+  console.log(event);
   // the event may have passed a source, in which case we need to filter
   let current_sources;
-
+  let offset;
+  let datetime;
   // if we have have more than one of these running we will need to make
   // sure that we dont overwrite another process
-  let suffix = env.suffix || '';
-  if(event && event.Records) {
-    current_sources = event.Records.map( rcd => {
-      return JSON.parse(rcd.body);
-    }).flat();
-    suffix = `_${suffix}${event.Records[0].messageId}`;
+  let suffix = env.suffix || '_na';
+  if(event && event.Records && event.Records.length) {
+    let messageId = event.Records[0].messageId;
+    if(event.Records.length == 1) {
+      let body = JSON.parse(event.Records[0].body);
+      current_sources = body.sources || body;
+      suffix = body.suffix || suffix;
+      offset = body.offset;
+      datetime = body.datetime;
+    } else if(event.Records.length > 1) {
+      current_sources = event.Records.map( rcd => {
+        let body = JSON.parse(rcd.body);
+        offset = body.offset;
+        datetime = body.datetime;
+        return body.sources || body;
+      }).flat();
+    }
+    suffix = `_${suffix}${messageId}`;
+  } else if(event && event.sources) {
+    let messageId = 'event';
+    current_sources = event.sources;
+    offset = event.offset;
+    datetime = event.datetime;
+    suffix = `_${event.suffix || suffix}${messageId}`;
   } else if(event && event.source) {
     current_sources = sources.filter(d=>d.name == event.source);
   } else if(event && event.adapter) {
@@ -84,9 +104,16 @@ export function handler (event, context) {
   } else {
     current_sources = sources;
   }
-
   // and the final file name
   env.key = `realtime/${moment().format('YYYY-MM-DD/X')}${suffix}.ndjson`;
+
+  if(offset) {
+    env.offset = offset;
+  }
+
+  if(datetime) {
+    env.datetime = datetime;
+  }
 
   return Promise.race([
     handleSigInt(runningSources),

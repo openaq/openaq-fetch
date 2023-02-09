@@ -57,8 +57,8 @@ const getMessage = async () => {
 
 // submit a new set
 (async () => {
-  //const res = await scheduler();
+  //let sqs = await scheduler({}, {});
+  //sqs.map(q => fetcher(q, {}));
   //const event = await getMessage();
   fetcher();
-  //fetcher();
 })();
