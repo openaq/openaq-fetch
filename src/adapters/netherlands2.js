@@ -12,6 +12,8 @@ import { default as baseRequest } from 'request';
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import async from 'async';
+// import winston
+import fs from 'fs';
 
 // Adding in certs to get around unverified connection issue
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
@@ -92,7 +94,7 @@ export async function fetchData (source, cb) {
     }
   });
 };
-
+ 
 /**
  * Given fetched data, turn it into a format our system can use.
  * @param {array} results Fetched source data and other metadata
@@ -163,8 +165,39 @@ let formatData = function (results) {
   });
   // Removes unwanted parameters such as NO
   measurements = removeUnwantedParameters(measurements);
-  return {
+  const derps = getLatestMeasurements(measurements);
+  // const coords = derps.map((m) => {
+  //   return { lat: m.coordinates.latitude, lon: m.coordinates.longitude };
+  //   });
+  //   // console.dir(coords, { maxarraylength: null });`
+  //   winston.log({
+  //     level: 'verbose',
+  //     message: coords
+  //   });
+  
+    return {
     name: 'unused',
-    measurements: measurements
+    measurements: derps
   };
 };
+
+function getLatestMeasurements(measurements) {
+  const latestMeasurements = {};
+  
+  measurements.forEach((measurement) => {
+    const key = measurement.parameter + measurement.location;
+    if (!latestMeasurements[key] || measurement.date.utc > latestMeasurements[key].date.utc) {
+      latestMeasurements[key] = measurement;
+    }
+  });
+
+  return Object.values(latestMeasurements);
+}
+
+let bloop = { url: 'https://api.luchtmeetnet.nl/open_api' }
+
+function writeFile(data) {
+  fs.writeFileSync('./NL2-ALLDATA.json', JSON.stringify(data));
+}
+
+fetchData(bloop, (err, data) => writeFile(data));
