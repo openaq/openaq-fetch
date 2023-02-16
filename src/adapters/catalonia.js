@@ -75,8 +75,8 @@ function formatData(data) {
         city: item.municipi,
         parameter: param,
         coordinates: {
-          latitude: Number(item.latitud),
-          longitude: Number(item.longitud)
+          latitude: parseFloat(item.latitud),
+          longitude: parseFloat(item.longitud)
         },
         unit: item.unitats,
         attribution: [{ name: 'GENCAT', url: 'https://mediambient.gencat.cat/ca/05_ambits_dactuacio/atmosfera/qualitat_de_laire/vols-saber-que-respires/visor-de-dades/' }],
@@ -90,7 +90,7 @@ function formatData(data) {
         let valueKey = (i < 10) ? ('h0' + i.toString()) : ('h' + i.toString());
         if (valueKey in item) {
           let temp = Object.assign({
-            value: Number(item[valueKey]),
+            value: parseFloat(item[valueKey]),
             date: {
               utc: dateMoment.toDate(),
               local: dateMoment.format()
