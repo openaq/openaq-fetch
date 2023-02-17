@@ -31,22 +31,21 @@ const formatData = (input) => {
         let time;
         let measurements = [];
         let data = input.data;
+        
         Object.values(data).map(o => {
             let station = {
                 location: o.name_en,
                 city: o.name_el,
                 latitude: parseFloat(o.latitude),
                 longitude: parseFloat(o.longitude)
-            }        
+            }     
+
             // the first key in o.pollutants is the datetime for all the measurements of the station
             for (const [key, value] of Object.entries(o.pollutants)) {
                 if (key === 'date_time') {
-                    let [date, hms] = value.split(' '); // hms = hours, minutes, seconds
-                    const [year, month, day] = date.split('-');
-                    time = DateTime.fromISO(
-                        `${year}-${month}-${day}T${hms}Z`,
-                        { zone: 'Europe/Nicosia' } // UTC+2
-                        );
+
+                    time = DateTime.fromFormat(value, 'yyyy-MM-dd HH:mm:ss', { zone: 'Europe/Nicosia' }); // UTC+2
+    
                 } else {
                     
                     let parameter = correctParam(value.notation)
@@ -58,7 +57,7 @@ const formatData = (input) => {
                         value: parseFloat(value.value),
                         unit: "µg/m³", // the unit is always µg/m³ on the website, unavailable in the api
                         date: {
-                            utc: time.toUTC().toISO(),
+                            utc: time.toUTC().toISO({suppressMilliseconds: true}),
                             local: time.toISO({suppressMilliseconds: true})
                         },
                         coordinates: {
