@@ -12,12 +12,15 @@ import { unifyParameters, unifyMeasurementUnits, removeUnwantedParameters, accep
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
 import _ from 'lodash';
-import { default as moment } from 'moment-timezone';
+import { DateTime } from 'luxon';
 import async from 'async';
 
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'trinidadtobago';
+
+
+const timestamp = DateTime.now().toMillis();
 
 /**
  * Fetches the data for a given source and returns an appropriate object
@@ -33,7 +36,7 @@ export function fetchData (source, cb) {
   // Loops through all the stations, and then loops through all parameters IDS, and adds the requests to the tasks
   _.forEach(stations, function (e) {
     for (let i in parameterIDs) {
-      const sourceURL = source.url.replace('$station', e.key).replace('$parameter', parameterIDs[i]) + moment().valueOf();
+      const sourceURL = source.url.replace('$station', e.key).replace('$parameter', parameterIDs[i]) + timestamp;
       let task = function (cb) {
         // Have to use Jar true here, because if it does not have it, it will get stuck in a redirect loop
         request({jar: true, url: sourceURL}, function (err, res, body) {
@@ -115,10 +118,10 @@ let formatData = function (results) {
         if (item.values[template.parameter][i] !== null) {
           let m = Object.assign({value: item.values[template['parameter']][i]}, template);
           // Adds the formated date
-          const dateMoment = moment.tz(item.values.xlabels[i], 'YYYY-MM-DD HH', 'America/Port_of_spain');
+          const dateMoment = DateTime.fromFormat(item.values.xlabels[i], 'yyyy-MM-dd HH', {zone: 'America/Port_of_spain'});
           m['date'] = {
-            utc: dateMoment.toDate(),
-            local: dateMoment.format()
+            utc: dateMoment.toUTC().toISO({suppressMilliseconds: true}),
+            local: dateMoment.toISO({suppressMilliseconds: true})
           };
           // unifies parameters and measurement units
           m = unifyParameters(m);
@@ -133,7 +136,6 @@ let formatData = function (results) {
   measurements = correctMeasurementParameter(measurements);
   // filters out the measurements that are not the latest
   measurements = getLatestMeasurements(measurements);
-
   return {
     name: 'unused',
     measurements: measurements
