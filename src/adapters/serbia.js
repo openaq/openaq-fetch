@@ -8,7 +8,7 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
+import { DateTime } from 'luxon';
 import { unifyMeasurementUnits } from '../lib/utils.js';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
@@ -74,7 +74,7 @@ const formatData = function (data) {
   let measurements = [];
   Object.keys(data).forEach(key => {
     // The data itself has no timestamp, but according to http://www.amskv.sepa.gov.rs/index.php, the data is from the last hour
-    const dateMoment = moment.tz(moment().startOf('hour'), 'YYYY-MM-DD HH:mm', 'Europe/Belgrade');
+    const dateMoment = DateTime.local().startOf('hour').setZone('Europe/Belgrade');
     let baseObject = {
       location: data[key].k_name,
       city: data[key].k_city ? data[key].k_city : data[key].k_name,
@@ -83,8 +83,8 @@ const formatData = function (data) {
         longitude: Number(data[key].k_longitude_d)
       },
       date: {
-        utc: dateMoment.toDate(),
-        local: dateMoment.format()
+        utc: dateMoment.toUTC().toISO({suppressMilliseconds: true}),
+        local: dateMoment.toISO({suppressMilliseconds: true}) 
       },
       attribution: [{name: 'SEPA', url: 'http://www.amskv.sepa.gov.rs/index.php'}],
       averagingPeriod: {unit: 'hours', value: 1}
