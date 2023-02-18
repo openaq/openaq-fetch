@@ -11,13 +11,10 @@
 import { unifyMeasurementUnits, unifyParameters } from '../lib/utils.js';
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
+import { DateTime } from 'luxon';
 import async from 'async';
-import querystring from 'querystring';
 
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
-
-// stations can be found with source.stationURL
 
 export const name = 'canterbury';
 
@@ -30,8 +27,7 @@ export const name = 'canterbury';
 export function fetchData (source, cb) {
   // Fetches all data for each station for today, data is for each 10 minutes
   let tasks = Object.keys(stations).map(key => {
-    let today = moment().format("DD/MM/YYYY");
-    let date = querystring.escape(today);
+    let date = DateTime.local().setZone('Pacific/Auckland').toFormat('dd/MM/yyyy');  
     const url = source.url.replace('$station', key).replace('$date', date).replace('$date', date);
     
     return function (cb) {
@@ -79,7 +75,6 @@ async function formatData (results) {
   // and data has wind and temperature data also, which needs to be filtered out
   let legalParams = ['PM10', 'PM2.5', 'SO2', 'CO', 'NO2', 'O3'];
     results.forEach(r => {
-    // console.log(r)
     const template = {
       city: r[1].city,
       location: r[1].location,
@@ -90,11 +85,11 @@ async function formatData (results) {
     // Runs through all data items for the site
       r.forEach(d => {
       // Gets the datemoment and correct timezone of time from item
-      const dateMoment = moment.tz(d.DateTime, 'Pacific/Auckland');
+      let dateMoment = DateTime.fromISO(d.DateTime, { zone: 'Pacific/Auckland' });
       let measurement = Object.assign({
         'date': {
-          utc: dateMoment.toDate(),
-          local: dateMoment.format()
+          utc: dateMoment.toISO({suppressMilliseconds: true}),
+          local: dateMoment.toISO({suppressMilliseconds: true}) 
         }
       }, template);
       // Filters out all unwanted data, and then runs through all keys
@@ -127,8 +122,9 @@ async function formatData (results) {
 };
 
 /* There are a lot of more stations, but they dont seem to be reporting for some reason,
-  Managed to find the coordinates from this site: https://ecan.govt.nz/data/air-quality-data/,
+  Managed to find the coordinates from this site (in the script): https://ecan.govt.nz/data/air-quality-data/,
   according to main source site, there should be atleast 30 stations, undefined data is sorted out in formatData
+  stations updated 02/17/2023
 */
 
 const stations = {

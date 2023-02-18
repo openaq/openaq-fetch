@@ -5,8 +5,8 @@
         "name": "New Zealand Canterbury",
         "country": "NZ",
         "description": "AQ data from Enviromental Agency Canterybury",
-        "stationURL": "http://data.ecan.govt.nz/data/180/Air/Air%20quality%20all%20stations%20and%20monitor%20channels/JSON",
-        "sourceURL": "https://ecan.govt.nz/",
+        "stationURL": "http://data.ecan.govt.nz/data/23/Air/Air%20quality%20sites%20monitored/JSON",
+        "sourceURL": "https://www.ecan.govt.nz/data/air-quality-data/",
         "contacts": [
             "info@openaq.org"
         ],
