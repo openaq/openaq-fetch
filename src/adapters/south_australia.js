@@ -18,10 +18,10 @@ function convertUnits(input) {
   }
 
 /**
- * Fetches the data for a given source and returns an appropriate object
-  * @param {object} source A valid source object
-  * @param {function} cb A callback of the form cb(err, data)
-  */
+* Fetches the data for a given source and returns an appropriate object
+* @param {object} source A valid source object
+* @param {function} cb A callback of the form cb(err, data)
+*/
  
 let parser = new Parser();
 // fetchData(path)
@@ -31,9 +31,9 @@ export const name = 'au_sa'
 
 const path = "https://www.epa.sa.gov.au/air_quality/rss"
 
+console.log('can you read this?')
 export async function fetchData (source, cb) {
   try {
-
     let parsedRss = await getMeasurements(path);
     let data = await formatData(parsedRss);
 
@@ -126,7 +126,7 @@ async function formatData(data) {
 
                 parameter: param,
                 value: obj.hasOwnProperty(param) ? parseFloat(obj[param]) : null,
-                unit: "µg/m³",
+                unit: param === ('pm10' || 'pm25') ? 'µg/m³': 'ppm',
                 date: {
                     utc: obj.time.toUTC().toISO({suppressMilliseconds: true}),
                     local: obj.time.toISO({suppressMilliseconds: true})
@@ -137,8 +137,8 @@ async function formatData(data) {
                 },
                 attribution: [
                     {
-                    name: "Department of Environment",
-                    url: "https://www.data.gov.cy/dataset/%CF%84%CF%81%CE%AD%CF%87%CE%BF%CF%85%CF%83%CE%B5%CF%82-%CE%BC%CE%B5%CF%84%CF%81%CE%AE%CF%83%CE%B5%CE%B9%CF%82-%CE%B1%CF%84%CE%BC%CE%BF%CF%83%CF%86%CE%B1%CE%B9%CF%81%CE%B9%CE%BA%CF%8E%CE%BD-%CF%81%CF%8D%CF%80%CF%89%CE%BD-api" 
+                    name: "South Australia Environmental Protection Authority (EPA)",
+                    url: "https://data.sa.gov.au/data/dataset/recent-air-quality" 
                     }
                 ],
                 averagingPeriod: {
