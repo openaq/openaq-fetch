@@ -107,7 +107,7 @@ let formatData = function (results) {
           latitude: Number(item.meta.latitude),
           longitude: Number(item.meta.longitude)
         },
-        attribution: [{name: 'EMA', url: 'https://ei.weblakes.com/RTTPublic/DshBrdAQI'}],
+        attribution: [{name: 'Trinidad and Tobago Environmental Management Authority', url: 'https://ei.weblakes.com/RTTPublic/DshBrdAQI'}],
         averagingPeriod: {unit: 'hours', value: 1}
       };
       // Units are mostly ug/m3, but CO is mg/m3, according to site
