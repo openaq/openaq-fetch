@@ -73,7 +73,7 @@ async function formatData (results) {
   let measurements = [];
   // Legal types, for some reason the JSON converts signs and spaces into unicode,
   // and data has wind and temperature data also, which needs to be filtered out
-  let legalParams = ['PM10', 'PM2.5', 'SO2', 'CO', 'NO2', 'O3'];
+  let parameters = ['PM10', 'PM2.5', 'SO2', 'CO', 'NO2', 'O3'];
     results.forEach(r => {
     const template = {
       city: r[1].city,
@@ -94,7 +94,7 @@ async function formatData (results) {
       }, template);
       // Filters out all unwanted data, and then runs through all keys
       Object.keys(d).filter(m => {
-        for (let p of legalParams) {
+        for (let p of parameters) {
           if (m.search(p) !== -1) {
             return true;
           }
@@ -103,7 +103,7 @@ async function formatData (results) {
       }).forEach(m => {
         // Part of key is the measurement, substring until the first letter of _, to find parameter
         measurement.parameter = m.substr(0, m.indexOf('_'));
-        measurement.value = Number(d[m]);
+        measurement.value = parseFloat(d[m]);
         // All data is in ug/m3, except CO, which is mg/m3
         measurement.unit = (measurement.parameter !== 'CO') ? 'ug/m3' : 'mg/m3';
         // Unifies measurement units and parameters before adding them
