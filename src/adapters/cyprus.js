@@ -66,7 +66,7 @@ const formatData = (input) => {
                         },
                         attribution: [
                             {
-                            name: "Department of Environment",
+                            name: "Republic of Cyprus Department of Labor Inspection",
                             url: "https://www.data.gov.cy/dataset/%CF%84%CF%81%CE%AD%CF%87%CE%BF%CF%85%CF%83%CE%B5%CF%82-%CE%BC%CE%B5%CF%84%CF%81%CE%AE%CF%83%CE%B5%CE%B9%CF%82-%CE%B1%CF%84%CE%BC%CE%BF%CF%83%CF%86%CE%B1%CE%B9%CF%81%CE%B9%CE%BA%CF%8E%CE%BD-%CF%81%CF%8D%CF%80%CF%89%CE%BD-api" 
                             }
                         ],
