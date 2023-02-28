@@ -2,6 +2,7 @@
  * This code is responsible for implementing all methods related to fetching
  * and returning data for the Hungary data sources.
  */
+import { removeUnwantedParameters } from '../lib/utils.js';
 import { DateTime } from 'luxon';
 import fetch from 'node-fetch'
 
@@ -9,32 +10,33 @@ const STATIONS_URL = 'https://legszennyezettseg.met.hu/api/terkep'
 
 // Get the current time in Hungary
 let dt = DateTime.local().setZone('Europe/Budapest');
+const { year, month, day } = dt.toObject({ year: 'numeric', month: 'numeric', day: 'numeric' });
 
-// Subtract one hour
-dt = dt.minus({ hours: 1 });
+export const name  = 'hungary'
 
-console.log(dt.toISO()); // Output in ISO format (e.g. "2023-02-27T08:30:00.000+01:00")
-console.log(dt.toLocal().toLocaleString(DateTime.DATETIME_FULL));
-const localIso = dt.setZone('local').toISO();
-
-console.log(localIso);
-
-async function fetchData() {
+export async function fetchData (source, cb) {
     try {
-      let stations = await fetchStations(STATIONS_URL);
-  
-      // Map through each station object and fetch data for each station
+      let stations = await fetchStations(source.url);
+      // Map through station objects and create data request for each one
       let requests = stations.data.map(station => {
         if (station.hasOwnProperty('stationId')) {
           const stationId = station.stationId;
-          const url = `https://legszennyezettseg.met.hu/api/terkep/${stationId}`;
+          const url = `${source.url}${stationId}`
           return fetch(url)
             .then(response => response.json())
             .then(data => {
+              // create dateTime object with station hours
+              const date = DateTime.fromISO(
+                `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${data.data.lastHour}`,
+                {
+                  zone: 'Europe/Budapest',
+                }
+              );
               // Add fetched data to station object
               station.station = data.data.stationName;
               station.month = data.data.month;
-              station.hour = data.data.lastHour;
+              station.utc = date.toUTC().toISO({suppressMilliseconds: true}),
+              station.local = date.toISO({suppressMilliseconds: true});
               station.measurements = data.data.lastHourValues;
               return station;
             })
@@ -44,31 +46,67 @@ async function fetchData() {
         }
       });
   
-      // Wait for all fetch requests to complete and return array of station objects
+      // Wait for all fetch requests to complete in parallel
       let allStationData = await Promise.all(requests);
-      // let out = formatData(stationData)
-    //   console.log(stationData);
-      return allStationData;
-      // return out;
+      let out = await formatData(allStationData)
+      return cb(null, out);
     } catch (error) {
-      console.error(error);
+      return cb(error);
     }
   }
   
 
 async function fetchStations (stationUrl) {
-try {
-    let response = await fetch (stationUrl);
-    let stations = await response.json();
-    return stations
-} catch (error) {
+  try {
+      let response = await fetch (stationUrl);
+      let stations = await response.json();
+      return stations
+  } catch (error) {
+    console.log('Failed to resolve stations URL.')
     throw error;
-}
+  }
 }
 
-async function formatData() {
+async function formatData(input) {
+  let measurements = [];
+  input.forEach(o => {
+    Object.values(o.measurements).forEach(param => {
+      let parameter = correctParam(param.name);
+      const [value, unit] = [parseFloat(param.value), param.value.split(' ')[1]];
+      let measurement = {
+        location: o.station,
+        city: o.station,
+        parameter: parameter,
+        value,
+        unit,
+        date: {
+          utc: o.utc,
+          local: o.local
+        },
+        coordinates: {
+          latitude: parseFloat(o.latitude),
+          longitude: parseFloat(o.longitude)
+        },
+        attribution: [
+          {
+          name: "Hungary National Meteorological Service",
+          url: "https://legszennyezettseg.met.hu/" 
+          }
+        ],
+        averagingPeriod: {
+            unit: "hours",
+            value: 1
+        }
+      }
+      measurements.push(measurement)
+    });
+  });
+  measurements = removeUnwantedParameters(measurements);
+  measurements = filterMeasurements(measurements);
+  measurements = getLatestMeasurements(measurements)
+  
+  return {name: 'unused', measurements: measurements}};
 
-}
 
 fetchData()
 // fetchStations(STATIONS_URL)
@@ -79,25 +117,47 @@ fetchData()
     console.error(error);
   });
 
-  function correctParam(name) {
-    switch (name) {
-        case 'SO₂':
-            return 'so2';
-        case 'PM₁₀':
-            return 'pm10';
-        case 'O₃':
-            return 'o3';
-        case 'NO₂':
-            return 'no2';
-        case 'NOx':
-            return 'nox';    
-        case 'CO':
-            return 'co';
-        case 'PM₂,₅':
-            return 'pm25';
-        case 'NO':
-            return 'no';
-        default:
-            return name;
-        }
-  }
+function filterMeasurements(measurements) {
+  return measurements.filter((measurement) => {
+    return (measurement.value !== undefined &&
+            measurement.value === measurement.value &&
+            measurement.unit !== undefined &&
+            measurement.unit === measurement.unit);
+  });
+}
+  
+function getLatestMeasurements(measurements) {
+  const latestMeasurements = {};
+  
+  measurements.forEach((measurement) => {
+    const key = measurement.parameter + measurement.location;
+    if (!latestMeasurements[key] || measurement.date.utc > latestMeasurements[key].date.utc) {
+      latestMeasurements[key] = measurement;
+    }
+  });
+
+  return Object.values(latestMeasurements);
+}
+
+function correctParam(name) {
+  switch (name) {
+      case 'SO₂':
+          return 'so2';
+      case 'PM₁₀':
+          return 'pm10';
+      case 'O₃':
+          return 'o3';
+      case 'NO₂':
+          return 'no2';
+      case 'NOx':
+          return 'nox';    
+      case 'CO':
+          return 'co';
+      case 'PM₂,₅':
+          return 'pm25';
+      case 'NO':
+          return 'no';
+      default:
+          return name;
+      }
+}

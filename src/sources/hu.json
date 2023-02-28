@@ -11,5 +11,18 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "https://legszennyezettseg.met.hu/api/terkep/",
+        "adapter": "hungary",
+        "name": "Hungary National Meteorological Service",
+        "city": "",
+        "country": "HU",
+        "description": "Hungarian data from UTD service",
+        "sourceURL": "https://legszennyezettseg.met.hu/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
