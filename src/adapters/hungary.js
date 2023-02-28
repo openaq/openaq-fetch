@@ -2,11 +2,10 @@
  * This code is responsible for implementing all methods related to fetching
  * and returning data for the Hungary data sources.
  */
+
 import { removeUnwantedParameters } from '../lib/utils.js';
 import { DateTime } from 'luxon';
 import fetch from 'node-fetch'
-
-const STATIONS_URL = 'https://legszennyezettseg.met.hu/api/terkep'
 
 // Get the current time in Hungary
 let dt = DateTime.local().setZone('Europe/Budapest');
@@ -15,47 +14,51 @@ const { year, month, day } = dt.toObject({ year: 'numeric', month: 'numeric', da
 export const name  = 'hungary'
 
 export async function fetchData (source, cb) {
-    try {
-      let stations = await fetchStations(source.url);
-      // Map through station objects and create data request for each one
-      let requests = stations.data.map(station => {
-        if (station.hasOwnProperty('stationId')) {
-          const stationId = station.stationId;
-          const url = `${source.url}${stationId}`
-          return fetch(url)
-            .then(response => response.json())
-            .then(data => {
-              // create dateTime object with station hours
-              const date = DateTime.fromISO(
-                `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${data.data.lastHour}`,
-                {
-                  zone: 'Europe/Budapest',
-                }
-              );
-              // Add fetched data to station object
-              station.station = data.data.stationName;
-              station.month = data.data.month;
-              station.utc = date.toUTC().toISO({suppressMilliseconds: true}),
-              station.local = date.toISO({suppressMilliseconds: true});
-              station.measurements = data.data.lastHourValues;
-              return station;
-            })
-            .catch(error => {
-              throw error;
-            });
-        }
-      });
-  
-      // Wait for all fetch requests to complete in parallel
-      let allStationData = await Promise.all(requests);
-      let out = await formatData(allStationData)
-      return cb(null, out);
-    } catch (error) {
-      return cb(error);
-    }
-  }
-  
+  /**
+ * Fetches the data for a given source and returns an appropriate object
+ * @param {object} source A valid source object
+ * @param {function} cb A callback of the form cb(err, data)
+ */
+  try {
+    let stations = await fetchStations(source.url);
+    // Map through station objects and create data request for each one
+    let requests = stations.data.map(station => {
+      if (station.hasOwnProperty('stationId')) {
+        const stationId = station.stationId;
+        const url = `${source.url}${stationId}`
+        return fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            // create dateTime object with each station's hour
+            const date = DateTime.fromISO(
+              `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${data.data.lastHour}`,
+              {
+                zone: 'Europe/Budapest',
+              }
+            );
+            // Add fetched data to station object
+            station.station = data.data.stationName;
+            station.month = data.data.month;
+            station.utc = date.toUTC().toISO({suppressMilliseconds: true}),
+            station.local = date.toISO({suppressMilliseconds: true});
+            station.measurements = data.data.lastHourValues;
+            return station;
+          })
+          .catch(error => {
+            throw error;
+          });
+      }
+    });
 
+    // Wait for all fetch requests to complete in parallel
+    let allStationData = await Promise.all(requests);
+    let out = await formatData(allStationData)
+    return cb(null, out);
+  } catch (error) {
+    return cb(error);
+  }
+}
+  
 async function fetchStations (stationUrl) {
   try {
       let response = await fetch (stationUrl);
@@ -76,7 +79,7 @@ async function formatData(input) {
       let measurement = {
         location: o.station,
         city: o.station,
-        parameter: parameter,
+        parameter,
         value,
         unit,
         date: {
@@ -103,19 +106,10 @@ async function formatData(input) {
   });
   measurements = removeUnwantedParameters(measurements);
   measurements = filterMeasurements(measurements);
-  measurements = getLatestMeasurements(measurements)
+  measurements = getLatestMeasurements(measurements);
   
-  return {name: 'unused', measurements: measurements}};
-
-
-fetchData()
-// fetchStations(STATIONS_URL)
-.then((measurements) => {
-    console.dir(measurements, {depth:null});
-  })
-  .catch((error) => {
-    console.error(error);
-  });
+  return { name: 'unused', measurements: measurements }
+};
 
 function filterMeasurements(measurements) {
   return measurements.filter((measurement) => {
@@ -128,14 +122,12 @@ function filterMeasurements(measurements) {
   
 function getLatestMeasurements(measurements) {
   const latestMeasurements = {};
-  
   measurements.forEach((measurement) => {
     const key = measurement.parameter + measurement.location;
     if (!latestMeasurements[key] || measurement.date.utc > latestMeasurements[key].date.utc) {
       latestMeasurements[key] = measurement;
     }
   });
-
   return Object.values(latestMeasurements);
 }
 
