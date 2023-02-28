@@ -4,45 +4,29 @@
  */
 
 'use strict';
-import flatten from 'lodash/flatten.js';
+
 import { acceptableParameters } from '../lib/utils.js';
 import { DateTime } from 'luxon';
 import Parser from 'rss-parser'
 import { parse } from 'node-html-parser';
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { default as baseRequest } from 'request';
-const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
 
-function convertUnits(input) {
-    return input;
-  }
-
-/**
-* Fetches the data for a given source and returns an appropriate object
-* @param {object} source A valid source object
-* @param {function} cb A callback of the form cb(err, data)
-*/
- 
 let parser = new Parser();
-// fetchData(path)
- 
 
-export const name = 'au_sa'
+export const name = 'southaustralia'
 
-const path = "https://www.epa.sa.gov.au/air_quality/rss"
-
-console.log('can you read this?')
 export async function fetchData (source, cb) {
+    /**
+    * Fetches the data for a given source and returns an appropriate object
+    * @param {object} source A valid source object
+    * @param {function} cb A callback of the form cb(err, data)
+    */
   try {
-    let parsedRss = await getMeasurements(path);
+    let parsedRss = await getMeasurements(source.url);
     let data = await formatData(parsedRss);
-
     if (data === undefined) {
         return cb({ message: 'Failure to parse data.' });
       }
-
     return cb(null, data);
-
     } 
     catch (error) {
         return cb(error);
@@ -113,7 +97,6 @@ async function formatData(data) {
                   delete site[key];
                 }
               });
-            // console.log(site)
         });
         
         let filteredData = [];
@@ -132,8 +115,8 @@ async function formatData(data) {
                     local: obj.time.toISO({suppressMilliseconds: true})
                 },
                 coordinates: {
-                    latitude: obj.lat,
-                    longitude: obj.lng
+                    latitude: parseFloat(obj.lat),
+                    longitude: parseFloat(obj.lng)
                 },
                 attribution: [
                     {
@@ -149,21 +132,11 @@ async function formatData(data) {
         });
         });
         let measurements = filteredData.filter(obj => obj.value !== null && !isNaN(obj.value));
-        console.log(measurements);
-        return {name: 'unused', measurements: flatten(measurements) }
-        // return Object.values(data);
+        return { name: 'unused', measurements: measurements }
     } catch (error) {
         throw error;
     }
 }
-
-// fetchData(path)
-//   .then((measurements) => {
-//     console.log(measurements);
-//   })
-//   .catch((error) => {
-//     console.error(error);
-//   });
 
 function correctParam(name) {
     switch (name) {
