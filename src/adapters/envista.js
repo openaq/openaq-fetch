@@ -3,27 +3,11 @@
 import { default as baseRequest } from 'request';
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as moment } from 'moment';
+import { DateTime } from 'luxon';
 const { difference, flattenDeep } = pkg;
 import pkg from 'lodash';
 import { parallel, parallelLimit } from 'async';
 import { convertUnits, unifyMeasurementUnits } from '../lib/utils.js';
-
-const acceptableParameters = [ // expanded params can be added by uncommenting these lines
-  // 'no',
-  // 'nox',
-  // 'ws',
-  // 'wd',
-  // 'rh',
-  // 'temp', // unit is °C, change to °F or C ?
-  // 'benzene',
-  'pm25',
-  'pm10',
-  'co',
-  'so2',
-  'no2',
-  'bc',
-  'o3',
-];
 
 const headers = {
   'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0',
@@ -61,7 +45,6 @@ export function fetchData (source, cb) {
       }
       results = flattenDeep(results);
       results = convertUnits(results);
-      // console.dir(results, { 'maxArrayLength': null }); RIGHT HERE
       return cb(err, {name: 'unused', measurements: results});
     });
   });
@@ -114,7 +97,7 @@ const formatData = function (source, regionName, station, data, cb) {
       latitude: parseFloat(station.location.latitude),
       longitude: parseFloat(station.location.longitude)
     },
-    averagingPeriod: {unit: 'hours', value: 0.25}, // Believed to update every 15 minutes
+    averagingPeriod: { unit: 'hours', value: 0.25 }, // Believed to update every 15 minutes
     attribution: [{
       name: source.organization,
       url: source.url
@@ -160,7 +143,26 @@ const getUnit = function (station, channel) {
   return station.monitors.find(monitor => monitor.channelId === channel.id).units;
 };
 
-const getDate = function (s) {
-  const date = moment(s);
-  return {utc: date.toDate(), local: date.format()};
-};
+function getDate(value) {
+  const dt = DateTime.fromISO(value).setZone('Asia/Jerusalem');
+  const utc = dt.toUTC().toISO({ suppressMilliseconds: true });
+  const local = dt.toISO({suppressMilliseconds: true}) 
+  return { utc, local };
+}
+
+const acceptableParameters = [ // expanded params can be added by uncommenting these lines
+  // 'no',
+  // 'nox',
+  // 'ws',
+  // 'wd',
+  // 'rh',
+  // 'temp', // unit is °C, change to °F or C ?
+  // 'benzene',
+  'pm25',
+  'pm10',
+  'co',
+  'so2',
+  'no2',
+  'bc',
+  'o3',
+];
