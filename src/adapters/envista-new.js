@@ -7,6 +7,7 @@ const { difference, flattenDeep } = pkg;
 import pkg from 'lodash';
 import { parallel, parallelLimit } from 'async';
 import { convertUnits, unifyMeasurementUnits } from '../lib/utils.js';
+
 const acceptableParameters = [ // expanded params can be added by uncommenting these lines
   // 'no',
   // 'nox',
@@ -24,17 +25,19 @@ const acceptableParameters = [ // expanded params can be added by uncommenting t
   'o3',
 ];
 
+const headers = {
+  'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0',
+  'Accept': 'text/html,application/json,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+  'Content-Type': 'text/html; charset=utf-8',
+  'envi-data-source': 'MANA',
+  'Authorization': 'ApiToken ' + '1cab20bf-0248-493d-aedc-27aa94445d15'
+};
+
 const requestHeaders = baseRequest.defaults({
   timeout: REQUEST_TIMEOUT,
   rejectUnauthorized: false, // set due to self-signed cert
   strictSSL: false,
-  headers: {
-    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0',
-    'Accept': 'text/html,application/json,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-    'Content-Type': 'text/html; charset=utf-8',
-    'envi-data-source': 'MANA',
-    'Authorization': 'ApiToken ' + '1cab20bf-0248-493d-aedc-27aa94445d15'
-  }
+  headers: headers
 });
 
 export const name = 'envista-new';
@@ -58,7 +61,7 @@ export function fetchData (source, cb) {
       }
       results = flattenDeep(results);
       results = convertUnits(results);
-      // console.dir(results, { 'maxArrayLength': null });
+      // console.dir(results, { 'maxArrayLength': null }); RIGHT HERE
       return cb(err, {name: 'unused', measurements: results});
     });
   });
@@ -108,8 +111,8 @@ const formatData = function (source, regionName, station, data, cb) {
     location: station.name,
     city: regionName,
     coordinates: {
-      latitude: Number(station.location.latitude),
-      longitude: Number(station.location.longitude)
+      latitude: parseFloat(station.location.latitude),
+      longitude: parseFloat(station.location.longitude)
     },
     averagingPeriod: {unit: 'hours', value: 0.25}, // Believed to update every 15 minutes
     attribution: [{
