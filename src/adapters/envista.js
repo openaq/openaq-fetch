@@ -2,7 +2,6 @@
 
 import { default as baseRequest } from 'request';
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { default as moment } from 'moment';
 import { DateTime } from 'luxon';
 const { difference, flattenDeep } = pkg;
 import pkg from 'lodash';
