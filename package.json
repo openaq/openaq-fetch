@@ -38,6 +38,7 @@
     "node-fetch": "^3.3.0",
     "proj4": "^2.8.0",
     "proj4js-defs": "0.0.1",
+    "puppeteer": "^19.7.4",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
     "require-dir": "^1.0.0",
