@@ -1,5 +1,5 @@
 node_modules
-.env
+.env*
 npm-debug.log
 newrelic_agent.log
 dump
