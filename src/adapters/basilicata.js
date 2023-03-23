@@ -21,26 +21,9 @@ const HEADERS = {
     "sec-fetch-mode": "cors",
     "sec-fetch-site": "same-origin",
     "x-requested-with": "XMLHttpRequest",
-    "cookie": ".AspNetCore.Culture=c%3Den%7Cuic%3Den; userInfo={%22user%22:%22anonymous%22%2C%22anonymous%22:true}; userPages={%22pages%22:[%22map2d%22%2C%22elements%22%2C%22stations%22]}",
     "Referer": "https://arpabaegis.arpab.it/aegis/map/map2d",
     "Referrer-Policy": "strict-origin-when-cross-origin"
   }
-
-async function fetchStations() {
-  try {
-    let bearer
-    const response = await fetch(STATIONS_URL, {
-      headers: HEADERS,
-      method: 'GET',
-      body: null
-    });
-    const data = await response.json();
-    // console.log(data);
-    return data;
-  } catch (error) {
-    console.error(error);
-  }
-}
 
 async function fetchData() {
     let stations = await fetchStations();
@@ -75,18 +58,34 @@ async function fetchData() {
     // await translateValues(out)
     console.log(out.length);
     return out;
-  }
+}
+
+async function fetchStations() {
+    try {
+      let bearer
+      const response = await fetch(STATIONS_URL, {
+        headers: HEADERS,
+        method: 'GET',
+        body: null
+      });
+      const data = await response.json();
+      // console.log(data);
+      return data;
+    } catch (error) {
+      console.error(error);
+    }
+}
   
 
-  function formatData(stationData) {
+function formatData(stationData) {
     const formattedData = [];
-  
+
     stationData.forEach(station => {
-      const { n: location, o: agency, x: longitude, y: latitude } = station;
-  
-      station.data.forEach(data => {
+        const { n: location, o: agency, x: longitude, y: latitude } = station;
+
+        station.data.forEach(data => {
         if (data.time && data.value) {
-          const formattedMeasurement = {
+            const formattedMeasurement = {
             location,
             agency,
             longitude,
@@ -96,18 +95,37 @@ async function fetchData() {
             time: data.time,
             measUnit: data.measUnit,
             value: data.value,
-          };
-          formattedData.push(formattedMeasurement);
+            };
+            formattedData.push(formattedMeasurement);
         }
-      });
     });
-  
-    return formattedData;
+});
+
+return formattedData;
+}
+
+async function getBearerAuth() {
+    let auth;
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+
+    await page.goto('https://arpabaegis.arpab.it');
+
+    page.on('request', request => {
+        const headers = request.headers();
+        if ('authorization' in headers) {
+        auth = headers['authorization'];
+        }
+    });
+
+    await page.waitForNavigation({ waitUntil: 'networkidle0' });
+
+    await browser.close();
+
+    return auth;
   }
 
-
-
-
+////// Print it
 fetchData()
 .then((measurements) => {
     console.dir(measurements, {depth:null});
@@ -115,29 +133,9 @@ fetchData()
   .catch((error) => {
     console.error(error);
   });
+///////
 
-  async function getBearerAuth() {
-    let auth;
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-  
-    await page.goto('https://arpabaegis.arpab.it');
-  
-    page.on('request', request => {
-      const headers = request.headers();
-      if ('authorization' in headers) {
-        auth = headers['authorization'];
-      }
-    });
-  
-    await page.waitForNavigation({ waitUntil: 'networkidle0' });
-  
-    await browser.close();
-  
-    return auth;
-  }
-
-  let translations = {
+let translations = {
     "Dissolved Oxygen": "Dissolved Oxygen",
     "Water pH": "Water pH",
     "Water Level": "Water Level",
@@ -261,4 +259,4 @@ fetchData()
     "CS": "CS",
     "Torbidimetro BEC": "BEC turbidimeter",
     "Ossigeno disciolto BEC": "Dissolved oxygen BEC"
-  }
+}

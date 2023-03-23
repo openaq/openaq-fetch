@@ -94,5 +94,18 @@
       "info@openaq.org"
     ],
     "active": true
+  },
+  {
+    "url": "https://arpabaegis.arpab.it/Datascape/v3/locations?category=All&basin_org_id&basin_id&region_id&province_id&station_id&filter_central_id&filter_id&_=1677195752467",
+    "adapter": "basilicata",
+    "name": "ARPA Basilicata",
+    "city": "",
+    "country": "IT",
+    "description": "AGENZIA REGIONALE PER LA PROTEZIONE DELL'AMBIENTE",
+    "sourceURL": "https://arpabaegis.arpab.it",
+    "contacts": [
+      "info@openaq.org"
+    ],
+    "active": true
   }
 ]
