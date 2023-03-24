@@ -15,7 +15,7 @@
     {
         "url": "https://legszennyezettseg.met.hu/api/terkep/",
         "adapter": "hungary",
-        "name": "Hungary National Meteorological Service",
+        "name": "hungary-nms",
         "city": "",
         "country": "HU",
         "description": "Hungarian data from UTD service",
