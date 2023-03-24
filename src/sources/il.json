@@ -2,7 +2,7 @@
     {
         "url": "https://api.svivaaqm.net/v1/envista/",
         "adapter": "envista",
-        "name": "Israel Envista",
+        "name": "israel-envista",
         "country": "IL",
         "description": "",
         "resolution": "15 min",

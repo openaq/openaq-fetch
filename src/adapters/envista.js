@@ -13,7 +13,7 @@ const headers = {
   'Accept': 'text/html,application/json,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
   'Content-Type': 'text/html; charset=utf-8',
   'envi-data-source': 'MANA',
-  'Authorization': 'ApiToken ' + '1cab20bf-0248-493d-aedc-27aa94445d15'
+  'Authorization': 'ApiToken ' + `${process.env.ISRAEL_ENVISTA_TOKEN}`
 };
 
 const requestHeaders = baseRequest.defaults({
@@ -23,7 +23,7 @@ const requestHeaders = baseRequest.defaults({
   headers: headers
 });
 
-export const name = 'envista-new';
+export const name = 'envista';
 
 export function fetchData (source, cb) {
   let regionListUrl = source.url + 'regions';
@@ -59,7 +59,8 @@ const handleRegion = function (source, region) {
       }
     });
 
-    parallelLimit(tasks, 16, (err, results) => { //  Magic number to avoid rate limiting is 16.
+    let limit = 15  //  Magic number to avoid rate limiting is 16.
+    parallelLimit(tasks, limit, (err, results) => { 
       if (err) {
         return done(err, []);
       }
