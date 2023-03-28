@@ -15,7 +15,7 @@
     {
         "url": "http://www.amskv.sepa.gov.rs/konektori/get_json_connector_stations_map.php",
         "adapter": "serbia",
-        "name": "Serbia",
+        "name": "serbia",
         "city": "",
         "country": "RS",
         "description": "Serbian data from NATIONAL NETWORK OF AUTOMATIC STATIONS FOR AIR QUALITY MONITORING",
