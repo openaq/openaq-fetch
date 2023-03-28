@@ -64,11 +64,9 @@ function formatData(data) {
     // Filtering out params that are not requested, this filter can be removed if desired
     if (String(param).localeCompare('nox') !== 0 &&
       String(param).localeCompare('h2s') !== 0 &&
-      String(param).localeCompare('no') !== 0 &&
       String(param).localeCompare('c6h6') !== 0 &&
       String(param).localeCompare('cl2') !== 0 &&
-      String(param).localeCompare('hg') !== 0 &&
-      String(param).localeCompare('pm1') !== 0) {
+      String(param).localeCompare('hg') !== 0) {
 
       const template = {
         location: ('nom_estaci' in item) ? item.nom_estaci : item.municipi,
