@@ -26,7 +26,7 @@ export async function fetchData (source, cb) {
     if (data === undefined) {
         return cb({ message: 'Failure to parse data.' });
       }
-    return cb(null, data);
+        return cb(null, data);
     } 
     catch (error) {
         return cb(error);
@@ -126,7 +126,7 @@ async function formatData(data) {
                 ],
                 averagingPeriod: {
                     unit: "hours",
-                    value: 1
+                    value: param === ('co') ? 8 : 1,
                 }                
             });
         });

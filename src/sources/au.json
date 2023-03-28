@@ -46,7 +46,7 @@
     {
         "url": "https://www.epa.sa.gov.au/air_quality/rss",
         "adapter": "southaustralia",
-        "name": "South Australia EPA",
+        "name": "south-australia-epa",
         "country": "AU",
         "resolution": "1 hr",
         "sourceURL": "https://data.sa.gov.au/data/dataset/recent-air-quality",
