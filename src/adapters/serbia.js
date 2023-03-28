@@ -79,8 +79,8 @@ const formatData = function (data) {
       location: data[key].k_name,
       city: data[key].k_city ? data[key].k_city : data[key].k_name,
       coordinates: {
-        latitude: Number(data[key].k_latitude_d),
-        longitude: Number(data[key].k_longitude_d)
+        latitude: parseFloat(data[key].k_latitude_d),
+        longitude: parseFloat(data[key].k_longitude_d)
       },
       date: {
         utc: dateMoment.toUTC().toISO({suppressMilliseconds: true}),
@@ -95,7 +95,7 @@ const formatData = function (data) {
         if (typeof param !== 'undefined') {
           if (typeof data[key].components[p]['1h'] !== 'undefined') {
             let m = Object.assign({
-              value: Number(data[key].components[p]['1h'].raw_value),
+              value: parseFloat(data[key].components[p]['1h'].raw_value),
               unit: (param !== 'co') ? 'µg/m³' : 'mg/m³',
               parameter: param},
             baseObject);
