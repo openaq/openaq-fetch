@@ -2,7 +2,7 @@
     {
         "url": "http://ei.weblakes.com/RTTPublic/DshBrdStation/TSChartData?aStationKey=$station&aPeriodKey=1&aParameterKey=$parameter&fChartType=timeseries&MaxLegendEntries=12&IsStack=False&IsCategory=False&fTSShape=line&Context_Bootstrap_Flag=true&_=",
         "adapter": "trinidadtobago",
-        "name": "Trinidad and Tobago Environmental Management Authority",
+        "name": "trinidad-tobago",
         "country": "TT",
         "description": "AQ data from AQMIS site for Trinidad and Tobago",
         "sourceURL": "http://ei.weblakes.com/RTTPublic/DshBrdAQI",
