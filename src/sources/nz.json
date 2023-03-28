@@ -2,7 +2,7 @@
     {
         "url": "http://data.ecan.govt.nz/data/29/Air/Air%20quality%20data%20for%20a%20monitored%20site%20(10%20Minute)/JSON?SiteID=$station&StartDate=$date&EndDate=$date",
         "adapter": "canterbury",
-        "name": "Environment Canterbury NZ",
+        "name": "canterbury-nz",
         "country": "NZ",
         "description": "NZ data from Enviroment Canterybury",
         "stationURL": "http://data.ecan.govt.nz/data/23/Air/Air%20quality%20sites%20monitored/JSON",
