@@ -104,8 +104,8 @@ let formatData = function (results) {
         location: item.meta.location,
         parameter: Object.keys(item.values)[0],
         coordinates: {
-          latitude: Number(item.meta.latitude),
-          longitude: Number(item.meta.longitude)
+          latitude: parseFloat(item.meta.latitude),
+          longitude: parseFloat(item.meta.longitude)
         },
         attribution: [{name: 'Trinidad and Tobago Environmental Management Authority', url: 'https://ei.weblakes.com/RTTPublic/DshBrdAQI'}],
         averagingPeriod: {unit: 'hours', value: 1}
