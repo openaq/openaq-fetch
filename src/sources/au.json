@@ -44,15 +44,16 @@
         "active": true
     },
     {
-        "url": "http://www.epa.sa.gov.au/air_quality/pi.txt",
-        "adapter": "au_sa",
-        "name": "Australia - South Australia",
+        "url": "https://www.epa.sa.gov.au/air_quality/rss",
+        "adapter": "southaustralia",
+        "name": "south-australia-epa",
         "country": "AU",
         "resolution": "1 hr",
         "sourceURL": "https://data.sa.gov.au/data/dataset/recent-air-quality",
         "contacts": [
             "info@openaq.org"
         ],
+        "license": "Creative Commons Attribution 4.0 License. © Copyright 2023",
         "active": true
     },
     {
