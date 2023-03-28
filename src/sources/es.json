@@ -26,7 +26,7 @@
     },
     {
         "url": "https://analisi.transparenciacatalunya.cat/resource/tasf-thgu.json",
-        "name": "Catalonia Mediambient",
+        "name": "catalonia-mediambient",
         "adapter": "catalonia",
         "country": "ES",
         "description": "Data from Catalonian Department of Territory and Sustainability",
