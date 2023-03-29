@@ -11,5 +11,18 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "http://www.amskv.sepa.gov.rs/konektori/get_json_connector_stations_map.php",
+        "adapter": "serbia",
+        "name": "serbia",
+        "city": "",
+        "country": "RS",
+        "description": "Serbian data from NATIONAL NETWORK OF AUTOMATIC STATIONS FOR AIR QUALITY MONITORING",
+        "sourceURL": "http://www.amskv.sepa.gov.rs/index.php",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
