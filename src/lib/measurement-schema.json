@@ -9,7 +9,7 @@
         },
         "parameter": {
             "type": "string",
-            "enum": ["pm25", "pm10", "no2", "so2", "o3", "co", "bc"]
+            "enum": ["pm25", "pm10", "no2", "so2", "o3", "co", "bc", "no", "nox", "pm1"]
         },
         "unit": {
             "type": "string",
