@@ -133,4 +133,4 @@ export async function promisePostRequest (url, formParams) {
 }
 
 // The platform supported parameters
-export const acceptableParameters = ['pm25', 'pm10', 'co', 'so2', 'no2', 'bc', 'o3'];
+export const acceptableParameters = ['pm25', 'pm10', 'co', 'so2', 'no2', 'bc', 'o3', 'no', 'pm1', 'nox'];
