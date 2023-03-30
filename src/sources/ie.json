@@ -11,5 +11,17 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "https://erc.epa.ie/air_upgrade/dcc/aqih_current_station_specific.php?",
+        "adapter": "ireland",
+        "name": "Ireland",
+        "country": "IE",
+        "description": "Irish data from Enviromental Protection Agency",
+        "sourceURL": "https://erc.epa.ie/air_upgrade/dcc/aqih_current_station_specific.php?",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
