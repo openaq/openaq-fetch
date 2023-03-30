@@ -8,14 +8,10 @@ const envs = readFileSync(`../src/${DOTENV}`, 'utf8');
 
 interface Env {
     ID: string;
-    AWS_ACCESS_KEY_ID: string,
-    AWS_SECRET_ACCESS_KEY: string
   }
 
 const env: Env = {
     ID: '',
-    AWS_ACCESS_KEY_ID: '',
-    AWS_SECRET_ACCESS_KEY: ''
 };
 
 const reserved_keys = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'];
