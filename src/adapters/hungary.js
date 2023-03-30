@@ -26,21 +26,20 @@ export async function fetchData (source, cb) {
       if (station.hasOwnProperty('stationId')) {
         const stationId = station.stationId;
         const url = `${source.url}${stationId}`
+        // console.log(url)
         return fetch(url)
         .then(response => response.json())
         .then(data => {
             // create dateTime object with each station's hour
             const date = DateTime.fromISO(
               `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${data.data.lastHour}`,
-              {
-                zone: 'Europe/Budapest',
-              }
+              { zone: 'utc' }
             );
             // Add fetched data to station object
             station.station = data.data.stationName;
             station.month = data.data.month;
-            station.utc = dt.toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            station.local = dt.setZone("Europe/Budapest").toFormat("yyyy-MM-dd'T'HH:mm:ssZZ");
+            station.utc = date.toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            station.local = date.setZone("Europe/Budapest").toFormat("yyyy-MM-dd'T'HH:mm:ssZZ");
             station.measurements = data.data.lastHourValues;
             return station;
           })
@@ -107,6 +106,7 @@ async function formatData(input) {
   measurements = removeUnwantedParameters(measurements);
   measurements = filterMeasurements(measurements);
   measurements = getLatestMeasurements(measurements);
+  console.dir(measurements, {'maxArrayLength': null});
   return { name: 'unused', measurements: measurements }
 };
 
