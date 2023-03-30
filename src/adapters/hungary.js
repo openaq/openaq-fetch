@@ -32,15 +32,13 @@ export async function fetchData (source, cb) {
             // create dateTime object with each station's hour
             const date = DateTime.fromISO(
               `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${data.data.lastHour}`,
-              {
-                zone: 'Europe/Budapest',
-              }
+              { zone: 'utc' }
             );
             // Add fetched data to station object
             station.station = data.data.stationName;
             station.month = data.data.month;
-            station.utc = dt.toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            station.local = dt.setZone("Europe/Budapest").toFormat("yyyy-MM-dd'T'HH:mm:ssZZ");
+            station.utc = date.toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            station.local = date.setZone("Europe/Budapest").toFormat("yyyy-MM-dd'T'HH:mm:ssZZ");
             station.measurements = data.data.lastHourValues;
             return station;
           })
