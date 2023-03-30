@@ -38,6 +38,8 @@ let string3 = '&valueTypeStr=AVG&timeZoneName=Europe/Belgrade&lang=en';
 // combine the above in one string and url encode them
 const ALL_DATA = string1 + encodeURIComponent(JSON.stringify(json1)) + string2 + encodeURIComponent(JSON.stringify(json2)) + string3;
 
+export const name = 'kosovo'
+
 export async function fetchData (source, cb) {
     try {  
         let data = await getData(source.url);
