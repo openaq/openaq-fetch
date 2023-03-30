@@ -26,7 +26,6 @@ export async function fetchData (source, cb) {
       if (station.hasOwnProperty('stationId')) {
         const stationId = station.stationId;
         const url = `${source.url}${stationId}`
-        // console.log(url)
         return fetch(url)
         .then(response => response.json())
         .then(data => {
