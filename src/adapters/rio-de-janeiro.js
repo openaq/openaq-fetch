@@ -48,7 +48,7 @@ function formatData(data) {
             });
             const parameter = correctParam(medicao.sigla);
             return {
-              location: item['noEstacao'],
+              location: item.noEstacao,
               city: 'Rio de Janeiro',
               parameter: parameter,
               value: parseFloat(lastData.valor),
@@ -58,12 +58,12 @@ function formatData(data) {
                 local: date.toFormat("yyyy-MM-dd'T'HH:mm:ssZZ"),
               },
               coordinates: {
-                latitude: parseFloat(item['nuLatitude']),
-                longitude: parseFloat(item['nuLongitude']),
+                latitude: parseFloat(item.nuLatitude),
+                longitude: parseFloat(item.nuLongitude),
               },
               attribution: [
                 {
-                  name: item['fonteDados'],
+                  name: item.fonteDados,
                   url: "https://jeap.rio.rj.gov.br/je-metinfosmac/portalV2/estacao",
                 },
               ],
