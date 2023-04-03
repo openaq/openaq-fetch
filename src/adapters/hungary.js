@@ -107,6 +107,7 @@ async function formatData(input) {
   measurements = removeUnwantedParameters(measurements);
   measurements = filterMeasurements(measurements);
   measurements = getLatestMeasurements(measurements);
+  measurements = filterDuplicates(measurements, blacklist)
   return { name: 'unused', measurements: measurements }
 };
 
@@ -152,3 +153,102 @@ function correctParam(name) {
           return name;
       }
 }
+
+// remove stations deemed to be duplicates of EEA stations
+function filterDuplicates(measurements, criteria) {
+  return measurements.filter(measurement => {
+    return !criteria.some(criterion => {
+      const matchLocation = measurement.location === criterion.location;
+      const matchCity = measurement.city === criterion.city;
+      const matchCoordinates =
+        measurement.coordinates.latitude === criterion.coordinates.latitude &&
+        measurement.coordinates.longitude === criterion.coordinates.longitude;
+      const matchParameter = !criterion.parameter || measurement.parameter === criterion.parameter;
+
+      return matchLocation && matchCity && matchCoordinates && matchParameter;
+    });
+  });
+}
+
+const blacklist = [
+  {
+  "location": "Budapest Teleki tér",
+  "city": "Budapest Teleki tér",
+  "coordinates": {
+    "latitude": 47.492104,
+    "longitude": 19.087778
+  }
+},
+{
+  "location": "Esztergom",
+  "city": "Esztergom",
+  "coordinates": {
+    "latitude": 47.79044,
+    "longitude": 18.74582
+  }
+},
+{
+  "location": "Győr 1 Szent István",
+  "city": "Győr 1 Szent István",
+  "coordinates": {
+    "latitude": 47.68537,
+    "longitude": 17.63955
+  }
+},
+{
+  "location": "Sarród",
+  "city": "Sarród",
+  "coordinates": {
+    "latitude": 47.67148,
+    "longitude": 16.83955
+  }
+},
+{
+  "location": "Pécs Szabadság u.",
+  "city": "Pécs Szabadság u.",
+  "coordinates": {
+    "latitude": 46.07098,
+    "longitude": 18.22527
+  }
+},
+{
+  "location": "Budapest Pesthidegkút",
+  "city": "Budapest Pesthidegkút",
+  "coordinates": {
+    "latitude": 47.561738,
+    "longitude": 18.960876
+  }
+},
+{
+  "location": "Sajószentpéter",
+  "city": "Sajószentpéter",
+  "coordinates": {
+    "latitude": 48.21819,
+    "longitude": 20.70334
+  }
+},
+{
+  "location": "Sopron",
+  "city": "Sopron",
+  "coordinates": {
+    "latitude": 47.6913,
+    "longitude": 16.57548
+  }
+},
+{
+  "location": "Debrecen Kalotaszeg tér",
+  "city": "Debrecen Kalotaszeg tér",
+  "coordinates": {
+    "latitude": 47.513384,
+    "longitude": 21.624621
+  }
+},
+{
+  "location": "Budapest Széna tér",
+  "city": "Budapest Széna tér",
+  "coordinates": {
+    "latitude": 47.508605,
+    "longitude": 19.02764
+  }
+}
+]
