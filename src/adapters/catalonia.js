@@ -92,7 +92,7 @@ function formatData(data) {
   
   const allData = concatAll(Object.values(data.map(aqRepack)));
   let measurements = getLatestMeasurements(allData);  
-  measurements = filterDuplicates(measurements, denyList) // remove duplicates of EEA stations!
+  measurements = filterDuplicates(measurements, eeaCataloniaDuplicateStations) // remove duplicates of EEA stations!
   return { name: 'unused', measurements: measurements };
 
 }
@@ -116,14 +116,13 @@ function filterDuplicates(measurements, criteria) {
       const matchCoordinates =
         measurement.coordinates.latitude === criterion.coordinates.latitude &&
         measurement.coordinates.longitude === criterion.coordinates.longitude;
-      const matchParameter = !criterion.parameter || measurement.parameter === criterion.parameter;
-
-      return matchLocation && matchCoordinates && matchParameter;
+      return matchLocation && matchCoordinates;
     });
   });
 }
 
-const denyList = [
+// this deny list is used to exclude stations that are within 0.1 km of an EEA station
+const eeaCataloniaDuplicateStations = [
   {
       "location": "Alcover",
       "coordinates": {
@@ -154,7 +153,6 @@ const denyList = [
     },
     {
       "location": "Barcelona",
-      "parameter": "no2",
       "coordinates": {
         "latitude": 41.37878,
         "longitude": 2.133099
