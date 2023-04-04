@@ -91,8 +91,8 @@ function formatData(data) {
   }
   
   const allData = concatAll(Object.values(data.map(aqRepack)));
-  const measurements = getLatestMeasurements(allData);  
-
+  let measurements = getLatestMeasurements(allData);  
+  measurements = filterDuplicates(measurements, eeaCataloniaDuplicateStations) // remove duplicates of EEA stations!
   return { name: 'unused', measurements: measurements };
 
 }
@@ -108,3 +108,82 @@ const getLatestMeasurements = function (measurements) {
   });
   return Object.values(latestMeasurements);
 }
+// remove stations deemed to be duplicates of EEA stations
+function filterDuplicates(measurements, criteria) {
+  return measurements.filter(measurement => {
+    return !criteria.some(criterion => {
+      const matchLocation = measurement.location === criterion.location;
+      const matchCoordinates =
+        measurement.coordinates.latitude === criterion.coordinates.latitude &&
+        measurement.coordinates.longitude === criterion.coordinates.longitude;
+      return matchLocation && matchCoordinates;
+    });
+  });
+}
+
+// this deny list is used to exclude stations that are within 0.1 km of an EEA station
+const eeaCataloniaDuplicateStations = [
+  {
+      "location": "Alcover",
+      "coordinates": {
+        "latitude": 41.278687,
+        "longitude": 1.1798977
+      }
+    },
+    {
+      "location": "Viladecans",
+      "coordinates": {
+        "latitude": 41.31335,
+        "longitude": 2.0136087
+      }
+    },
+    {
+      "location": "Tona",
+      "coordinates": {
+        "latitude": 41.84666,
+        "longitude": 2.2175014
+      }
+    },
+    {
+      "location": "Sort",
+      "coordinates": {
+        "latitude": 42.405407,
+        "longitude": 1.1299014
+      }
+    },
+    {
+      "location": "Barcelona",
+      "coordinates": {
+        "latitude": 41.37878,
+        "longitude": 2.133099
+      }
+    },
+    {
+      "location": "Tarragona",
+      "coordinates": {
+        "latitude": 41.15951,
+        "longitude": 1.2396973
+      }
+    },
+    {
+      "location": "Barcelona",
+      "coordinates": {
+        "latitude": 41.386406,
+        "longitude": 2.1873982
+      }
+    },
+    {
+      "location": "Barcelona",
+      "coordinates": {
+        "latitude": 41.42611,
+        "longitude": 2.1480017
+      }
+    },
+    {
+      "location": "Sabadell",
+      "coordinates": {
+        "latitude": 41.561214,
+        "longitude": 2.1011107
+      }
+    }
+  ]
