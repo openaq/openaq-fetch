@@ -107,7 +107,7 @@ async function formatData(input) {
   measurements = removeUnwantedParameters(measurements);
   measurements = filterMeasurements(measurements);
   measurements = getLatestMeasurements(measurements);
-  measurements = filterDuplicates(measurements, denyList)
+  measurements = filterDuplicates(measurements, eeaHungaryDuplicateStations)
   return { name: 'unused', measurements: measurements }
 };
 
@@ -162,14 +162,14 @@ function filterDuplicates(measurements, criteria) {
       const matchCoordinates =
         measurement.coordinates.latitude === criterion.coordinates.latitude &&
         measurement.coordinates.longitude === criterion.coordinates.longitude;
-      const matchParameter = !criterion.parameter || measurement.parameter === criterion.parameter;
 
-      return matchLocation && matchCoordinates && matchParameter;
+      return matchLocation && matchCoordinates;
     });
   });
 }
 
-const denyList = [
+// this deny list is used to exclude stations that are within 0.1 km of EEA stations
+const eeaHungaryDuplicateStations = [
   {
   "location": "Budapest Teleki tér",
   "coordinates": {
