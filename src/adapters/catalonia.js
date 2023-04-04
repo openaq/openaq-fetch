@@ -92,7 +92,7 @@ function formatData(data) {
   
   const allData = concatAll(Object.values(data.map(aqRepack)));
   let measurements = getLatestMeasurements(allData);  
-  measurements = filterDuplicates(measurements, blacklist) // remove duplicates of EEA stations!
+  measurements = filterDuplicates(measurements, denyList) // remove duplicates of EEA stations!
   return { name: 'unused', measurements: measurements };
 
 }
@@ -113,21 +113,19 @@ function filterDuplicates(measurements, criteria) {
   return measurements.filter(measurement => {
     return !criteria.some(criterion => {
       const matchLocation = measurement.location === criterion.location;
-      const matchCity = measurement.city === criterion.city;
       const matchCoordinates =
         measurement.coordinates.latitude === criterion.coordinates.latitude &&
         measurement.coordinates.longitude === criterion.coordinates.longitude;
       const matchParameter = !criterion.parameter || measurement.parameter === criterion.parameter;
 
-      return matchLocation && matchCity && matchCoordinates && matchParameter;
+      return matchLocation && matchCoordinates && matchParameter;
     });
   });
 }
 
-const blacklist = [
+const denyList = [
   {
       "location": "Alcover",
-      "city": "Alcover",
       "coordinates": {
         "latitude": 41.278687,
         "longitude": 1.1798977
@@ -135,7 +133,6 @@ const blacklist = [
     },
     {
       "location": "Viladecans",
-      "city": "Viladecans",
       "coordinates": {
         "latitude": 41.31335,
         "longitude": 2.0136087
@@ -143,7 +140,6 @@ const blacklist = [
     },
     {
       "location": "Tona",
-      "city": "Tona",
       "coordinates": {
         "latitude": 41.84666,
         "longitude": 2.2175014
@@ -151,7 +147,6 @@ const blacklist = [
     },
     {
       "location": "Sort",
-      "city": "Sort",
       "coordinates": {
         "latitude": 42.405407,
         "longitude": 1.1299014
@@ -159,7 +154,6 @@ const blacklist = [
     },
     {
       "location": "Barcelona",
-      "city": "Barcelona",
       "parameter": "no2",
       "coordinates": {
         "latitude": 41.37878,
@@ -168,7 +162,6 @@ const blacklist = [
     },
     {
       "location": "Tarragona",
-      "city": "Tarragona",
       "coordinates": {
         "latitude": 41.15951,
         "longitude": 1.2396973
@@ -176,7 +169,6 @@ const blacklist = [
     },
     {
       "location": "Barcelona",
-      "city": "Barcelona",
       "coordinates": {
         "latitude": 41.386406,
         "longitude": 2.1873982
@@ -184,7 +176,6 @@ const blacklist = [
     },
     {
       "location": "Barcelona",
-      "city": "Barcelona",
       "coordinates": {
         "latitude": 41.42611,
         "longitude": 2.1480017
@@ -192,7 +183,6 @@ const blacklist = [
     },
     {
       "location": "Sabadell",
-      "city": "Sabadell",
       "coordinates": {
         "latitude": 41.561214,
         "longitude": 2.1011107
