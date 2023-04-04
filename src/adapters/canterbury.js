@@ -80,7 +80,7 @@ async function formatData (results) {
       location: r[1].location,
       coordinates: r[1].coordinates,
       attribution: [{name: 'Environment Canterbury', url: 'https://ecan.govt.nz/'}],
-      averagingPeriod: {unit: 'minutes', value: 10} // this should be aproximate to 10 minutes, not sure if this is OK
+      averagingPeriod: {unit: 'minutes', value: 10} 
     };
     // Runs through all data items for the site
       r.forEach(d => {
