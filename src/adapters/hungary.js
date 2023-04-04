@@ -107,7 +107,7 @@ async function formatData(input) {
   measurements = removeUnwantedParameters(measurements);
   measurements = filterMeasurements(measurements);
   measurements = getLatestMeasurements(measurements);
-  measurements = filterDuplicates(measurements, blacklist)
+  measurements = filterDuplicates(measurements, denyList)
   return { name: 'unused', measurements: measurements }
 };
 
@@ -159,21 +159,19 @@ function filterDuplicates(measurements, criteria) {
   return measurements.filter(measurement => {
     return !criteria.some(criterion => {
       const matchLocation = measurement.location === criterion.location;
-      const matchCity = measurement.city === criterion.city;
       const matchCoordinates =
         measurement.coordinates.latitude === criterion.coordinates.latitude &&
         measurement.coordinates.longitude === criterion.coordinates.longitude;
       const matchParameter = !criterion.parameter || measurement.parameter === criterion.parameter;
 
-      return matchLocation && matchCity && matchCoordinates && matchParameter;
+      return matchLocation && matchCoordinates && matchParameter;
     });
   });
 }
 
-const blacklist = [
+const denyList = [
   {
   "location": "Budapest Teleki tér",
-  "city": "Budapest Teleki tér",
   "coordinates": {
     "latitude": 47.492104,
     "longitude": 19.087778
@@ -181,7 +179,6 @@ const blacklist = [
 },
 {
   "location": "Esztergom",
-  "city": "Esztergom",
   "coordinates": {
     "latitude": 47.79044,
     "longitude": 18.74582
@@ -189,7 +186,6 @@ const blacklist = [
 },
 {
   "location": "Győr 1 Szent István",
-  "city": "Győr 1 Szent István",
   "coordinates": {
     "latitude": 47.68537,
     "longitude": 17.63955
@@ -197,7 +193,6 @@ const blacklist = [
 },
 {
   "location": "Sarród",
-  "city": "Sarród",
   "coordinates": {
     "latitude": 47.67148,
     "longitude": 16.83955
@@ -205,7 +200,6 @@ const blacklist = [
 },
 {
   "location": "Pécs Szabadság u.",
-  "city": "Pécs Szabadság u.",
   "coordinates": {
     "latitude": 46.07098,
     "longitude": 18.22527
@@ -213,7 +207,6 @@ const blacklist = [
 },
 {
   "location": "Budapest Pesthidegkút",
-  "city": "Budapest Pesthidegkút",
   "coordinates": {
     "latitude": 47.561738,
     "longitude": 18.960876
@@ -221,7 +214,6 @@ const blacklist = [
 },
 {
   "location": "Sajószentpéter",
-  "city": "Sajószentpéter",
   "coordinates": {
     "latitude": 48.21819,
     "longitude": 20.70334
@@ -229,7 +221,6 @@ const blacklist = [
 },
 {
   "location": "Sopron",
-  "city": "Sopron",
   "coordinates": {
     "latitude": 47.6913,
     "longitude": 16.57548
@@ -237,7 +228,6 @@ const blacklist = [
 },
 {
   "location": "Debrecen Kalotaszeg tér",
-  "city": "Debrecen Kalotaszeg tér",
   "coordinates": {
     "latitude": 47.513384,
     "longitude": 21.624621
@@ -245,7 +235,6 @@ const blacklist = [
 },
 {
   "location": "Budapest Széna tér",
-  "city": "Budapest Széna tér",
   "coordinates": {
     "latitude": 47.508605,
     "longitude": 19.02764
