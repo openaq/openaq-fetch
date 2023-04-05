@@ -1,4 +1,4 @@
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { readFileSync } from 'fs';
 import { RealtimeFetcherStack } from './stack';
 
@@ -6,11 +6,11 @@ const DOTENV = process.env.DOTENV || '.env';
 
 const envs = readFileSync(`../src/${DOTENV}`, 'utf8');
 
-interface Env {
-    ID: string;
-  }
+interface keyable {
+  [key: string]: string  
+}
 
-const env: Env = {
+const env: keyable = {
     ID: '',
 };
 
@@ -19,8 +19,8 @@ const reserved_keys = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'];
 envs.split('\n').forEach(function (e) {
   if (e) {
     let idx = e.indexOf('=');
-    let name = e.substr(0, idx);
-    let value = e.substr(idx + 1, e.length);
+    let name = e.substring(0,idx);
+    let value = e.substring(idx + 1, e.length);
     if (!env[name] && !reserved_keys.includes(name)) {
       env[name] = value;
     }
