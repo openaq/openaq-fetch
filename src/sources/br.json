@@ -12,5 +12,19 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "https://jeap.rio.rj.gov.br/je-metinfosmac/portalV2/estacao",
+        "adapter": "rio-de-janeiro",
+        "name": "rio-city-hall",
+        "city": "Rio De Janeiro",
+        "country": "BR",
+        "description": "",
+        "resolution": "1 hr",
+        "sourceURL": "https://jeap.rio.rj.gov.br/je-metinfosmac/portalV2/estacao",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
