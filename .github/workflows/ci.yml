@@ -13,7 +13,7 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v2
       - name: install depcheck
-        run: npm install depcheck
+        run: npm install depcheck --legacy-peer-deps
       - name: run depcheck
         run: npx depcheck >> $DEPCHECK
       - name: Comment PR
