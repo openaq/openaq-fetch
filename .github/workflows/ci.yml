@@ -14,10 +14,13 @@ jobs:
         uses: actions/checkout@v2
       - name: install depcheck
         run: npm install depcheck --legacy-peer-deps
-      - name: run depcheck
-        run: npx depcheck >> $DEPCHECK
+      - name: run depcheck 
+        id: rundepcheck
+        run: | 
+          DEPCHECK=$(npx depcheck) 
+          echo "DEPCHECK={DEPCHECK}" >> $GITHUB_OUTPUT
       - name: Comment PR
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-            depcheck results: $DEPCHECK
+            results: ${{ steps.depcheck.outputs.DEPCHECK }}
