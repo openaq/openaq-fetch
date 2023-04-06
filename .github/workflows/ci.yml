@@ -23,4 +23,4 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-            results: ${{ steps.depcheck.outputs.DEPCHECK }}
+            results: ${{ steps.rundepcheck.outputs.DEPCHECK }}
