@@ -32,6 +32,7 @@ export class RealtimeFetcherStack extends cdk.Stack {
     const cmd = [
       'yarn',
       '--prod',
+      '--cwd ../src',
       '--frozen-lockfile',
       `--modules-folder ../src/node_modules`,
     ].join(' ');
