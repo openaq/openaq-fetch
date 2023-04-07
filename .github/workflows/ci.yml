@@ -3,7 +3,7 @@ name: ci
 on:
   pull_request:
     branches:
-      lambda-deployment
+      - lambda-deployment
 
 jobs:
   depcheck:
@@ -17,8 +17,8 @@ jobs:
       - name: run depcheck
         id: rundepcheck
         run: |
-          DEPCHECK=$(npx depcheck)
-          echo "DEPCHECK_RESULT=$DEPCHECK" >> $GITHUB_ENV
+          DEPCHECK=$(npx depcheck) || true
+          echo "DEPCHECK_RESULT=$DEPCHECK" >> $GITHUB_ENV 
       - name: Comment PR
         uses: thollander/actions-comment-pull-request@v2
         with:
