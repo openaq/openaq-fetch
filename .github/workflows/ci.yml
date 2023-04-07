@@ -26,10 +26,6 @@ jobs:
         run: |
           COMMENT=$(./scripts/process_depcheck_output.sh "${{ env.DEPCHECK_RESULT }}")
           echo "DEPCHECK_COMMENT=$COMMENT" >> $GITHUB_ENV
-
-      - name: Debug DEPCHECK_COMMENT
-        run: echo "DEPCHECK_COMMENT: ${{ env.DEPCHECK_COMMENT }}"
-
       - name: Comment PR
         uses: thollander/actions-comment-pull-request@v2
         with:
