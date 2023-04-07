@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEPCHECK_RESULT=$(echo "$1" | tr -d '\n')
+DEPCHECK_RESULT="$1"
 
 MISSING=$(echo "$DEPCHECK_RESULT" | jq '.missing')
 MISSING_LENGTH=$(echo "$MISSING" | jq 'length')

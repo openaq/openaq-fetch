@@ -30,4 +30,4 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-            ${{ env.DEPCHECK_COMMENT }}
+            "${{ env.DEPCHECK_COMMENT }}"
