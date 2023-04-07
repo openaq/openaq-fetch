@@ -29,7 +29,7 @@ jobs:
         with:
           message: |
             results:
-            ${{ env.PR_COMMENT }}
+            ${{ yaml(env.PR_COMMENT) }}
 
 
 
