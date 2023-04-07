@@ -1,6 +1,6 @@
 import { SQS } from '@aws-sdk/client-sqs';
-import { sourcesArray } from './sources';
-import { deploymentsArray } from './deployments';
+import { sourcesArray } from './sources/index.js';
+import { deploymentsArray } from './deployments.js';
 
 export async function handler (event, context) {
   // default to all active sources

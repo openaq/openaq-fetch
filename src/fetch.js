@@ -8,7 +8,7 @@
 import moment from 'moment';
 import sj from 'scramjet';
 
-import sources from './sources/index.cjs';
+import {sourcesArray} from './sources/index.js';
 import log from './lib/logger.js';
 
 import _env from './lib/env.js';
@@ -85,15 +85,15 @@ export function handler (event, context) {
     datetime = event.datetime;
     suffix = `_${event.suffix || suffix}${messageId}`;
   } else if (event && event.source) {
-    currentSources = sources.filter((d) => d.name === event.source);
+    currentSources = sourcesArray.filter((d) => d.name === event.source);
   } else if (event && event.adapter) {
-    currentSources = sources.filter(
+    currentSources = sourcesArray.filter(
       (d) => d.adapter === event.adapter
     );
   } else if (env.adapter) {
-    currentSources = sources.filter((d) => d.adapter === env.adapter);
+    currentSources = sourcesArray.filter((d) => d.adapter === env.adapter);
   } else {
-    currentSources = sources;
+    currentSources = sourcesArray;
   }
   // and the final file name
   env.key = `realtime/${moment().format(
@@ -157,7 +157,7 @@ export function handler (event, context) {
           .then(
             reportAndRecordFetch(
               fetchReport,
-              sources,
+              sourcesArray,
               env,
               apiURL,
               webhookKey
