@@ -22,8 +22,8 @@ jobs:
       - name: Generate PR comment
         id: generate_pr_comment
         run: |
-          COMMENT=$(bash ./scripts/process_depcheck_output.sh "$DEPCHECK_RESULT" | echo -e)
-          echo "PR_COMMENT=$COMMENT" >> $GITHUB_ENV
+          COMMENT=$(bash ./scripts/process_depcheck_output.sh "$DEPCHECK_RESULT")
+          printf "PR_COMMENT=%b\n" "$COMMENT" >> $GITHUB_ENV
       - name: Comment PR
         uses: thollander/actions-comment-pull-request@v2
         with:
