@@ -17,7 +17,7 @@ jobs:
       - name: run depcheck
         id: rundepcheck
         run: |
-          DEPCHECK=$(npx depcheck) || true
+          DEPCHECK=$(npx depcheck --json) || true
           echo "DEPCHECK_RESULT=$DEPCHECK" >> $GITHUB_ENV 
       - name: Comment PR
         uses: thollander/actions-comment-pull-request@v2
