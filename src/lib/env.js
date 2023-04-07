@@ -2,9 +2,7 @@
 import { readFileSync } from 'fs';
 import _yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import moment from 'moment';
 const yargs = _yargs(hideBin(process.argv));
-
 
 /**
  * @typedef OpenAQEnv
@@ -36,8 +34,8 @@ const yargs = _yargs(hideBin(process.argv));
  * Handles argv
  */
 
-let _argv = yargs
-  .usage('Usage: $0 -d -s \'Beijing US Embassy\'')
+const _argv = yargs
+  .usage("Usage: $0 -d -s 'Beijing US Embassy'")
   .options('quiet', {
     boolean: true,
     describe: 'Show no logging at all',
@@ -52,37 +50,43 @@ let _argv = yargs
   })
   .options('verbose', {
     boolean: true,
-    describe: 'Show additional logging information (in dry run mode it shows all measurements)',
+    describe:
+      'Show additional logging information (in dry run mode it shows all measurements)',
     alias: 'v',
     group: 'Logging options:'
   })
   .options('debug', {
     boolean: true,
-    describe: 'Show lots additional logging information (more than verbose)',
+    describe:
+      'Show lots additional logging information (more than verbose)',
     alias: 'b',
     group: 'Logging options:'
   })
   .options('dryrun', {
     boolean: true,
-    describe: 'Run the fetch process but do not attempt to save to the database and instead print to console, useful for testing.',
+    describe:
+      'Run the fetch process but do not attempt to save to the database and instead print to console, useful for testing.',
     alias: 'd',
     group: 'Main options:'
   })
   .options('source', {
-    describe: 'Run the fetch process with only the defined source using source name.',
+    describe:
+      'Run the fetch process with only the defined source using source name.',
     alias: 's',
     nargs: 1,
     group: 'Main options:'
   })
   .options('adapter', {
-    describe: 'Run the fetch process with only the defined adapter in the source list',
+    describe:
+      'Run the fetch process with only the defined adapter in the source list',
     alias: 'a',
     nargs: 1,
     group: 'Main options:'
   })
   .options('strict', {
     boolean: true,
-    describe: 'Strict checking - first error will make the process die.',
+    describe:
+      'Strict checking - first error will make the process die.',
     alias: 'S',
     group: 'Main options:'
   })
@@ -97,29 +101,28 @@ let _argv = yargs
     group: 'Main options:'
   })
   .options('offset', {
-    describe: 'The number of hours back from the current time to search for',
+    describe:
+      'The number of hours back from the current time to search for',
     alias: 'o',
     group: 'Main options:'
   })
   .help('h')
   .alias('h', 'help')
-  .alias('?', 'help')
-  .argv;
+  .alias('?', 'help').argv;
 
-let _env = process.env;
-
+const _env = process.env;
 
 /**
  * Read values from local file and add them to the global _env
  * this is to help with local testing
  */
 export const readEnvFromLocalFile = (envFile) => {
-  let envs = readFileSync(envFile, 'utf8');
+  const envs = readFileSync(envFile, 'utf8');
   envs.split('\n').forEach(function (e) {
     if (e) {
-      let idx = e.indexOf('=');
-      let name = e.substr(0, idx);
-      let value = e.substr(idx + 1, e.length);
+      const idx = e.indexOf('=');
+      const name = e.substring(0, idx);
+      const value = e.substring(idx + 1, e.length);
       if (!_env[name]) {
         _env[name] = value;
       }
@@ -176,10 +179,14 @@ export default () => {
 
   offset = +(offset || _env.OFFSET);
 
-  const logLevel = _quiet ? 'none'
-    : _verbose ? 'verbose'
-      : debug ? 'debug'
-        : important ? 'warn'
+  const logLevel = _quiet
+    ? 'none'
+    : _verbose
+      ? 'verbose'
+      : debug
+        ? 'debug'
+        : important
+          ? 'warn'
           : _env.LOG_LEVEL || 'info';
   const logColor = _env.LOG_COLOR !== 'false';
 
