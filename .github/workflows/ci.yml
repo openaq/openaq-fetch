@@ -29,7 +29,7 @@ jobs:
         with:
           message: |
             results:
-            ${{ printf "%b" env.PR_COMMENT }}
+            echo -e ${{ env.PR_COMMENT }}
 
 
 
