@@ -22,7 +22,7 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "https://analisi.transparenciacatalunya.cat/resource/tasf-thgu.json",
