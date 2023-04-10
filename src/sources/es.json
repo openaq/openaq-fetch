@@ -1,0 +1,39 @@
+[
+    {
+        "url": "https://discomap.eea.europa.eu/map/fme/latest/",
+        "adapter": "eea-direct",
+        "name": "EEA Spain",
+        "city": "",
+        "country": "ES",
+        "description": "Spanish data from UTD service",
+        "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "http://www.juntadeandalucia.es/medioambiente/site/portalweb/menuitem.7e1cf46ddf59bb227a9ebe205510e1ca/?vgnextoid=7e612e07c3dc4010VgnVCM1000000624e50aRCRD&vgnextchannel=3b43de552afae310VgnVCM2000000624e50aRCRD",
+        "name": "Andalucia",
+        "adapter": "andalucia",
+        "country": "ES",
+        "description": "Data for Andalucia from its Ministry of Environmental and Spatial Planning",
+        "sourceURL": "http://www.juntadeandalucia.es/medioambiente/atmosfera/informes_siva/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "https://analisi.transparenciacatalunya.cat/resource/tasf-thgu.json",
+        "name": "catalonia-mediambient",
+        "adapter": "catalonia",
+        "country": "ES",
+        "description": "Data from Catalonian Department of Territory and Sustainability",
+        "sourceURL": "http://mediambient.gencat.cat/ca/05_ambits_dactuacio/atmosfera/qualitat_de_laire/vols-saber-que-respires/visor-de-dades/",
+        "contacts": [
+          "info@openaq.org"
+        ],
+        "active": true
+    }
+]

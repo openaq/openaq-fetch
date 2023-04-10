@@ -14,13 +14,11 @@ For more info see the [OpenAQ-Fetch documentation index](docs/index.md).
 
 ## Installing & Running
 
-To run the API locally, you will need both [Node.js](https://nodejs.org) and [PostgreSQL](http://www.postgresql.org/) installed.
+To run the API locally, you will need [Node.js](https://nodejs.org) installed.
 
 Install necessary Node.js packages by running
 
 `npm install`
-
-Make sure you have a PostgreSQL database available (with PostGIS extension) and have the DB settings in `knexfile.js`.
 
 Now you can get started with:
 

@@ -1,3 +1,5 @@
+import _env from './src/lib/env.js';
+
 const {
   psqlHost,
   psqlPort,
@@ -6,23 +8,21 @@ const {
   psqlDatabase,
   psqlPoolMin,
   psqlPoolMax
-} = require('./lib/env').getEnv();
+} = _env();
 
-module.exports = {
+export default {
   client: 'pg',
   connection: {
     host: psqlHost,
     port: psqlPort,
     user: psqlUser,
     password: psqlPassword,
-    database: psqlDatabase
+    database: psqlDatabase,
+    //ssl: { rejectUnauthorized: false },
   },
   pool: {
     min: psqlPoolMin,
     max: psqlPoolMax
   },
-  acquireConnectionTimeout: 600000,
-  migrations: {
-    tableName: 'migrations'
-  }
+  acquireConnectionTimeout: 600000
 };

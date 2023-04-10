@@ -1,0 +1,17 @@
+[
+    {
+        "url": "https://api.svivaaqm.net/v1/envista/",
+        "adapter": "envista",
+        "name": "israel-envista",
+        "country": "IL",
+        "description": "",
+        "resolution": "15 min",
+        "sourceURL": "https://www.svivaaqm.net/",
+        "timezone": "Asia/Jerusalem",
+        "organization": "Israel Ministry of Environmental Protection",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]

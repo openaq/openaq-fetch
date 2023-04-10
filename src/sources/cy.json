@@ -1,0 +1,29 @@
+[
+    {
+        "url": "https://discomap.eea.europa.eu/map/fme/latest/",
+        "adapter": "eea-direct",
+        "name": "EEA Cyprus",
+        "city": "",
+        "country": "CY",
+        "description": "Cypriot data from UTD service",
+        "sourceURL": "http://www.eea.europa.eu/themes/air/air-quality",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    },
+    {
+        "url": "https://www.airquality.dli.mlsi.gov.cy/all_stations_data_PM",
+        "adapter": "cyprus",
+        "name": "Republic of Cyprus Department of Labor Inspection",
+        "city": "",
+        "country": "CY",
+        "description": "Republic of Cyprus data from data.gov.cy",
+        "sourceURL": "https://www.data.gov.cy/dataset/%CF%84%CF%81%CE%AD%CF%87%CE%BF%CF%85%CF%83%CE%B5%CF%82-%CE%BC%CE%B5%CF%84%CF%81%CE%AE%CF%83%CE%B5%CE%B9%CF%82-%CE%B1%CF%84%CE%BC%CE%BF%CF%83%CF%86%CE%B1%CE%B9%CF%81%CE%B9%CE%BA%CF%8E%CE%BD-%CF%81%CF%8D%CF%80%CF%89%CE%BD-api",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "license": "Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)",
+        "active": true
+    }
+]

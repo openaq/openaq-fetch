@@ -1,5 +1,5 @@
 node_modules
-.env
+.env*
 npm-debug.log
 newrelic_agent.log
 dump
@@ -10,3 +10,7 @@ ecs-task-fargate-generated.json
 .editorconfig
 knexfile-local.js
 adapters.list
+src/package.json
+src/node_modules
+cdk/cdk.out
+/docs/adapter-update.md

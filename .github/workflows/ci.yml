@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  pull_request:
+    branches:
+      - lambda-deployment
+
+jobs:
+  depcheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v2
+      - name: install depcheck
+        run: npm install depcheck --legacy-peer-deps
+      - name: run depcheck
+        id: rundepcheck
+        run: |
+          DEPCHECK=$(npx depcheck --json) || true
+          echo "DEPCHECK_RESULT=$DEPCHECK" >> $GITHUB_ENV 
+      - name: Generate PR comment
+        id: generate_pr_comment
+        run: |
+          COMMENT=$(bash ./scripts/process_depcheck_output.sh "$DEPCHECK_RESULT")
+          echo "PR_COMMENT=$COMMENT" >> $GITHUB_ENV
+      - name: Comment PR
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            results:
+            ${{ env.PR_COMMENT }}
+
+
+
+
+
