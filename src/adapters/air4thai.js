@@ -2,13 +2,13 @@
  * This code is responsible for implementing all methods related to fetching
  * and returning data for the Thailandian data source.
  */
+
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import {unifyParameters, unifyMeasurementUnits} from '../lib/utils.js';
-import { default as baseRequest } from 'request';
+import { unifyParameters, unifyMeasurementUnits } from '../lib/utils.js';
 import { DateTime } from 'luxon';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+import fetch from 'node-fetch';
 
 export const name = 'air4thai';
 
@@ -17,46 +17,41 @@ export const name = 'air4thai';
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
  */
-export function fetchData (source, cb) {
-  request(source.url, function (err, res, body) {
-    if (err || res.statusCode !== 200) {
-      return cb({message: 'Failure to load data url.'});
-    }
 
-    // Wrap everything in a try/catch in case something goes wrong
-    try {
+export function fetchData(source, cb) {
+  fetch(source.url, { timeout: REQUEST_TIMEOUT })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error('Failure to load data url.');
+      }
+      return res.json();
+    })
+    .then((data) => {
       // Format the data
-      const data = formatData(body);
+      const formattedData = formatData(data);
 
       // Make sure the data is valid
-      if (data === undefined) {
-        return cb({message: 'Failure to parse data.'});
+      if (formattedData === undefined) {
+        throw new Error('Failure to parse data.');
       }
-      cb(null, data);
-    } catch (e) {
-      console.log(e);
-      return cb({message: 'Unknown adapter error.'});
-    }
-  });
-};
+      cb(null, formattedData);
+    })
+    .catch((error) => {
+      console.log(error);
+      cb({ message: 'Unknown adapter error.' });
+    });
+}
 
 /**
  * Given fetched data, turn it into a format our system can use.
  * @param {array} results Fetched source data and other metadata
- * @return {object} Parsed and standarized data our system can use
+ * @return {object} Parsed and standardized data our system can use
  */
+
 const formatData = function (data) {
-  // Wrap the JSON.parse() in a try/catch in case it fails
-  try {
-    data = JSON.parse(data);
-  } catch (e) {
-    // Return undefined to be caught elsewhere
-    return undefined;
-  }
+  let measurements = [];
 
-  var measurements = [];
-
-  data.stations.forEach(item => {
+  data.stations.forEach((item) => {
     const city = String(item.areaEN).split(',');
     const dateLuxon = DateTime.fromFormat(item.AQILast.date + ' ' + item.AQILast.time, 'yyyy-MM-dd HH:mm', { zone: 'Asia/Bangkok' });
     const base = {
@@ -67,12 +62,12 @@ const formatData = function (data) {
         local: dateLuxon.toFormat("yyyy-MM-dd'T'HH:mm:ssZZ")
       },
       coordinates: {
-        latitude: Number(item.lat),
-        longitude: Number(item.long)
+        latitude: parseFloat(item.lat),
+        longitude: parseFloat(item.long)
       },
-      attribution: [{name: 'Air4Thai', url: 'http://air4thai.pcd.go.th/webV2/'}]
+      attribution: [{ name: 'Air4Thai', url: 'http://air4thai.pcd.go.th/webV2/' }]
     };
-    Object.keys(item.AQILast).forEach(v => {
+    Object.keys(item.AQILast).forEach((v) => {
       const unaccepted = ['date', 'AQI', 'time'];
       const unit = {
         'PM25': 'µg/m³',
@@ -91,11 +86,11 @@ const formatData = function (data) {
         'SO2': 1
       };
       if (!unaccepted.includes(v)) {
-        var m = Object.assign({
+        let m = Object.assign({
           unit: unit[v],
-          value: Number(item.AQILast[v].value),
+          value: parseFloat(item.AQILast[v].value),
           parameter: v,
-          averagingPeriod: {unit: 'hours', value: average[v]}
+          averagingPeriod: { unit: 'hours', value: average[v] }
         }, base);
         m = unifyMeasurementUnits(unifyParameters(m));
         if (m.value >= 0) {
@@ -105,5 +100,5 @@ const formatData = function (data) {
     });
   });
 
-  return {name: 'unused', measurements: measurements};
-};
+  return { name: 'unused', measurements: measurements };
+  };
