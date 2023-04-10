@@ -18,7 +18,7 @@ if [ $MISSING_LENGTH -gt 0 ]; then
   for key in $(echo "$MISSING" | jq 'keys[]'); do
     package=$(echo "$key" | jq -r)
     needed_by=$(echo "$MISSING" | jq -r ".[$key] | join(\", \")")
-    comment+="* $package is needed by $needed_by<br/>"
+    comment+="- $package is needed by $needed_by<br/>"
   done
   comment+="<br/>"
 fi
@@ -28,14 +28,14 @@ if [ $DEPENDENCIES_LENGTH -gt 0 ] || [ $DEV_DEPENDENCIES_LENGTH -gt 0 ]; then
   comment+="There are $total_unused unused packages:<br/>"
 
   if [ $DEPENDENCIES_LENGTH -gt 0 ]; then
-    comment+="Unused dependencies:<br/>"
-    comment+=$(echo "$DEPENDENCIES" | jq -r 'join("<br/> * ")')
+    comment+="Unused dependencies:<br/> - "
+    comment+=$(echo "$DEPENDENCIES" | jq -r 'join("<br/> - ")')
     comment+="<br/>"
   fi
 
   if [ $DEV_DEPENDENCIES_LENGTH -gt 0 ]; then
-    comment+="Unused devDependencies:<br/>"
-    comment+=$(echo "$DEV_DEPENDENCIES" | jq -r 'join(", ")')
+    comment+="<br/>Unused devDependencies:<br/> - "
+    comment+=$(echo "$DEV_DEPENDENCIES" | jq -r 'join("<br/> - ")')
   fi
 fi
 
