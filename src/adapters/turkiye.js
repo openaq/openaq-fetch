@@ -5,6 +5,7 @@
 
 'use strict';
 
+<<<<<<< HEAD:src/adapters/turkiye.js
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
 import { DateTime } from 'luxon';
@@ -13,6 +14,16 @@ import { parse } from 'wellknown';
 const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
 
 export const name = 'turkiye';
+=======
+import { REQUEST_TIMEOUT } from '../lib/constants';
+import { default as baseRequest } from 'request';
+import { DateTime } from 'luxon';
+import { flatMap } from 'lodash';
+import { parse } from 'wellknown';
+const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
+
+exports.name = 'turkiye';
+>>>>>>> main:adapters/turkiye.js
 
 /**
  * Fetches the data for a given source and returns an appropriate object
@@ -20,7 +31,11 @@ export const name = 'turkiye';
  * @param {function} cb A callback of the form cb(err, data)
  */
 
+<<<<<<< HEAD:src/adapters/turkiye.js
 export function fetchData (source, cb) {
+=======
+exports.fetchData = function (source, cb) {
+>>>>>>> main:adapters/turkiye.js
   request(source.url, (err, res, body) => {
     if (err || res.statusCode !== 200) {
       return cb({ message: 'Failure to load data url' });
@@ -45,7 +60,11 @@ const validParameters = {
   O3: { value: 'o3', unit: 'µg/m³' },
   SO2: { value: 'so2', unit: 'µg/m³' },
   NO2: { value: 'no2', unit: 'µg/m³' },
+<<<<<<< HEAD:src/adapters/turkiye.js
   CO: { value: 'co', unit: 'µg/m³' }
+=======
+  CO: { value: 'co', unit: 'mg/m³' }
+>>>>>>> main:adapters/turkiye.js
 };
 
 /**
@@ -103,5 +122,9 @@ function formatData (locations) {
     });
     out.push(data);
   }
+<<<<<<< HEAD:src/adapters/turkiye.js
   return { name: 'unused', measurements: flatten(out) };
+=======
+  return { name: 'unused', measurements: flatMap(out) };
+>>>>>>> main:adapters/turkiye.js
 }

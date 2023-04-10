@@ -4,20 +4,21 @@
  */
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { DateTime } from 'luxon';
 import { parallel } from 'async';
-import flatten from 'lodash/flatten.js';
+import { flatMap } from 'lodash';
+
 const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
 
-export const name = 'adairquality-ae';
+exports.name = 'adairquality-ae';
 
 /**
-  * Fetches the data for a given source and returns an appropriate object
-  * @param {object} source A valid source object
-  * @param {function} cb A callback of the form cb(err, data)
-  */
+ * Fetches the data for a given source and returns an appropriate object
+ * @param {object} source A valid source object
+ * @param {function} cb A callback of the form cb(err, data)
+ */
 
 const stations = [
   {
@@ -202,18 +203,20 @@ const stations = [
   }
 ];
 
-export function fetchData (source, cb) {
+exports.fetchData = function (source, cb) {
   /**
-  * Given fetched data, turn it into a format our system can use.
-  * @param {object} results Fetched source data and other metadata
-  * @return {object} Parsed and standarized data our system can use
-  */
+   * Given fetched data, turn it into a format our system can use.
+   * @param {object} results Fetched source data and other metadata
+   * @return {object} Parsed and standarized data our system can use
+   */
 
   const requests = stations.map((station) => {
     return (done) => {
       request(`${source.url}${station.slug}`, (err, res, body) => {
         if (err || res.statusCode !== 200) {
-          return done({ message: `Failure to load data url (${source.url}${station.slug})` });
+          return done({
+            message: `Failure to load data url (${source.url}${station.slug})`
+          });
         }
         let data = Object.assign(station, { body: body }); // add the body to the station object
         return done(null, data);
@@ -238,19 +241,19 @@ export function fetchData (source, cb) {
 };
 
 const validParameters = {
-  PM10: { 'value': 'pm10', 'unit': 'µg/m³' },
-  O3: { 'value': 'o3', 'unit': 'µg/m³' },
-  SO2: { 'value': 'so2', 'unit': 'µg/m³' },
-  NO2: { 'value': 'no2', 'unit': 'µg/m³' },
-  CO: { 'value': 'co', 'unit': 'mg/m³' }
+  PM10: { value: 'pm10', unit: 'µg/m³' },
+  O3: { value: 'o3', unit: 'µg/m³' },
+  SO2: { value: 'so2', unit: 'µg/m³' },
+  NO2: { value: 'no2', unit: 'µg/m³' },
+  CO: { value: 'co', unit: 'mg/m³' }
 };
 
 function parseDate (dateString) {
   /**
-    * converts the given date string to a timezoned date
-    * @param {string} dateString date as string in format 'dd/mm/yyyy hh:mm:ss AM'
-    * @return {DateTime} luxon DateTime with the appropriate timezone
-    */
+   * converts the given date string to a timezoned date
+   * @param {string} dateString date as string in format 'dd/mm/yyyy hh:mm:ss AM'
+   * @return {DateTime} luxon DateTime with the appropriate timezone
+   */
   const pattern =
     /(\d{1,2})\/(\d{1,2})\/(\d{4})\s(\d{1,2}):(\d{2}):(\d{2})\s([A|P]M)/;
   const regex = new RegExp(pattern);
@@ -264,11 +267,12 @@ function parseDate (dateString) {
   if (groups[7] === 'AM' && hour === 12) {
     hour = 0;
   }
+  hour = hour.toString().padStart(2, '0');
   const d = DateTime.fromISO(
     `${groups[3]}-${groups[1].padStart(2, '0')}-${groups[2].padStart(
       2,
       '0'
-    )}T${groups[4].padStart(2, '0')}:${minutes}:${seconds}`,
+    )}T${hour}:${minutes}:${seconds}`,
     {
       zone: 'Asia/Dubai'
     }
@@ -280,30 +284,35 @@ function formatData (locations) {
   let out = [];
   for (const location of locations) {
     const body = JSON.parse(location.body);
-    const measurements = JSON.parse(body.JSONDataResult)
-      .map((o) => {
-        const date = parseDate(o.DateTime);
-        o.DateTime = date;
-        return o;
-      })
-    const measurementsSorted = measurements.sort((a, b) => b.DateTime - a.DateTime);
+    const measurements = JSON.parse(body.JSONDataResult).map((o) => {
+      const date = parseDate(o.DateTime);
+      o.DateTime = date;
+      return o;
+    });
+    const measurementsSorted = measurements.sort(
+      (a, b) => b.DateTime - a.DateTime
+    );
     const latestMeasurements = measurementsSorted[0];
-    const filtered = Object.entries(latestMeasurements).filter(([key, _]) => {
-      return key in validParameters;
-    }).filter((o) => o[1])
-      .map(o => {
+    const filtered = Object.entries(latestMeasurements)
+      .filter(([key, _]) => {
+        return key in validParameters;
+      })
+      .filter((o) => o[1])
+      .map((o) => {
         return {
-          'parameter': validParameters[o[0]].value,
-          'unit': validParameters[o[0]].unit,
-          'value': o[1]
+          parameter: validParameters[o[0]].value,
+          unit: validParameters[o[0]].unit,
+          value: o[1]
         };
       });
     const data = filtered.map((measurement) => {
       return {
         parameter: measurement.parameter,
         date: {
-          utc: latestMeasurements.DateTime.toUTC().toISO(),
-          local: latestMeasurements.DateTime.toISO({suppressMilliseconds: true})
+          utc: latestMeasurements.DateTime,
+          local: latestMeasurements.DateTime.toISO({
+            suppressMilliseconds: true
+          })
         },
         value: measurement.value,
         unit: measurement.unit,
@@ -315,7 +324,7 @@ function formatData (locations) {
         },
         attribution: [
           {
-            name: "Environment Agency - Abu Dhabi",
+            name: 'Abu Dhabi Air Quality',
             url: 'https://www.adairquality.ae/'
           }
         ],
@@ -324,5 +333,5 @@ function formatData (locations) {
     });
     out.push(data);
   }
-  return { name: 'unused', measurements: flatten(out) };
+  return { name: 'unused', measurements: flatMap(out) };
 }
