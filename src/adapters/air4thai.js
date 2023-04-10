@@ -7,7 +7,7 @@
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import {unifyParameters, unifyMeasurementUnits} from '../lib/utils.js';
 import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
+import { DateTime } from 'luxon';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'air4thai';
@@ -58,13 +58,13 @@ const formatData = function (data) {
 
   data.stations.forEach(item => {
     const city = String(item.areaEN).split(',');
-    const dateMoment = moment.tz(item.AQILast.date + ' ' + item.AQILast.time, 'YYYY-MM-DD HH:mm', 'Asia/Bangkok');
+    const dateLuxon = DateTime.fromFormat(item.AQILast.date + ' ' + item.AQILast.time, 'yyyy-MM-dd HH:mm', { zone: 'Asia/Bangkok' });
     const base = {
       location: item.nameEN.trim(),
       city: city[city.length - 1].trim(),
       date: {
-        utc: dateMoment.toDate(),
-        local: dateMoment.format()
+        utc: dateLuxon.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+        local: dateLuxon.toFormat("yyyy-MM-dd'T'HH:mm:ssZZ")
       },
       coordinates: {
         latitude: Number(item.lat),
