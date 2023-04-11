@@ -1,32 +1,29 @@
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { default as baseRequest } from 'request';
 import cloneDeep from 'lodash/cloneDeep.js';
 import flatten from 'lodash/flatten.js';
-import { default as moment } from 'moment-timezone';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+import { DateTime } from 'luxon'
+
+import got from 'got';
 
 export const name = 'au_act';
 
 export function fetchData (source, cb) {
-  // get the time 1 day ago in AEST
-  var timeAgo = moment().tz('Australia/Sydney').subtract(1, 'days').format('YYYY-MM-DDTHH:mm:ss');
+  const timeAgo = DateTime.now().setZone('Australia/Sydney').minus({ days: 1 }).toFormat('yyyy-LL-dd\'T\'HH:mm:ss');
 
-  // Fetch the data, for the last 24 hours
-  request({
-    uri: source.url,
-    qs: {
+  got(source.url, {
+    searchParams: {
       '$query': `select *, :id where (\`datetime\` > '${timeAgo}') order by \`datetime\` desc limit 1000`
+    },
+    timeout: {
+      request: REQUEST_TIMEOUT
     }
-  }, function (err, res, body) {
-    if (err || res.statusCode !== 200) {
-      return cb({message: 'Failure to load data url.'});
-    }
-    // Wrap everything in a try/catch in case something goes wrong
+  }).then(res => {
+    const body = res.body;
+    
     try {
-      // Format the data
-      var data = formatData(JSON.parse(body), source);
+      let data = formatData(JSON.parse(body), source);
       if (data === undefined) {
         return cb({message: 'Failure to parse data.'});
       }
@@ -34,17 +31,25 @@ export function fetchData (source, cb) {
     } catch (e) {
       return cb({message: 'Unknown adapter error.'});
     }
+  }).catch(err => {
+    console.error('Error:', err.message, err.response && err.response.body);
+    return cb({message: 'Failure to load data url.'});
   });
-};
+  
+}
 
-var formatData = function (data, source) {
-  var parseDate = function (string) {
-    var date = moment.tz(string, 'Australia/Sydney');
-    return {utc: date.toDate(), local: date.format()};
+
+let formatData = function (data, source) {
+  let parseDate = function (string) {
+    const date = DateTime.fromISO(string, { zone: 'Australia/Sydney' });
+    return {
+      utc: date.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+      local: date.toFormat("yyyy-MM-dd'T'HH:mm:ssZZ")
+    };
   };
 
   // mapping of types from source data into OpenAQ format
-  var types = {
+  let types = {
     'no2': 'no2',
     'o3_1hr': 'o3',
     'co': 'co',
@@ -52,7 +57,7 @@ var formatData = function (data, source) {
     'pm2_5': 'pm25'
   };
 
-  var units = {
+  let units = {
     'no2': 'ppm',
     'o3': 'ppm',
     'co': 'ppm',
@@ -60,7 +65,7 @@ var formatData = function (data, source) {
     'pm25': 'µg/m³'
   };
 
-  var measurements = [];
+  let measurements = [];
 
   data.forEach(function (row) {
     // base measurement properties
@@ -73,8 +78,8 @@ var formatData = function (data, source) {
       sourceType: 'government',
       mobile: false,
       coordinates: {
-        latitude: Number(row.gps.latitude),
-        longitude: Number(row.gps.longitude)
+        latitude: parseFloat(row.gps.latitude),
+        longitude: parseFloat(row.gps.longitude)
       },
       attribution: [{
         name: 'Health Protection Service, ACT Government',
@@ -85,10 +90,10 @@ var formatData = function (data, source) {
 
     Object.keys(types).forEach(function (type) {
       if (type in row) {
-        var measurement = cloneDeep(baseMeasurement);
+        let measurement = cloneDeep(baseMeasurement);
 
         measurement.parameter = types[type];
-        measurement.value = Number(row[type]);
+        measurement.value = parseFloat(row[type]);
         measurement.unit = units[types[type]];
 
         measurements.push(measurement);
