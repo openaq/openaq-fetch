@@ -6,7 +6,7 @@ import log from '../lib/logger.js';
 import { acceptableParameters, convertUnits } from '../lib/utils.js';
 import { default as baseRequest } from 'request';
 import { default as rp } from 'request-promise-native';
-import { default as moment } from 'moment-timezone';
+import { DateTime } from 'luxon';
 import sj from 'scramjet';
 const { StringStream, MultiStream } = sj;
 
@@ -42,7 +42,7 @@ export async function fetchStream (source) {
 
   const provinces = $('#provincia option')
     .filter(function (i, el) {
-      return Number($(this).attr('value')) >= 0;
+      return parseFloat($(this).attr('value')) >= 0;
     })
     .map(function (i, el) {
       return { id: $(this).attr('value'), name: $(this).text() };
@@ -113,7 +113,7 @@ export const getStream = function (cityName, url, averagingPeriod, source, orgUr
   const unit = getUnit(parameter);
   const dayPosition = averagingPeriod.value === 1 ? 0 : 1;
 
-  const fewDaysAgo = +Number(moment.tz(timezone).subtract(4, 'days').format('DDD'));
+  const fewDaysAgo = +parseFloat(DateTime.local().setZone(timezone).minus({days: 4}).ordinal);
   log.verbose(`Fetching data from ${url}`);
 
   const stations = {};
@@ -141,11 +141,12 @@ export const getStream = function (cityName, url, averagingPeriod, source, orgUr
     .map(
       ([date1, date2, ...x]) => {
         const timestamp = (averagingPeriod.value === 1)
-          ? moment.tz(`${year} ${date1} ${date2}`, 'YYYY DDD HH', timezone)
-          : moment.tz(`${year} ${date2}`, 'YYYY DDD', timezone);
+          ? DateTime.fromObject({year, ordinal: date1, hour: date2}).setZone(timezone)
+          : DateTime.fromObject({year, ordinal: date2}).setZone(timezone);
+
         const date = {
-          utc: timestamp.toDate(),
-          local: timestamp.format()
+          utc: timestamp.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+          local: timestamp.toFormat("yyyy-MM-dd'T'HH:mm:ssZZ")
         };
 
         const base = {
