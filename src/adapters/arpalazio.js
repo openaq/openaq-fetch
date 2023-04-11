@@ -4,17 +4,17 @@ import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { FetchError, DATA_URL_ERROR, DATA_PARSE_ERROR } from '../lib/errors.js';
 import log from '../lib/logger.js';
 import { acceptableParameters, convertUnits } from '../lib/utils.js';
-import { default as baseRequest } from 'request';
-import { default as rp } from 'request-promise-native';
+import got from 'got';
 import { DateTime } from 'luxon';
 import sj from 'scramjet';
-const { StringStream, MultiStream } = sj;
-
 import cheerio from 'cheerio';
 import difference from 'lodash/difference.js';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+
+const request = got.extend({ timeout: { request: REQUEST_TIMEOUT } });
+const { StringStream, MultiStream } = sj;
 
 export const name = 'arpalazio';
+
 const timezone = 'Europe/Rome';
 
 const baseUrl = 'http://www.arpalazio.net/main/aria/sci/annoincorso/';
@@ -27,11 +27,7 @@ const dailyParameters = ['pm25', 'pm10'];
 const hourlyParameters = difference(acceptableParameters, dailyParameters);
 
 export async function fetchStream (source) {
-  const response = await rp({method: 'GET', uri: source.url, resolveWithFullResponse: true, timeout: REQUEST_TIMEOUT});
-
-  if (response.statusCode !== 200) {
-    throw new FetchError(DATA_URL_ERROR, source, null);
-  }
+  const response = await request.get(source.url, { responseType: 'text' });
 
   let $;
   try {
@@ -62,8 +58,9 @@ export async function fetchStream (source) {
   return out.mux();
 };
 
+
 const handleProvince = async function (name, url, averagingPeriod, source) {
-  const response = await rp({method: 'GET', uri: url, resolveWithFullResponse: true, timeout: REQUEST_TIMEOUT});
+  const response = await request.get(url, { responseType: 'text' });
 
   if (response.statusCode !== 200) {
     throw new FetchError(DATA_PARSE_ERROR, source, null);
@@ -90,6 +87,7 @@ const handleProvince = async function (name, url, averagingPeriod, source) {
       })
   ).mux();
 };
+
 
 const getParameters = function (averagingPeriod) {
   switch (averagingPeriod.value) {
