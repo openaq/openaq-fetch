@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unversioned]
 
-## [0.0.1] - 04/10/2023
+## [0.0.1] - 04/11/2023
 
 ### Removed
 - src/adapters/au_sa.js (PR #987)
