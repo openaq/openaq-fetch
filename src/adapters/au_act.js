@@ -23,7 +23,7 @@ export function fetchData (source, cb) {
     const body = res.body;
     
     try {
-      let data = formatData(JSON.parse(body), source);
+      const data = formatData(JSON.parse(body), source);
       if (data === undefined) {
         return cb({message: 'Failure to parse data.'});
       }
@@ -39,8 +39,8 @@ export function fetchData (source, cb) {
 }
 
 
-let formatData = function (data, source) {
-  let parseDate = function (string) {
+const formatData = function (data, source) {
+  const parseDate = function (string) {
     const date = DateTime.fromISO(string, { zone: 'Australia/Sydney' });
     return {
       utc: date.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
@@ -49,7 +49,7 @@ let formatData = function (data, source) {
   };
 
   // mapping of types from source data into OpenAQ format
-  let types = {
+  const types = {
     'no2': 'no2',
     'o3_1hr': 'o3',
     'co': 'co',
@@ -57,7 +57,7 @@ let formatData = function (data, source) {
     'pm2_5': 'pm25'
   };
 
-  let units = {
+  const units = {
     'no2': 'ppm',
     'o3': 'ppm',
     'co': 'ppm',
@@ -65,7 +65,7 @@ let formatData = function (data, source) {
     'pm25': 'µg/m³'
   };
 
-  let measurements = [];
+  const measurements = [];
 
   data.forEach(function (row) {
     // base measurement properties
@@ -90,7 +90,7 @@ let formatData = function (data, source) {
 
     Object.keys(types).forEach(function (type) {
       if (type in row) {
-        let measurement = cloneDeep(baseMeasurement);
+        const measurement = cloneDeep(baseMeasurement);
 
         measurement.parameter = types[type];
         measurement.value = parseFloat(row[type]);
