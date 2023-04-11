@@ -1,6 +1,6 @@
 # Changelog
 
-Changes to adapters wil lbe documented in this file
+Changes to adapters will be documented in this file.
 
 ## 04/11/2023
 ### Removed
