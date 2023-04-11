@@ -1,0 +1,47 @@
+name: Deploy prod
+
+on: 
+  push:
+    branches:
+      - main
+
+env:
+  ENV: "prod"
+  PROJECT: "openaq"
+  PRODUCT: "fetch"
+  MAX_PARALLEL_ADAPTERS: ${{ secrets.MAX_PARALLEL_ADAPTERS }}
+  SAVE_TO_S3: ${{ secrets.SAVE_TO_S3 }}
+  AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+  OFFSET: ${{ secrets.OFFSET }}
+  SUFFIX: ${{ secrets.SUFFIX }}
+  ID: ${{ secrets.ID }}
+  PSQL_HOST: ${{ secrets.PSQL_HOST }} 
+  API_URL: ${{ secrets.API_URL }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY_PROD }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+
+      - name: Install CDK
+        run: |
+          npm install -g aws-cdk@2.25.0
+
+      - name: Deploy stack
+        working-directory: ./cdk
+        run: |
+          npm install
+          cdk deploy openaq-fetcher --require-approval never 
