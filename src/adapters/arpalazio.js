@@ -1,7 +1,5 @@
 'use strict';
 
-'use strict';
-
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import {
   FetchError,
@@ -20,7 +18,6 @@ const { StringStream, MultiStream } = sj;
 
 const getter = got.extend({ timeout: { request: REQUEST_TIMEOUT } });
 
-export const name = 'arpalazio';
 const timezone = 'Europe/Rome';
 
 const baseUrl = 'http://www.arpalazio.net/main/aria/sci/annoincorso/';
@@ -34,6 +31,8 @@ const hourlyParameters = difference(
   acceptableParameters,
   dailyParameters
 );
+
+export const name = 'arpalazio';
 
 export async function fetchStream(source) {
   const response = await getter.get(source.url, {
