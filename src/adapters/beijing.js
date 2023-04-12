@@ -38,9 +38,6 @@ export const fetchData = function (source, cb) {
       } catch (e) {
         return cb({ message: 'Unknown adapter error.' });
       }
-    })
-    .catch((error) => {
-      return cb({ message: 'Failure to load data url.', error });
     });
 };
 
