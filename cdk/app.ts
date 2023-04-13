@@ -4,7 +4,7 @@ import { RealtimeFetcherStack } from './stack';
 
 const DOTENV = process.env.DOTENV || '.env';
 
-const envs = readFileSync(`../src/${DOTENV}`, 'utf8');
+//const envs = readFileSync(`../src/${DOTENV}`, 'utf8');
 
 interface keyable {
   [key: string]: string  
@@ -15,7 +15,7 @@ const env: keyable = {
 };
 
 const reserved_keys = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'];
-
+/*
 envs.split('\n').forEach(function (e) {
   if (e) {
     let idx = e.indexOf('=');
@@ -26,10 +26,11 @@ envs.split('\n').forEach(function (e) {
     }
   }
 });
+*/
 
 const app = new cdk.App();
 
-const stack = new RealtimeFetcherStack(app, `fetcher-${env.ID}`, {
+const stack = new RealtimeFetcherStack(app, `fetcher-openaq`, {
   env,
 });
 
