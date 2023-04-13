@@ -127,8 +127,8 @@ const formatData = (body, station, parameter, today) => {
   $('#grafico table td[valign=bottom] img').each(function (i, el) {
     const title = $(this).attr('title');
     const match = title.match(/([\d.]*) - ([\d]*) hs/);
-    const value = Number(match[1]);
-    const hours = Number(match[2]);
+    const value = parseFloat(match[1]);
+    const hours = parseFloat(match[2]);
     const date = getDate(today, hours);
 
     let m = {
