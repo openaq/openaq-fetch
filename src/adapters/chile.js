@@ -8,12 +8,16 @@
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { default as baseRequest } from 'request';
 import _ from 'lodash';
 import { default as moment } from 'moment-timezone';
 import async from 'async';
 import { join } from 'path';
 import cheerio from 'cheerio';
+import got from 'got';
+
+const headers = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+};
 
 // Adding in certs to get around unverified connection issue
 // 2022-04-29 - this should no longer be needed
@@ -21,7 +25,7 @@ import cheerio from 'cheerio';
 //  .inject()
 //  .addFile(join(__dirname, '..', '/certs/OrganizationSSL.crt.txt'));
 
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+
 
 export const name = 'chile';
 
@@ -30,42 +34,41 @@ export const name = 'chile';
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
  */
-export function fetchData (source, cb) {
-  // Fetch both the measurements and meta-data about the locations
-  var sources = [source.url, 'http://sinca.mma.gob.cl/index.php/json/listado'];
-  var tasks = [];
 
-  _.forEach(sources, function (e) {
-    var task = function (cb) {
-      request(e, function (err, res, body) {
-        if (err || res.statusCode !== 200) {
-          return cb(err || res);
-        }
-        cb(null, body);
-      });
+export async function fetchData(source, cb) {
+  const sources = [source.url, 'http://sinca.mma.gob.cl/index.php/json/listado'];
+  const tasks = [];
+
+  for (const url of sources) {
+    const task = async function (cb) {
+      try {
+        const response = await got(url, {headers: headers, timeout: {request: REQUEST_TIMEOUT}});
+        cb(null, response.body);
+      } catch (error) {
+        console.error(`Error while fetching data from ${url}:`, error.message, error.statusCode);
+        cb(error, null);
+      }
     };
-
+    
     tasks.push(task);
-  });
+  }
 
-  async.parallel(tasks, function (err, results) {
+  async.parallel(tasks, (err, results) => {
     if (err) {
-      return cb({message: 'Failure to load data urls.'});
+      return cb({ message: 'Failure to load data urls.' });
     }
 
-    // Wrap everything in a try/catch in case something goes wrong
     try {
-      // Format the data
-      var data = formatData(results);
+      const data = formatData(results);
       if (data === undefined) {
-        return cb({message: 'Failure to parse data.'});
+        return cb({ message: 'Failure to parse data.' });
       }
       cb(null, data);
     } catch (e) {
-      return cb({message: 'Unknown adapter error.'});
+      return cb({ message: 'Unknown adapter error.' });
     }
   });
-};
+}
 
 /**
  * Given fetched data, turn it into a format our system can use.
@@ -163,3 +166,4 @@ var formatData = function (results) {
     measurements: measurements
   };
 };
+
