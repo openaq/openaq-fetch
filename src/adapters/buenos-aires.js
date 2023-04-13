@@ -1,89 +1,117 @@
 'use strict';
 
+import got from 'got';
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { acceptableParameters, convertUnits } from '../lib/utils.js';
-import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
 import cheerio from 'cheerio';
 import { parallel } from 'async';
 import flattenDeep from 'lodash/flattenDeep.js';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+import { DateTime } from 'luxon';
 
-export const name = 'buenos-aires';
+const getter = got.extend({ timeout: { request: REQUEST_TIMEOUT } });
 const timezone = 'America/Argentina/Buenos_Aires';
 
-export function fetchData (source, callback) {
-  request.get(source.url, (err, res, body) => {
-    if (err || res.statusCode !== 200) {
-      return callback({message: 'Failed to load entry point url'}, null);
-    }
+export const name = 'buenos-aires';
 
-    let tasks = [];
-    let $ = cheerio.load(body);
+export function fetchData(source, callback) {
+  getter(source.url)
+    .then((response) => {
+      const body = response.body;
+      let tasks = [];
+      let $ = cheerio.load(body);
 
-    const stations = $('#estacion option').filter(function (i, el) {
-      // skip non working station
-      return $(this).text() !== 'PALERMO';
-    }).filter(function (i, el) {
-      return $(this).attr('value') !== '';
-    }).map(function (i, el) {
-      return {
-        id: $(this).attr('value'),
-        name: $(this).text()
-      };
-    }).get();
+      const stations = $('#estacion option')
+        .filter(function (i, el) {
+          // skip non working station
+          return $(this).text() !== 'PALERMO';
+        })
+        .filter(function (i, el) {
+          return $(this).attr('value') !== '';
+        })
+        .map(function (i, el) {
+          return {
+            id: $(this).attr('value'),
+            name: $(this).text()
+          };
+        })
+        .get();
 
-    const parameters = $('#contaminante option').filter(function (i, el) {
-      return $(this).attr('value') !== '';
-    }).filter(function (i, el) {
-      return acceptableParameters.indexOf($(this).text().toLowerCase()) !== -1;
-    }).map(function (i, el) {
-      return {
-        id: $(this).attr('value'),
-        name: $(this).text()
-      };
-    }).get();
+      const parameters = $('#contaminante option')
+        .filter(function (i, el) {
+          return $(this).attr('value') !== '';
+        })
+        .filter(function (i, el) {
+          return (
+            acceptableParameters.indexOf(
+              $(this).text().toLowerCase()
+            ) !== -1
+          );
+        })
+        .map(function (i, el) {
+          return {
+            id: $(this).attr('value'),
+            name: $(this).text()
+          };
+        })
+        .get();
 
-    const today = moment.tz(timezone)
-      .hours(0)
-      .minutes(0)
-      .seconds(0)
-      .milliseconds(0);
-    stations.forEach((station) => {
-      parameters.forEach((parameter) => {
-        const url = makeStationQuery(source.url, station, parameter, today);
-        tasks.push(handleStation(url, station.name, parameter.name, today));
+      const today = DateTime.local().setZone(timezone).startOf('day');
+      stations.forEach((station) => {
+        parameters.forEach((parameter) => {
+          const url = makeStationQuery(
+            source.url,
+            station,
+            parameter,
+            today
+          );
+          tasks.push(
+            handleStation(url, station.name, parameter.name, today)
+          );
+        });
       });
+
+      parallel(tasks, (err, results) => {
+        if (err) {
+          return callback(err, []);
+        }
+
+        results = flattenDeep(results);
+        results = convertUnits(results);
+
+        return callback(null, {
+          name: 'unused',
+          measurements: results
+        });
+      });
+    })
+    .catch((error) => {
+      return callback(
+        { message: 'Failed to load entry point url' },
+        null
+      );
     });
-
-    parallel(tasks, (err, results) => {
-      if (err) {
-        return callback(err, []);
-      }
-
-      results = flattenDeep(results);
-      results = convertUnits(results);
-
-      return callback(null, {name: 'unused', measurements: results});
-    });
-  });
 }
 
 const makeStationQuery = (sourceUrl, station, parameter, date) => {
-  const url = `${sourceUrl}contaminante=${parameter.id}&estacion=${station.id}&fecha_dia=${date.format('D')}&fecha_mes=${date.format('M')}&fecha_anio=${date.format('Y')}&menu_id=34234&buscar=Buscar`;
+  const url = `${sourceUrl}contaminante=${parameter.id}&estacion=${
+    station.id
+  }&fecha_dia=${date.toFormat('d')}&fecha_mes=${date.toFormat(
+    'M'
+  )}&fecha_anio=${date.toFormat('y')}&menu_id=34234&buscar=Buscar`;
   return url;
 };
 
 const handleStation = (url, station, parameter, today) => {
   return (done) => {
-    request(url, (err, response, body) => {
-      if (err || response.statusCode !== 200) {
+    getter(url)
+      .then((response) => {
+        const body = response.body;
+        const results = formatData(body, station, parameter, today);
+        return done(null, results);
+      })
+      .catch((error) => {
         return done(null, []);
-      }
-
-      const results = formatData(body, station, parameter, today);
-      return done(null, results);
-    });
+      });
   };
 };
 
@@ -111,10 +139,12 @@ const formatData = (body, station, parameter, today) => {
       averagingPeriod: averagingPeriod,
       date: date,
       coordinates: coordinates,
-      attribution: [{
-        name: 'Buenos Aires Ciudad, Agencia de Protección Ambiental',
-        url: 'http://www.buenosaires.gob.ar/agenciaambiental/monitoreoambiental'
-      }]
+      attribution: [
+        {
+          name: 'Buenos Aires Ciudad, Agencia de Protección Ambiental',
+          url: 'http://www.buenosaires.gob.ar/agenciaambiental/monitoreoambiental',
+        },
+      ],
     };
     measurements.push(m);
   });
@@ -122,14 +152,14 @@ const formatData = (body, station, parameter, today) => {
 };
 
 const getDate = (today, hours) => {
-  let date = moment.tz(today, timezone);
+  let date = DateTime.fromISO(today, { zone: timezone });
   if (hours >= 13 && hours <= 23) {
-    date.subtract(1, 'days');
+    date = date.minus({ days: 1 });
   }
-  date = date.hours(hours);
+  date = date.set({ hour: hours });
   return {
-    utc: date.toDate(),
-    local: date.format()
+    utc: date.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+    local: date.toFormat("yyyy-MM-dd'T'HH:mm:ssZZ"),
   };
 };
 
@@ -170,11 +200,11 @@ const getUnit = (parameter) => {
 const getAveragingPeriod = (parameter) => {
   switch (parameter) {
     case 'CO':
-      return {unit: 'hours', value: 8};
+      return { unit: 'hours', value: 8 };
     case 'NO2':
-      return {unit: 'hours', value: 1};
+      return { unit: 'hours', value: 1 };
     case 'PM10':
-      return {unit: 'hours', value: 24};
+      return { unit: 'hours', value: 24 };
     default:
       break;
   }
