@@ -3,7 +3,7 @@ name: ci
 on:
   pull_request:
     branches:
-      - lambda-deployment
+      - main
 
 jobs:
   depcheck:
@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: install depcheck
         run: npm install depcheck --legacy-peer-deps
       - name: run depcheck
