@@ -9,12 +9,12 @@ env:
   ENV: "prod"
   PROJECT: "openaq"
   PRODUCT: "fetch"
-  MAX_PARALLEL_ADAPTERS: ${{ secrets.MAX_PARALLEL_ADAPTERS }}
-  SAVE_TO_S3: ${{ secrets.SAVE_TO_S3 }}
+  MAX_PARALLEL_ADAPTERS: 1
+  SAVE_TO_S3: true
   AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
-  OFFSET: ${{ secrets.OFFSET }}
+  OFFSET: 0
   SUFFIX: ${{ secrets.SUFFIX }}
-  ID: ${{ secrets.ID }}
+  ID: openaq
   PSQL_HOST: ${{ secrets.PSQL_HOST }} 
   API_URL: ${{ secrets.API_URL }}
 
