@@ -71,9 +71,8 @@ const formatData = function (data, source) {
 
       // Return UTC and local ISO strings
       return {
-        utc: date.toISO({
+        utc: date.toUTC().toISO({
           suppressMilliseconds: true,
-          includeOffset: true,
         }),
         local: date.toISO({ suppressMilliseconds: true }),
       };
