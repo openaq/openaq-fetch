@@ -1,39 +1,44 @@
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
+import { DateTime } from 'luxon';
 import cheerio from 'cheerio';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+import got from 'got';
 
 export const name = 'defra';
 
-export function fetchData (source, cb) {
-  request({url: source.url, headers: {'User-Agent': 'OpenAQ'}}, function (err, res, body) {
-    if (err || res.statusCode !== 200) {
-      return cb({message: 'Failure to load data url.'});
-    }
+const headers = { 'User-Agent': 'OpenAQ' }
 
-    // Wrap everything in a try/catch in case something goes wrong
-    try {
-      // Format the data
-      var data = formatData(source, body);
+const gotExtended = got.extend({
+	retry: { limit: 3 },
+	timeout: { request: REQUEST_TIMEOUT },
+  headers: headers
+	});
 
-      // Make sure the data is valid
-      if (data === undefined) {
-        return cb({message: 'Failure to parse data.'});
+
+export function fetchData(source, cb) {
+  gotExtended(source.url)
+    .then((response) => {
+      // Wrap everything in a try/catch in case something goes wrong
+      try {
+        // Format the data
+        const data = formatData(source, response.body);
+
+        // Make sure the data is valid
+        if (data === undefined) {
+          return cb({ message: 'Failure to parse data.' });
+        }
+        cb(null, data);
+      } catch (e) {
+        return cb({ message: 'Unknown adapter error.' });
       }
-      cb(null, data);
-    } catch (e) {
-      return cb({message: 'Unknown adapter error.'});
-    }
-  });
-};
+    })
+}
 
-var formatData = function (source, data) {
+let formatData = function (source, data) {
   let measurements = [];
   // Load the html into Cheerio
-  var $ = cheerio.load(data);
+  let $ = cheerio.load(data);
   $('.current_levels_table').each((i, e) => {
     $('tr', $(e)).each((i, e) => {
       handleLocation(e);
@@ -44,10 +49,29 @@ var formatData = function (source, data) {
     return name.trim();
   }
 
-  function sanitizeDate (date) {
-    let m = moment.tz(date, 'DD/MM/YYYYHH:mm', 'Europe/London');
-    return {utc: m.toDate(), local: m.format('YYYY-MM-DDTHH:mm:ssZ')};
-  }
+  function sanitizeDate (dateString) {
+    try {
+      // Create DateTime object with timezone using the fromFormat() method
+      const date = DateTime.fromFormat(
+        dateString,
+        'dd/MM/yyyyHH:mm:ss',
+        {
+          zone: 'Europe/London',
+        }
+      );
+
+      // Return UTC and local ISO strings
+      return {
+        utc: date.toUTC().toISO({
+          suppressMilliseconds: true,
+        }),
+        local: date.toISO({ suppressMilliseconds: true }),
+      };
+    } catch (error) {
+      console.error('Error parsing date:', error);
+      throw new Error('Error parsing date');
+    }
+  };
 
   function getValue (measuredValue) {
     if (measuredValue === 'n/a' || measuredValue === 'n/m') {
@@ -55,7 +79,7 @@ var formatData = function (source, data) {
     }
 
     let idx = measuredValue.indexOf('(');
-    return Number(measuredValue.substring(0, idx));
+    return parseFloat(measuredValue.substring(0, idx));
   }
 
   function handleMeasurement (parameter, el, period, base) {
@@ -144,7 +168,6 @@ var formatData = function (source, data) {
       measurements.push(pm10);
     }
   }
-
   return {
     name: 'unused',
     measurements: (measurements || []).filter(i => i.city)
