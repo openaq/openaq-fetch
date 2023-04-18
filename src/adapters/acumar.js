@@ -65,12 +65,12 @@ async function getPollutionData(station) {
   try {
     const response = await got(station.url, {
       timeout: {
-        request: 5000, // 5 seconds
-        connect: 1000, // 1 second
-        secureConnect: 1000, // 1 second
-        socket: 5000, // 5 seconds
-        response: 5000, // 5 seconds
-        send: 1000, // 1 second
+        request: 5000,
+        connect: 1000,
+        secureConnect: 1000,
+        socket: 5000,
+        response: 5000,
+        send: 1000
       },
     });
     const $ = load(response.body);
@@ -78,7 +78,7 @@ async function getPollutionData(station) {
     const firstDataRow = $('table')
       .eq(station.table)
       .find('tr')
-      .eq(1); // Get the second row (index 1) since the first row (index 0) is the header
+      .eq(1); // Get the second row 
 
     const dateStr = firstDataRow.find('td').eq(0).text().trim();
     const timeStr = firstDataRow
