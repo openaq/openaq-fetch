@@ -13,5 +13,20 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+     {
+        "url": "http://www.buenosaires.gob.ar/areas/med_ambiente/apra/calidad_amb/red_monitoreo/index.php?",
+        "adapter": "acumar-ar",
+        "name": "ACUMAR",
+        "country": "AR",
+        "city": "Buenos Aires",
+        "description": "Air quality data for Buenos Aires",
+        "sourceURL": "https://www.acumar.gob.ar/monitoreo-ambiental/calidad-de-aire/",
+        "license": "CC BY 2.5",
+        "licenseURL": "https://creativecommons.org/licenses/by/2.5/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
