@@ -15,7 +15,7 @@
         "active": true
     },
      {
-        "url": "http://jmb.acumar.gov.ar/calidad/contaminantes${slug}.php",
+        "url": "http://jmb.acumar.gov.ar/calidad/contaminantes.php",
         "adapter": "acumar",
         "name": "ACUMAR",
         "country": "AR",
