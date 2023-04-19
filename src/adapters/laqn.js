@@ -1,17 +1,16 @@
 'use strict';
 
 import _ from 'lodash';
+import got from 'got';
 import log from '../lib/logger.js';
 import { DateTime } from 'luxon';
 import {
-  promiseRequest,
   unifyParameters,
   unifyMeasurementUnits,
 } from '../lib/utils.js';
 
 export const name = 'laqn';
 
-// API does not publish units but we got them directly from the data source
 const unitLookup = {
   CO: 'mg/m3',
   NO2: 'µg/m3',
@@ -21,35 +20,39 @@ const unitLookup = {
   SO2: 'µg/m3',
 };
 
-export async function fetchData(source, cb) {
+export async function fetchData (source, cb) {
   try {
     const timeZone = 'Europe/London';
     const dateNow = source.datetime
-      ? DateTime.fromISO(source.datetime, { zone: timeZone }) // WHAT FORMAT IS source.datetime ??? "YYYY-MM-DD HH:mm:ss" eg "2022-04-27 06:03:26" ???
+      ? DateTime.fromISO(source.datetime, { zone: timeZone })
       : DateTime.now().setZone(timeZone);
 
     const startDate = dateNow.toFormat('dd LLL yyyy');
     const endDate = dateNow.plus({ days: 1 }).toFormat('dd LLL yyyy');
 
-    const siteCodesResponse = await promiseRequest(
+    const siteCodesResponse = await got(
       `${source.url}/AirQuality/Information/MonitoringSites/GroupName=All/Json`
     );
-    let allSites = JSON.parse(siteCodesResponse).Sites.Site;
-    // assuming these are all marked once they are closed
+    let allSites = JSON.parse(siteCodesResponse.body).Sites.Site;
     allSites = allSites.filter((s) => !s['@DateClosed']);
     const siteLookup = _.keyBy(allSites, '@SiteCode');
     const dataPromises = allSites.map((site) =>
-      promiseRequest(
+      got(
         `${source.url}/AirQuality/Data/Site/SiteCode=${site['@SiteCode']}/StartDate=${startDate}/EndDate=${endDate}/Json`
       )
         .catch((error) => {
           log.warn(
-            error ||
-              `Unable to load data for site: ${site['@SiteCode']}`
+            `Unable to load data for site: ${site['@SiteCode']} - HTTP status: ${error.response.statusCode}`
           );
           return null;
         })
-        .then((data) => formatData(data, siteLookup))
+        .then((data) => {
+          if (data) {
+            return formatData(data.body, siteLookup);
+          } else {
+            return null;
+          }
+        })
     );
 
     const allData = await Promise.all(dataPromises);
