@@ -33,12 +33,6 @@ export async function fetchData(source, cb) {
     );
 
     const flattenedResults = results.flat();
-
-    // console.dir(flattenedResults, {
-    //   maxArrayLength: null,
-    //   depth: null,
-    // });
-    
     cb(null, {
       name: 'unused',
       measurements: flattenedResults,
