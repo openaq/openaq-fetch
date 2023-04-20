@@ -6,7 +6,7 @@
  */
 'use strict';
 
-import { default as moment } from 'moment-timezone';
+import { DateTime } from 'luxon';
 import https from 'https';
 import _ from 'lodash';
 import { promiseRequest, convertUnits } from '../lib/utils.js';
@@ -93,10 +93,13 @@ const extractMeasurements = (features) => {
   o.attribution = [o.attribution];
   o.parameter = o.parameter === 'pm10³' ? 'pm10' : o.parameter;
   // And generate the date
-  const date = moment.tz(features.date.utc, 'America/Bogota');
+  const date = DateTime.fromISO(features.date.utc);
+  // console.log(features.date.utc);
+  // console.log(date.toUTC().toISO({ suppressMilliseconds: true }));
+  // console.log(date.setZone('America/Bogota').toISO({ suppressMilliseconds: true }))
   o.date = {
-    utc: date.toDate(),
-    local: date.format()
+    utc: date.toUTC().toISO({ suppressMilliseconds: true }),
+    local: date.setZone('America/Bogota').toISO({ suppressMilliseconds: true })
   };
 
   if (o.value <= -9999) {
