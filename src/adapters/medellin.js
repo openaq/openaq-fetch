@@ -4,54 +4,44 @@
  * data sources.
  *
  */
+
 'use strict';
 
 import { DateTime } from 'luxon';
-import https from 'https';
+import got from 'got';
 import _ from 'lodash';
-import { promiseRequest, convertUnits } from '../lib/utils.js';
+import { convertUnits } from '../lib/utils.js';
 import log from '../lib/logger.js';
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 
 export const name = 'medellin';
 
-const agent = new https.Agent({
-  rejectUnauthorized: false
-});
-
-const requestOptions = {
-  method: 'GET',
+const options = {
   headers: {
     'accept-language': 'en-US,en',
     'content-type': 'application/x-www-form-urlencoded',
     accept: 'application/json'
   },
-  form: false,
-  timeout: REQUEST_TIMEOUT
+  https: {
+    rejectUnauthorized: false
+  },
+  timeout: { request: REQUEST_TIMEOUT }
 };
-
-/**
- * Fetches the data for a given source and returns an appropriate object
- * @param {object} source A valid source object
- * @param {function} cb A callback of the form cb(err, data)
- */
 
 export async function fetchData (source, cb) {
   try {
     const pollutants = ['co', 'no2', 'ozono', 'pm10', 'pm25', 'so2'];
-    // Create promises with post requests and parsing for all parameters
-    const allParams = pollutants.map((p) => {
+
+    const allParams = pollutants.map(async (p) => {
       const url = `${source.url}EntregaData1/Datos_SIATA_Aire_AQ_${p}_Last.json`;
-      const options = Object.assign(requestOptions, {
-        url: source.url,
-        agent
-      });
-      return promiseRequest(url, options)
-        .catch((error) => {
-          log.warn(error || `Unable to load data for parameter: ${p} for adapter ${source.name}`);
-          return null;
-        })
-        .then((data) => JSON.parse(data));
+
+      try {
+        const response = await got.get(url, options);
+        return JSON.parse(response.body);
+      } catch (error) {
+        log.warn(error || `Unable to load data for parameter: ${p} for adapter ${source.name}`);
+        return null;
+      }
     });
 
     const allData = await Promise.all(allParams);
@@ -92,11 +82,8 @@ const extractMeasurements = (features) => {
   delete o.averagingPeriod.units;
   o.attribution = [o.attribution];
   o.parameter = o.parameter === 'pm10³' ? 'pm10' : o.parameter;
-  // And generate the date
+
   const date = DateTime.fromISO(features.date.utc);
-  // console.log(features.date.utc);
-  // console.log(date.toUTC().toISO({ suppressMilliseconds: true }));
-  // console.log(date.setZone('America/Bogota').toISO({ suppressMilliseconds: true }))
   o.date = {
     utc: date.toUTC().toISO({ suppressMilliseconds: true }),
     local: date.setZone('America/Bogota').toISO({ suppressMilliseconds: true })
