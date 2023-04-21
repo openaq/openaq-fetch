@@ -8,76 +8,53 @@
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import { DateTime } from 'luxon';
+import { load } from 'cheerio';
+import got from 'got';
 import {
   removeUnwantedParameters,
   unifyMeasurementUnits,
   unifyParameters,
 } from '../lib/utils.js';
-import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
-import { DateTime } from 'luxon';
-import async from 'async';
-import { load } from 'cheerio';
 
-// Adding in certs to get around unverified connection issue
-const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
+const gotInstance = got.extend({ timeout: { request: REQUEST_TIMEOUT } });
 
 export const name = 'montenegro';
 
-export async function fetchData (source, cb) {
+export async function fetchData(source, cb) {
   let tasks = [];
 
   for (let i = 1; i < 20; i++) {
     try {
-      await new Promise((resolve, reject) => {
-        request(source.url + i, (error, response, body) => {
-          if (error) {
-            console.error('Request error:', error);
-            reject(new Error(error));
-          }
-          if (response.statusCode !== 200) {
-            reject(
-              new Error(
-                'Invalid status code <' + response.statusCode + '>'
-              )
-            );
-          }
-          resolve(body);
-        });
-      });
-      let task = function (cb) {
-        request(source.url + i, function (err, res, body) {
-          if (err || res.statusCode !== 200) {
-            console.error('Error in task:', err || res);
-            return cb(err || res);
-          }
-          cb(null, body);
-        });
+      await gotInstance(source.url + i);
+      let task = async function () {
+        try {
+          const response = await gotInstance(source.url + i);
+          return response.body;
+        } catch (error) {
+          console.error('Error in task:', error.message);
+          throw error;
+        }
       };
       tasks.push(task);
-    } catch (e) {
-      console.error('Error while creating tasks:', e.message);
+    } catch (error) {
+      console.error('Error while creating tasks:', error.message);
       continue;
     }
   }
 
-  async.parallel(tasks, function (err, results) {
-    if (err) {
-      console.error('Error in async.parallel:', err);
-      return cb({ message: 'Failure to load data urls.' });
+  try {
+    const results = await Promise.all(tasks.map((task) => task()));
+    const data = formatData(results);
+    if (data === undefined) {
+      console.error('Failed to parse data');
+      return cb({ message: 'Failure to parse data.' });
     }
-    try {
-      let data = formatData(results);
-      if (data === undefined) {
-        console.error('Failed to parse data');
-        return cb({ message: 'Failure to parse data.' });
-      }
-      cb(null, data);
-    } catch (e) {
-      console.error('Unknown adapter error:', e);
-      return cb({ message: 'Unknown adapter error.' });
-    }
-  });
+    cb(null, data);
+  } catch (error) {
+    console.error('Error in async.parallel:', error.message);
+    return cb({ message: 'Failure to load data urls.' });
+  }
 }
 
 const formatData = function (results) {
@@ -88,14 +65,21 @@ const formatData = function (results) {
         return;
       }
       location = location.split('|');
-      if (location.length < 2 || location[0].includes('Otvori veću kartu')) { // Add this check
+      if (
+        location.length < 2 ||
+        location[0].includes('Otvori veću kartu')
+      ) {
+        // Add this check
         console.error('Invalid location format');
         return;
       }
       const city = location[0].split(',');
       template.city = city[0].trim();
-      template.location = city.length === 1 ? city[0].trim() : city[1].trim();
-      let coordinates = location[1].replace('Geolokacija:', '').split(',');
+      template.location =
+        city.length === 1 ? city[0].trim() : city[1].trim();
+      let coordinates = location[1]
+        .replace('Geolokacija:', '')
+        .split(',');
       coordinates = {
         latitude: parseFloat(coordinates[0]),
         longitude: parseFloat(coordinates[1]),
@@ -115,11 +99,17 @@ const formatData = function (results) {
       // Create DateTime object with timezone using the fromFormat() method
       date = date.replace('Pregled mjerenja za', '').replace('h', '');
       date = date.trim(); // remove whitespace
-      const dateLuxon = DateTime.fromFormat(date, 'dd.MM.yyyy HH:mm', {
-        zone: 'Europe/Podgorica',
-      });
+      const dateLuxon = DateTime.fromFormat(
+        date,
+        'dd.MM.yyyy HH:mm',
+        {
+          zone: 'Europe/Podgorica',
+        }
+      );
       // Return UTC and local ISO strings
-      const utc = dateLuxon.toUTC().toISO({ suppressMilliseconds: true });
+      const utc = dateLuxon
+        .toUTC()
+        .toISO({ suppressMilliseconds: true });
       const local = dateLuxon.toISO({ suppressMilliseconds: true });
       template.date = {
         utc: utc,
