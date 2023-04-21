@@ -24,7 +24,7 @@ const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
 
 export const name = 'montenegro';
 
-export async function fetchData(source, cb) {
+export async function fetchData (source, cb) {
   let tasks = [];
 
   for (let i = 1; i < 20; i++) {
@@ -108,22 +108,28 @@ const formatData = function (results) {
       console.error('Error in parseLocation:', e);
     }
   };
-  
-  const parseDate = (date, template) => {
+
+  const parseDate = function (date, template) {
+    // Validate input
+    if (typeof date !== 'string' || date.trim() === '') {
+      throw new Error('Invalid date string');
+    }
     try {
+      // Create DateTime object with timezone using the fromFormat() method
       date = date.replace('Pregled mjerenja za', '').replace('h', '');
-      const dateMoment = moment.tz(
-        date,
-        'DD.MM.YYYY HH:mm',
-        'Europe/Podgorica'
-      );
-      date = {
-        utc: dateMoment.toDate(),
-        local: dateMoment.format(),
+      date = date.trim(); // remove whitespace
+      const dateLuxon = DateTime.fromFormat(date, 'dd.MM.yyyy HH:mm', {
+        zone: 'Europe/Podgorica',
+      });
+      // Return UTC and local ISO strings
+      const utc = dateLuxon.toUTC().toISO({ suppressMilliseconds: true });
+      const local = dateLuxon.toISO({ suppressMilliseconds: true });
+      template.date = {
+        utc: utc,
+        local: local,
       };
-      template['date'] = date;
-    } catch (e) {
-      console.error('Error in parseDate:', e);
+    } catch (error) {
+      throw new Error('Error parsing date');
     }
   };
 
@@ -152,9 +158,10 @@ const formatData = function (results) {
   let measurements = [];
 
   results.forEach((p) => {
-    const $ = load(p);
+    let $ = load(p);
   
-    const template = {
+    let template = {
+      date: {},
       attribution: [{ name: 'epa.me', url: 'https://epa.org.me/' }],
       averagingPeriod: { unit: 'hours', value: 1 },
     };
