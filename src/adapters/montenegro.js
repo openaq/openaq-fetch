@@ -95,15 +95,15 @@ const formatData = function (results) {
         console.error('Invalid location format');
         return;
       }
-      let city = location[0].split(',');
-      template['city'] = city[0].trim();
-      template['location'] = city.length === 1 ? city[0].trim() : city[1].trim();
+      const city = location[0].split(',');
+      template.city = city[0].trim();
+      template.location = city.length === 1 ? city[0].trim() : city[1].trim();
       let coordinates = location[1].replace('Geolokacija:', '').split(',');
       coordinates = {
         latitude: parseFloat(coordinates[0]),
         longitude: parseFloat(coordinates[1]),
       };
-      template['coordinates'] = coordinates;
+      template.coordinates = coordinates;
     } catch (e) {
       console.error('Error in parseLocation:', e);
     }
@@ -158,17 +158,17 @@ const formatData = function (results) {
   let measurements = [];
 
   results.forEach((p) => {
-    let $ = load(p);
-  
+    const $ = load(p);
+
     let template = {
       date: {},
       attribution: [{ name: 'epa.me', url: 'https://epa.org.me/' }],
       averagingPeriod: { unit: 'hours', value: 1 },
     };
-  
+
     $('.col-6.col-12-medium').each((i, e) => {
       $('h6 a', e).each((i, e) => {
-        let text = $(e).text();
+        const text = $(e).text();
         console.log('Text:', text); // Add this line for additional logging
         if (text.search('|') !== -1 && text.charAt(0) !== '*') {
           parseLocation(text, template);
