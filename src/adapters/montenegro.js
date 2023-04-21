@@ -36,9 +36,6 @@ export async function fetchData (source, cb) {
             reject(new Error(error));
           }
           if (response.statusCode !== 200) {
-            console.error(
-              'Invalid status code <' + response.statusCode + '>'
-            );
             reject(
               new Error(
                 'Invalid status code <' + response.statusCode + '>'
@@ -59,7 +56,7 @@ export async function fetchData (source, cb) {
       };
       tasks.push(task);
     } catch (e) {
-      console.error('Error while creating tasks:', e);
+      console.error('Error while creating tasks:', e.message);
       continue;
     }
   }
@@ -91,7 +88,7 @@ const formatData = function (results) {
         return;
       }
       location = location.split('|');
-      if (location.length < 2) { // Add this check
+      if (location.length < 2 || location[0].includes('Otvori veću kartu')) { // Add this check
         console.error('Invalid location format');
         return;
       }
@@ -169,7 +166,7 @@ const formatData = function (results) {
     $('.col-6.col-12-medium').each((i, e) => {
       $('h6 a', e).each((i, e) => {
         const text = $(e).text();
-        console.log('Text:', text); // Add this line for additional logging
+        // console.log('Text:', text); // Add this line for additional logging
         if (text.search('|') !== -1 && text.charAt(0) !== '*') {
           parseLocation(text, template);
         }
