@@ -5,78 +5,71 @@
  * This is a two-stage adapter requiring loading multiple urls before parsing
  * data.
  */
+
 'use strict';
 
-import { unifyMeasurementUnits, unifyParameters, removeUnwantedParameters } from '../lib/utils.js';
+import {
+  unifyMeasurementUnits,
+  unifyParameters,
+  removeUnwantedParameters,
+} from '../lib/utils.js';
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
+import got from 'got';
+import { DateTime } from 'luxon';
 import async from 'async';
-import cheerio from 'cheerio';
-import { join } from 'path';
+import { load } from 'cheerio';
 import sslRootCas from 'ssl-root-cas';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Adding in certs to get around unverified connection issue
 const rootCas = sslRootCas.create();
-const certificatePath = join(__dirname, '..', '/certs/sinaica.inecc.gob.mx.chained.crt');
 
-rootCas
-  .inject()
-  .addFile(certificatePath);
+const certificatePath = join(
+  __dirname,
+  '..',
+  '/certs/sinaica.inecc.gob.mx.chained.crt'
+);
 
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT, ca: rootCas});
+rootCas.inject().addFile(certificatePath);
+
+const gotInstance = got.extend({
+  timeout: { request: REQUEST_TIMEOUT },
+  https: {
+    certificateAuthority: rootCas,
+  },
+});
 
 export const name = 'mexico';
+
+export async function fetchData(source, cb) {
 /**
  * Fetches the data for a given source and returns an appropriate object
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
  */
-export async function fetchData (source, cb) {
-  // Goes through the main page of the source, and finds all the links to station pages
-  // And then maps all those links into requests
-  // Request may need some calibration, because the code may often get Error: ESOCKETTIMEDOUT, could not find any way to bypass that
-  let tasks = fetchAllStationSites(await new Promise((resolve, reject) => {
-    request(source.sourceURL, (error, response, body) => {
-      if ((!response) || (error)) reject(new Error(error));
-      if (response && response.statusCode !== 200) {
-        reject(new Error('Invalid status code <' + response.statusCode + '>'));
-      }
-      resolve(body);
-    });
-  }), source.url)
-    .map(e => {
-      return function (cb) {
-        // Tried to use more maxsockets to fix the  Error: ESOCKETTIMEDOUT, did not work
-        request({url: e, agent: false, pool: {maxSockets: 200}}, function (err, res, body) {
-          if (err || (res && res.statusCode !== 200)) {
-            return cb(err || res);
-          }
-          cb(null, body);
-        });
-      };
-    });
+  const tasks = fetchAllStationSites(
+    await gotInstance(source.sourceURL).text(),
+    source.url
+  ).map((e) => {
+    return async function () {
+      const response = await gotInstance(e);
+      return response.body;
+    };
+  });
   async.parallel(tasks, function (err, results) {
     if (err) {
-      return cb({message: 'Failure to load data urls.'});
+      return cb({ message: 'Failure to load data urls.' });
     }
-    // Wrap everything in a try/catch in case something goes wrong
-    try {
-      // Format the data
-      let data = formatData(results);
-      if (data === undefined) {
-        return cb({message: 'Failure to parse data.'});
-      }
-      cb(null, data);
-    } catch (e) {
-      return cb({message: 'Unknown adapter error.'});
+    const data = formatData(results);
+    if (data === undefined) {
+      return cb({ message: 'Failure to parse data.' });
     }
+    cb(null, data);
   });
-};
+}
 
 /**
  * Goes through main page of site, and finds the urls for all the stations pages, and returns them
@@ -84,11 +77,14 @@ export async function fetchData (source, cb) {
  * @param {string} url String of baseurl for sites
  * @return {array} Array of urls
  */
-let fetchAllStationSites = function (page, url) {
-  let $ = cheerio.load(page);
-  return $('#selPickHeadEst option').map(function () {
-    return (url + $(this).val());
-  }).get();
+
+const fetchAllStationSites = function (page, url) {
+  const $ = load(page);
+  return $('#selPickHeadEst option')
+    .map(function () {
+      return url + $(this).val();
+    })
+    .get();
 };
 
 /**
@@ -96,12 +92,13 @@ let fetchAllStationSites = function (page, url) {
  * @param {array} pages Fetched source data and other metadata
  * @return {object} Parsed and standarized data our system can use
  */
-let formatData = function (pages) {
-/**
- * Fetches the city from a htmlstring and adds it to template
- * @param {string} place HTML string from the page, which displays location
- * @param {object} template object of the template to use in creating measurements
- */
+
+const formatData = function (pages) {
+  /**
+   * Fetches the city from a htmlstring and adds it to template
+   * @param {string} place HTML string from the page, which displays location
+   * @param {object} template object of the template to use in creating measurements
+   */
   const getCity = (place, template) => {
     const hexCodes = {
       '&#xF3;': 'ó',
@@ -113,9 +110,9 @@ let formatData = function (pages) {
       '&#xF1;': 'ñ',
       '&#xD3;': 'Ó',
       '&#xC9;': 'É',
-      '&#xFA;': 'ú'
+      '&#xFA;': 'ú',
     };
-    Object.keys(hexCodes).forEach(h => {
+    Object.keys(hexCodes).forEach((h) => {
       while (place.search(h) !== -1) {
         place = place.replace(h, hexCodes[h]);
       }
@@ -130,7 +127,7 @@ let formatData = function (pages) {
       let found = false;
       for (let j in place) {
         if (place[j].search(i) !== -1) {
-          template['city'] = place[j].replace(i, '').trim();
+          template.city = place[j].replace(i, '').trim();
           found = true;
         }
       }
@@ -140,15 +137,23 @@ let formatData = function (pages) {
 
   let measurements = [];
   // Loops through each oage
-  pages.forEach(page => {
-    let $ = cheerio.load(page);
+  pages.forEach((page) => {
+    const $ = load(page);
     // base template
-    let template = {
-      attribution: [{ name: 'SINAICA', url: 'https://sinaica.inecc.gob.mx/index.php' }],
-      averagingPeriod: {unit: 'hours', value: 1}
+    const template = {
+      attribution: [
+        {
+          name: 'SINAICA',
+          url: 'https://sinaica.inecc.gob.mx/index.php',
+        },
+      ],
+      averagingPeriod: { unit: 'hours', value: 1 },
     };
     // checks if page has any values to read
-    if ($($('#tabs-1').get(0)).text().trim() !== 'No hay datos disponibles de las últimas 24 horas.') {
+    if (
+      $($('#tabs-1').get(0)).text().trim() !==
+      'No hay datos disponibles de las últimas 24 horas.'
+    ) {
       // finds the city
       $('.tbl-est.table tr').each((i, e) => {
         if ($('th', e).text() === 'Dirección postal:') {
@@ -158,59 +163,78 @@ let formatData = function (pages) {
       // Tries to find location, and values in the document script of the page, and then adds them to measurements
       try {
         // base documentscript
-        let values = $('script')
+        const values = $('script')
           .toArray()
-          .map(script => $(script).html())
-          .filter(script => script.search('conts = {') !== -1)[0];
+          .map((script) => $(script).html())
+          .filter((script) => script.search('conts = {') !== -1)[0];
 
         // Metadata from the documentscript, turns it into json to get latitude, longitude and location
         let meta = values.substring(values.indexOf('est = {'));
-        meta = meta.substring(String('est = {').length - 1, meta.indexOf('};') + 1);
+        meta = meta.substring(
+          String('est = {').length - 1,
+          meta.indexOf('};') + 1
+        );
         meta = JSON.parse(meta);
-        template['coordinates'] = {
-          latitude: Number(meta.lat),
-          longitude: Number(meta.long)
+        template.coordinates = {
+          latitude: parseFloat(meta.lat),
+          longitude: parseFloat(meta.long),
         };
-        template['location'] = meta.nombre;
-        let timezone = getTimeZone(meta.zonaHoraria);
+        template.location = meta.nombre;
+        const timezone = getTimeZone(meta.zonaHoraria);
 
         // formats the data and values from the documentscript into readable data
         let data = values.substring(values.indexOf('conts = {'));
-        data = data.substring(String('conts = {').length - 1, data.indexOf('};') + 1);
+        data = data.substring(
+          String('conts = {').length - 1,
+          data.indexOf('};') + 1
+        );
         data = JSON.parse(data);
         // Loops through all parameters of the site
-        Object.values(data).forEach(param => {
+        Object.values(data).forEach((param) => {
           // Loops through all the measurements for each parameter
-          param.forEach(d => {
+          param.forEach((d) => {
             if (d != null) {
-              const dateMoment = moment.tz(d.fecha + ' ' + d.hora, 'YYYY-MM-DD H', timezone);
-              let m = Object.assign({
-                unit: (d.parametro === 'PM10' || d.parametro === 'PM2.5') ? 'µg/m3' : 'ppm',
-                value: Number(d.valorAct),
-                parameter: d.parametro,
-                date: {
-                  utc: dateMoment.toDate(),
-                  local: dateMoment.format()
-                }
-              },
-              template);
+              const dateLuxon = DateTime.fromFormat(
+                d.fecha + ' ' + d.hora,
+                'yyyy-MM-dd H',
+                { zone: timezone }
+              );
+              let m = Object.assign(
+                {
+                  unit:
+                    d.parametro === 'PM10' || d.parametro === 'PM2.5'
+                      ? 'µg/m3'
+                      : 'ppm',
+                  value: parseFloat(d.valorAct),
+                  parameter: d.parametro,
+                  date: {
+                    utc: dateLuxon
+                      .toUTC()
+                      .toISO({ suppressMilliseconds: true }),
+                    local: dateLuxon.toISO({
+                      suppressMilliseconds: true,
+                    }),
+                  },
+                },
+                template
+              );
               m = unifyMeasurementUnits(m);
               m = unifyParameters(m);
               measurements.push(m);
             }
           });
         });
-      } catch (e) { }
+      } catch (e) {}
     }
   });
   measurements = removeUnwantedParameters(measurements);
   return {
     name: 'unused',
-    measurements: measurements
+    measurements: measurements,
   };
 };
 
-function getTimeZone (timezone) {
+function getTimeZone(timezone) {
   switch (timezone) {
     case 5: // Tiempo del noroeste, UTC-8 (UTC-7 en verano)
       return 'America/Tijuana';
