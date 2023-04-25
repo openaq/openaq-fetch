@@ -3,6 +3,7 @@ import got from 'got';
 import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
 import { parse } from 'csv-parse';
+import { performance } from 'perf_hooks';
 
 const acceptableParameters = [
   'pm25',
@@ -50,11 +51,17 @@ async function readCSV(filePath) {
 
   return new Promise((resolve, reject) => {
     parse(csvContent, { columns: true }, (err, records) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(records);
-      }
+      err ? reject(err) : resolve(records);
+    });
+  });
+}
+
+async function fetchStationData(stationId, unixTimeStamp) {
+  const url = `https://soramame.env.go.jp/data/sokutei/NoudoTime/${stationId}/today.csv?_=${unixTimeStamp}`;
+  const response = await got(url);
+  return new Promise((resolve, reject) => {
+    parse(response.body, { columns: true }, (err, records) => {
+      err ? reject(err) : resolve(records);
     });
   });
 }
@@ -62,79 +69,86 @@ async function readCSV(filePath) {
 async function getAirQualityData() {
   const metadata = await readCSV('csvs/metadata.csv');
   const stationCoords = await readCSV('csvs/stationCoords.csv');
-
   const now = DateTime.now().setZone('utc');
   const unixTimeStamp = now.toMillis();
 
-  let result = [];
-  let slice = metadata.slice(0, 10);
-  for (const station of slice) {
-    const stationId = station['測定局コード'];
-    const url = `https://soramame.env.go.jp/data/sokutei/NoudoTime/${stationId}/today.csv?_=${unixTimeStamp}`;
-
-    try {
-      const response = await got(url);
-      const data = await new Promise((resolve, reject) => {
-        parse(response.body, { columns: true }, (err, records) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(records);
-          }
-        });
-      });
-
-      for (const row of data) {
+  const stationsDataPromises = metadata
+    // .slice(0, 400)
+    .map(async (station) => {
+      const stationId = station['測定局コード'];
+      try {
+        const data = await fetchStationData(stationId, unixTimeStamp);
         const coord = stationCoords.find(
           (s) => s['測定局コード'] === stationId
         );
 
-        for (const parameter in units) {
-          if (
-            row.hasOwnProperty(parameter) &&
-            row[parameter] !== ''
-          ) {
-            const standardizedParam =
-              parameter === 'PM2.5'
-                ? 'pm25'
-                : parameter.toLowerCase();
-            if (acceptableParameters.includes(standardizedParam)) {
-              const json = {
-                station: station['測定局名称'],
-                location: station['住所'],
-                city: station['市区町村名'],
-                coordinates: {
-                  lat: parseFloat(coord['緯度']),
-                  lon: parseFloat(coord['経度']),
-                },
-                date: {
-                  utc: now.toISO({ suppressMilliseconds: true }),
-                  local: now
-                    .setZone('Asia/Tokyo')
-                    .toISO({ suppressMilliseconds: true }),
-                },
-                parameter: standardizedParam,
-                value: parseFloat(row[parameter]),
-                unit: units[parameter],
-              };
-              result = result.filter((m) => !isNaN(m.value));
-              result.push(json);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error(
-        `Failed to fetch data for stationId: ${stationId}`,
-        error
-      );
-    }
-  }
+        const result = data.flatMap((row) => {
+          return Object.entries(units)
+            .filter(
+              ([parameter]) =>
+                row.hasOwnProperty(parameter) && row[parameter] !== ''
+            )
+            .map(([parameter]) => {
+              const standardizedParam =
+                parameter === 'PM2.5'
+                  ? 'pm25'
+                  : parameter.toLowerCase();
 
-  result = result.filter((m) => !isNaN(m.value));
-  return result;
+              if (acceptableParameters.includes(standardizedParam)) {
+                const value = parseFloat(row[parameter]);
+                if (!isNaN(value)) {
+                  return {
+                    station: station['測定局名称'],
+                    location: station['住所'],
+                    city: station['市区町村名'],
+                    coordinates: {
+                      lat: parseFloat(coord['緯度']),
+                      lon: parseFloat(coord['経度']),
+                    },
+                    date: {
+                      utc: now.toISO({ suppressMilliseconds: true }),
+                      local: now
+                        .setZone('Asia/Tokyo')
+                        .toISO({ suppressMilliseconds: true }),
+                    },
+                    parameter: standardizedParam,
+                    value: value,
+                    unit: units[parameter],
+                  };
+                }
+              }
+              return null;
+            })
+            .filter((item) => item !== null);
+        });
+
+        return result;
+      } catch (error) {
+        console.error(
+          `Failed to fetch data for stationId: ${stationId}`,
+          error
+        );
+        return [];
+      }
+    });
+
+  const results = await Promise.all(stationsDataPromises);
+
+  // Flatten the array of arrays
+  return results.flat();
 }
 
-getAirQualityData()
-  .then((data) => console.log(data))
-  .catch((error) => console.error(error));
+async function main() {
+  const start = performance.now();
+  try {
+    const data = await getAirQualityData();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    const end = performance.now();
+    console.log(`Total execution time: ${end - start} milliseconds`);
+  }
+}
+
+main();
