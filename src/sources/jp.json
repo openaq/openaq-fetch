@@ -1,0 +1,15 @@
+[
+    {
+        "url": "https://soramame.env.go.jp/data/sokutei/NoudoTime/${stationId}/today.csv?_=${unixTimeStamp}",
+        "adapter": "japan",
+        "name": "japan-soramame",
+        "city": "",
+        "country": "JP",
+        "description": "",
+        "sourceURL": "https://soramame.env.go.jp/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
