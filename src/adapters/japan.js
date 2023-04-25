@@ -73,7 +73,7 @@ async function getAirQualityData() {
   const unixTimeStamp = now.toMillis();
 
   const stationsDataPromises = metadata
-    // .slice(0, 400)
+    .slice(0, 100)
     .map(async (station) => {
       const stationId = station['測定局コード'];
       try {
@@ -106,14 +106,24 @@ async function getAirQualityData() {
                       lon: parseFloat(coord['経度']),
                     },
                     date: {
-                      utc: now.toISO({ suppressMilliseconds: true }),
+                      utc: now
+                        .startOf('hour')
+                        .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
                       local: now
                         .setZone('Asia/Tokyo')
-                        .toISO({ suppressMilliseconds: true }),
+                        .startOf('hour')
+                        .toFormat("yyyy-MM-dd'T'HH:mm:ssZZ"),
                     },
                     parameter: standardizedParam,
                     value: value,
                     unit: units[parameter],
+                    attribution: [
+                      {
+                        name: 'Ministry of the Environment Air Pollutant Wide Area Monitoring System',
+                        url: 'https://soramame.env.go.jp/',
+                      },
+                    ],
+                    averagingPeriod: { unit: 'hours', value: 1 },
                   };
                 }
               }
