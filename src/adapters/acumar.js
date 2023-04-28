@@ -8,6 +8,7 @@
 import got from 'got';
 import { load } from 'cheerio';
 import { DateTime } from 'luxon';
+import log from '../lib/logger.js';
 
 let offset;
 
@@ -42,7 +43,7 @@ export async function fetchData (source, cb) {
       measurements: flattenedResults,
     });
   } catch (error) {
-    console.error(`Error fetching data: ${error.message}`);
+    log.error(`Error fetching data: ${error.message}`);
     cb(error);
   }
 }
@@ -76,7 +77,7 @@ async function getPollutionData(station) {
     const firstDataRow = $('table')
       .eq(station.table)
       .find('tr')
-      .eq(offset); // Get the second row
+      .eq(offset); // source.datetime will determine which row to read
 
     const dateStr = firstDataRow.find('td').eq(0).text().trim();
     const timeStr = firstDataRow
@@ -125,7 +126,7 @@ async function getPollutionData(station) {
       });
     });
   } catch (error) {
-    console.error(`Error fetching data: ${error.message}`);
+    log.error(`Error fetching data: ${error.message}`);
   }
 
   results = results.filter((m) => m.value !== 0 && !isNaN(m.value));
