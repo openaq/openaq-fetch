@@ -9,10 +9,12 @@ import got from 'got';
 import { load } from 'cheerio';
 import { DateTime } from 'luxon';
 
+let offset;
+
 const stations = [
   {
     station: 'EMC I Dock Sud',
-    table: 1,
+    table: 0,
     coordinates: { latitude: -34.667375, longitude: -58.329231 },
     url: 'http://jmb.acumar.gov.ar/calidad/contaminantes.php',
   },
@@ -26,13 +28,15 @@ const stations = [
 
 export const name = 'acumar';
 
-export async function fetchData(source, cb) {
+export async function fetchData (source, cb) {
+  source.datetime ? offset = 4 : offset = 1; // determines which row will be read
   try {
     const results = await Promise.all(
       stations.map((station) => getPollutionData(station))
     );
 
     const flattenedResults = results.flat();
+
     cb(null, {
       name: 'unused',
       measurements: flattenedResults,
@@ -72,7 +76,7 @@ async function getPollutionData(station) {
     const firstDataRow = $('table')
       .eq(station.table)
       .find('tr')
-      .eq(1); // Get the second row 
+      .eq(offset); // Get the second row
 
     const dateStr = firstDataRow.find('td').eq(0).text().trim();
     const timeStr = firstDataRow
@@ -125,6 +129,5 @@ async function getPollutionData(station) {
   }
 
   results = results.filter((m) => m.value !== 0 && !isNaN(m.value));
-
   return results;
 }
