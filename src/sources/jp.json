@@ -1,6 +1,6 @@
 [
     {
-        "url": "https://soramame.env.go.jp/data/sokutei/NoudoTime/${stationId}/today.csv?_=${unixTimeStamp}",
+        "url": "https://soramame.env.go.jp/data/sokutei/NoudoTime/",
         "adapter": "japan",
         "name": "japan-soramame",
         "city": "",
