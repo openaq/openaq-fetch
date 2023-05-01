@@ -10,8 +10,6 @@ import { load } from 'cheerio';
 import { DateTime } from 'luxon';
 import log from '../lib/logger.js';
 
-let offset;
-
 const stations = [
   {
     station: 'EMC I Dock Sud',
@@ -27,28 +25,50 @@ const stations = [
   },
 ];
 
+let offset;
+
 export const name = 'acumar';
 
-export async function fetchData (source, cb) {
-  source.datetime ? offset = 4 : offset = 1; // determines which row will be read
+export async function fetchData(source, cb) {
   try {
-    const results = await Promise.all(
-      stations.map((station) => getPollutionData(station))
-    );
+    if (source.datetime) {
+      const sourceLuxon = DateTime.fromISO(source.datetime);
+      const dateLuxon = sourceLuxon.toFormat('dd/MM/yy');
+      const hourLuxon = sourceLuxon.toFormat('HH');
 
-    const flattenedResults = results.flat();
+      const results = await Promise.all(
+        stations.map((station) =>
+          getPollutionData(station, dateLuxon, hourLuxon)
+        )
+      );
 
-    cb(null, {
-      name: 'unused',
-      measurements: flattenedResults,
-    });
+      const flattenedResults = results.flat();
+
+      cb(null, {
+        name: 'unused',
+        measurements: flattenedResults,
+      });
+    } else {
+      offset = 1;
+
+      const results = await Promise.all(
+        stations.map((station) => getPollutionData(station))
+      );
+
+      const flattenedResults = results.flat();
+
+      cb(null, {
+        name: 'unused',
+        measurements: flattenedResults,
+      });
+    }
   } catch (error) {
     log.error(`Error fetching data: ${error.message}`);
     cb(error);
   }
 }
 
-async function getPollutionData(station) {
+async function getPollutionData(station, dateLuxon, hourLuxon) {
   const pollutantParams = [
     'no2',
     'no',
@@ -69,15 +89,33 @@ async function getPollutionData(station) {
         secureConnect: 1000,
         socket: 5000,
         response: 5000,
-        send: 1000
+        send: 1000,
       },
     });
     const $ = load(response.body);
 
-    const firstDataRow = $('table')
-      .eq(station.table)
-      .find('tr')
-      .eq(offset); // source.datetime will determine which row to read
+    let firstDataRow;
+    if (dateLuxon && hourLuxon) {
+      firstDataRow = $('table')
+        .eq(station.table)
+        .find('tr')
+        .filter((_, row) => {
+          const dateCell = $(row).find('td').eq(0).text().trim();
+          const hourCell = $(row)
+            .find('td')
+            .eq(1)
+            .text()
+            .trim()
+            .replace(' hs.', '');
+          return dateCell === dateLuxon && hourCell === hourLuxon;
+        })
+        .first();
+    } else {
+      firstDataRow = $('table')
+        .eq(station.table)
+        .find('tr')
+        .eq(offset);
+    }
 
     const dateStr = firstDataRow.find('td').eq(0).text().trim();
     const timeStr = firstDataRow
