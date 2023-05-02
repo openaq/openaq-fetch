@@ -5,17 +5,15 @@
  * There are helpful command line shortcuts, all described with
  * `node index.js --help`.
  */
-import moment from 'moment';
-import sj from 'scramjet';
-
-import {sourcesArray} from './sources/index.js';
-import log from './lib/logger.js';
-
-import _env from './lib/env.js';
 
 import { fetchCorrectedMeasurementsFromSourceStream } from './lib/measurement.js';
-
 import { streamMeasurementsToDBAndStorage } from './lib/db.js';
+import { sourcesArray } from './sources/index.js';
+import log from './lib/logger.js';
+import _env from './lib/env.js';
+
+import { DateTime } from 'luxon';
+import sj from 'scramjet';
 
 import {
   handleProcessTimeout,
@@ -23,13 +21,13 @@ import {
   handleFetchErrors,
   handleWarnings,
   handleSigInt,
-  cleanup
+  cleanup,
 } from './lib/errors.js';
 
 import {
   markSourceAs,
   chooseSourcesBasedOnEnv,
-  prepareCompleteResultsMessage
+  prepareCompleteResultsMessage,
 } from './lib/adapters.js';
 
 import { reportAndRecordFetch } from './lib/notification.js';
@@ -43,7 +41,7 @@ const {
   webhookKey,
   processTimeout,
   maxParallelAdapters,
-  strict
+  strict,
 } = env;
 
 const runningSources = {};
@@ -85,19 +83,23 @@ export function handler (event, context) {
     datetime = event.datetime;
     suffix = `_${event.suffix || suffix}${messageId}`;
   } else if (event && event.source) {
-    currentSources = sourcesArray.filter((d) => d.name === event.source);
+    currentSources = sourcesArray.filter(
+      (d) => d.name === event.source
+    );
   } else if (event && event.adapter) {
     currentSources = sourcesArray.filter(
       (d) => d.adapter === event.adapter
     );
   } else if (env.adapter) {
-    currentSources = sourcesArray.filter((d) => d.adapter === env.adapter);
+    currentSources = sourcesArray.filter(
+      (d) => d.adapter === env.adapter
+    );
   } else {
     currentSources = sourcesArray;
   }
   // and the final file name
-  env.key = `realtime/${moment().format(
-    'YYYY-MM-DD/X'
+  env.key = `realtime/${DateTime.now().toFormat(
+    'yyyy-MM-dd/X'
   )}${suffix}.ndjson`;
 
   if (offset) {
@@ -126,7 +128,7 @@ export function handler (event, context) {
         timeStarted: Date.now(),
         results: null,
         errors: null,
-        timeEnded: NaN
+        timeEnded: NaN,
       };
 
       // create a DataStream from sources
@@ -164,7 +166,7 @@ export function handler (event, context) {
             )
           )
       );
-    })()
+    })(),
   ])
     .catch(handleFetchErrors(log, env))
     .then(async (exitCode) => {
