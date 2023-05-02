@@ -1,11 +1,4 @@
-import { promisify } from 'util';
-//import { DataStream } from 'scramjet';
-import sj from 'scramjet';
-const { DataStream } = sj;
-
-import { validate } from 'jsonschema';
 import log from './logger.js';
-import { resolve } from 'path';
 import {
   ADAPTER_ERROR,
   MeasurementValidationError,
@@ -14,15 +7,21 @@ import {
   forwardErrors,
 } from './errors.js';
 import { getAdapterForSource } from './adapters.js';
-import { readFileSync, existsSync, readdirSync } from 'fs';
-
 import {
   ignore,
   unifyMeasurementUnits,
   removeUnwantedParameters,
   unifyParameters,
 } from './utils.js';
+
+import { readFileSync, existsSync, readdirSync } from 'fs';
+import { resolve } from 'path';
 import { DateTime } from 'luxon';
+import { promisify } from 'util';
+import { validate } from 'jsonschema';
+import sj from 'scramjet';
+
+const { DataStream } = sj;
 
 /**
  * @typedef MeasurementObject
@@ -39,7 +38,7 @@ const measurementSchema = JSON.parse(
   readFileSync(`./lib/measurement-schema.json`, 'utf8')
 );
 
-async function getStreamFromAdapter(adapter, source) {
+async function getStreamFromAdapter (adapter, source) {
   log.debug(
     `Getting stream for "${source.name}" from "${adapter.name}"`
   );
@@ -71,7 +70,7 @@ async function getStreamFromAdapter(adapter, source) {
  *
  * @returns {MeasurementObject}
  */
-function createFetchObject(input, source, failures, dryRun) {
+function createFetchObject (input, source, failures, dryRun) {
   let fetchEnded = NaN;
   const counts = {
     total: 0,
@@ -89,19 +88,19 @@ function createFetchObject(input, source, failures, dryRun) {
 
   return {
     fetchStarted: Date.now(),
-    get fetchEnded() {
+    get fetchEnded () {
       return fetchEnded;
     },
-    get duration() {
+    get duration () {
       return ((fetchEnded || Date.now()) - this.fetchStarted) / 1000;
     },
-    get failures() {
+    get failures () {
       return fetchEnded ? failures : null;
     },
-    get count() {
+    get count () {
       return fetchEnded && (!dryRun ? counts.inserted : counts.total);
     },
-    get message() {
+    get message () {
       return `${
         dryRun ? '[Dry Run] ' : ''
       }New measurements found for ${source.name}: ${this.count}`;
@@ -125,7 +124,7 @@ function createFetchObject(input, source, failures, dryRun) {
   };
 }
 
-function normalizeDate(measurement) {
+function normalizeDate (measurement) {
   if (measurement.date) {
     if (measurement.date instanceof Date) {
       measurement.date = {
@@ -151,7 +150,7 @@ function normalizeDate(measurement) {
   return measurement;
 }
 
-function checkLocation(measurement) {
+function checkLocation (measurement) {
   if (
     measurement.country === '' &&
     measurement.coordinates &&
@@ -163,7 +162,7 @@ function checkLocation(measurement) {
   return measurement;
 }
 
-function fixMeasurements(stream, source) {
+function fixMeasurements (stream, source) {
   return stream
     .do(normalizeDate)
     .do(unifyMeasurementUnits)
@@ -206,13 +205,13 @@ function fixMeasurements(stream, source) {
 /**
  * Filter measurements from a measurement stream
  *
- * @param {DataStream<Measurement>} stream The measurements stream to prune measurements from
- * @return {DataStream<Measurement>} A stream pruned of invalid measurement objects, may be empty
+ * @param { DataStream<Measurement> } stream The measurements stream to prune measurements from
+ * @return { DataStream<Measurement> } A stream pruned of invalid measurement objects, may be empty
  *                                   and a failures object of aggregated reasons for cause failures
  */
-function validateMeasurements(stream, source) {
+function validateMeasurements (stream, source) {
   const out = stream.map(async (measurement) => {
-    let v = validate(measurement, measurementSchema);
+    const v = validate(measurement, measurementSchema);
     if (v.errors.length === 0) {
       return measurement;
     } else {
@@ -226,10 +225,7 @@ function validateMeasurements(stream, source) {
   return out;
 }
 
-export async function getCorrectedMeasurementsFromSource(
-  source,
-  env
-) {
+export async function getCorrectedMeasurementsFromSource (source, env) {
   if (source instanceof Error) throw source;
 
   const [ret] = await DataStream.from([source])
@@ -242,12 +238,12 @@ export async function getCorrectedMeasurementsFromSource(
 /**
  * Create a function to ask the adapter for cause, verify the cause and output the ready stream.
  *
- * @param {DataStream} stream stream of sources
- * @param {OpenAQEnv} env
+ * @param { DataStream } stream stream of sources
+ * @param { OpenAQEnv } env
  *
  */
 
-export function fetchCorrectedMeasurementsFromSourceStream(stream, env) {
+export function fetchCorrectedMeasurementsFromSourceStream (stream, env) {
   log.debug(`Fetching corrected measurements from a stream of sources`);
   return stream.into(async (out, source) => {
     const failures = {};
