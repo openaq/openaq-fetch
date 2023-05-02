@@ -25,13 +25,9 @@ jobs:
           COMMENT=$(bash ./scripts/process_depcheck_output.sh "$DEPCHECK_RESULT")
           echo "PR_COMMENT=$COMMENT" >> $GITHUB_ENV
       - name: Comment PR
+        if: env.PR_COMMENT != ''
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
             results:
             ${{ env.PR_COMMENT }}
-
-
-
-
-
