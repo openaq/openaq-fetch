@@ -2,12 +2,12 @@
  * This code is responsible for implementing all methods related to fetching
  * and returning data for the Norwegian data sources.
  */
+
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+import { DateTime } from 'luxon';
+import got from 'got';
 
 export const name = 'norway';
 
@@ -16,27 +16,32 @@ export const name = 'norway';
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
  */
-export function fetchData (source, cb) {
-  request(source.url, function (err, res, body) {
-    if (err || res.statusCode !== 200) {
-      return cb({message: 'Failure to load data url.'});
+
+export async function fetchData (source, cb) {
+  try {
+    const response = await got(source.url, { timeout: { request: REQUEST_TIMEOUT } });
+
+    if (response.statusCode !== 200) {
+      return cb({ message: 'Failure to load data url.' });
     }
 
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-      const data = formatData(body);
+      const data = formatData(response.body);
 
       // Make sure the data is valid
       if (data === undefined) {
-        return cb({message: 'Failure to parse data.'});
+        return cb({ message: 'Failure to parse data.' });
       }
       cb(null, data);
     } catch (e) {
-      return cb({message: 'Unknown adapter error.'});
+      return cb({ message: 'Unknown adapter error.' });
     }
-  });
-};
+  } catch (err) {
+    return cb({ message: 'Failure to load data url.' });
+  }
+}
 
 /**
  * Given fetched data, turn it into a format our system can use.
@@ -58,28 +63,28 @@ const formatData = function (data) {
    * @return {object} a repacked object
    */
   const aqRepack = (item) => {
-    const dateMoment = moment.tz(item.toTime, 'YYYY-MM-DD HH:mm', 'Europe/Oslo');
+    const dateLuxon = DateTime.fromISO(item.toTime, { zone: 'Europe/Oslo' });
     const template = {
       location: item.station,
       city: item.area,
       parameter: item.component.toLowerCase().replace('.', ''),
       date: {
-        utc: dateMoment.toDate(),
-        local: dateMoment.format()
+        utc: dateLuxon.toUTC().toISO({ suppressMilliseconds: true }),
+        local: dateLuxon.toISO({ suppressMilliseconds: true })
       },
       coordinates: {
         latitude: item.latitude,
         longitude: item.longitude
       },
-      value: Number(item.value),
+      value: parseFloat(item.value),
       unit: item.unit,
-      attribution: [{name: 'Luftkvalitet.info', url: 'http://www.luftkvalitet.info/home.aspx'}],
-      averagingPeriod: {unit: 'hours', value: 1}
+      attribution: [{ name: 'Luftkvalitet.info', url: 'http://www.luftkvalitet.info/home.aspx' }],
+      averagingPeriod: { unit: 'hours', value: 1 }
     };
 
     return template;
   };
 
   const measurements = data.map(aqRepack);
-  return {name: 'unused', measurements: measurements};
+  return { name: 'unused', measurements: measurements };
 };
