@@ -140,7 +140,7 @@ async function getAirQualityData (jpDataUrl) {
                     unit: units[parameter],
                     attribution: [
                       {
-                        name: 'Ministry of the Environment Air Pollutant Wide Area Monitoring System',
+                        name: 'japan-soramame',
                         url: 'https://soramame.env.go.jp/'
                       }
                     ],
