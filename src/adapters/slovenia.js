@@ -4,8 +4,8 @@ import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { convertUnits } from '../lib/utils.js';
 import { default as baseRequest } from 'request';
 import cloneDeep from 'lodash/cloneDeep.js';
-import { default as moment } from 'moment-timezone';
-import cheerio from 'cheerio';
+import { DateTime } from 'luxon';
+import { load } from 'cheerio';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'slovenia';
@@ -19,7 +19,7 @@ export function fetchData (source, cb) {
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-      var data = formatData(body, source);
+      let data = formatData(body, source);
 
       // Make sure the data is valid
       if (data === undefined) {
@@ -32,29 +32,30 @@ export function fetchData (source, cb) {
   });
 };
 
-var formatData = function (data, source) {
-  var getDate = function (dateString) {
-    var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm', 'Europe/Ljubljana');
-    return {utc: date.toDate(), local: date.format()};
+const formatData = function (data, source) {
+  const getDate = function (dateString) {
+    const date = DateTime.fromFormat(dateString, 'yyyy-MM-dd HH:mm', { zone: 'Europe/Ljubljana' });
+
+    return { utc: date.toUTC().toISO({ suppressMilliseconds: true }), local: date.toISO({ suppressMilliseconds: true }) };
   };
 
-  var getUnit = function (parameter) {
-    var units = {
-      'so2': 'µg/m³',
-      'co': 'mg/m³',
-      'o3': 'µg/m³',
-      'no2': 'µg/m³',
-      'pm10': 'µg/m³'
+  const getUnit = function (parameter) {
+    const units = {
+      so2: 'µg/m³',
+      co: 'mg/m³',
+      o3: 'µg/m³',
+      no2: 'µg/m³',
+      pm10: 'µg/m³'
     };
 
     return units[parameter];
   };
 
   // Load all the XML
-  var $ = cheerio.load(data, {xmlMode: true});
+  const $ = load(data, { xmlMode: true });
 
   // Create measurements array
-  var measurements = [];
+  let measurements = [];
 
   // There are a number of "postaja" elements in this XML.
   // This is described (in Slovene) here: http://www.arso.gov.si/zrak/kakovost%20zraka/podatki/opis_ones_zrak_urni_xml.pdf
@@ -71,7 +72,7 @@ var formatData = function (data, source) {
   //   <no2> - hourly concentration of NO2 in µg/m³
   //   <pm10> - hourly concentration of PM10 in µg/m³
 
-  var baseObj = {
+  let baseObj = {
     averagingPeriod: {'value': 1, 'unit': 'hours'},
     attribution: [{
       name: source.name,
@@ -81,13 +82,13 @@ var formatData = function (data, source) {
 
   // Loop over each item and save the object
   $('postaja').each(function (i, elem) {
-    var coordinates = {
+    let coordinates = {
       latitude: parseFloat($(elem).attr('ge_sirina')),
       longitude: parseFloat($(elem).attr('ge_dolzina'))
     };
 
-    var date = getDate($(elem).children('datum_do').text());
-    var location = $(elem).children('merilno_mesto').text();
+    let date = getDate($(elem).children('datum_do').text());
+    let location = $(elem).children('merilno_mesto').text();
 
     $(elem).children().each(function (i, e) {
       // Currently only storing PM10 as the other measurements
@@ -96,10 +97,10 @@ var formatData = function (data, source) {
         return;
       }
 
-      var obj = cloneDeep(baseObj);
+      let obj = cloneDeep(baseObj);
 
-      var unit = getUnit(this.tagName);
-      var value = parseFloat($(this).text());
+      let unit = getUnit(this.tagName);
+      let value = parseFloat($(this).text());
 
       if (unit === 'mg/m³') {
         value = value * 1000;
