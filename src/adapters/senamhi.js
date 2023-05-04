@@ -4,10 +4,12 @@ import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { convertUnits } from '../lib/utils.js';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
+import { DateTime } from 'luxon';
 import cheerio from 'cheerio';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'senamhi';
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 export function fetchData (source, cb) {
   request(source.url, (err, res, body) => {
@@ -108,15 +110,18 @@ const formatData = function (results) {
       };
 
       // Build the datetime
-      const dt = moment.tz(`${html('td', m).eq(0).text().trim()} ${html('td', m).eq(1).text().trim()}`, 'DD/MM/YYYY HH:mm', 'America/Lima');
+      // const dt = moment.tz(`${html('td', m).eq(0).text().trim()} ${html('td', m).eq(1).text().trim()}`, 'DD/MM/YYYY HH:mm', 'America/Lima');
+      // console.log(`${html('td', m).eq(0).text().trim()} ${html('td', m).eq(1).text().trim()}`);
+      const dt = DateTime.fromFormat(`${html('td', m).eq(0).text().trim()} ${html('td', m).eq(1).text().trim()}`, 'dd/MM/yyyy HH:mm', { zone: 'America/Lima' });
+
 
       // pm25
       let pm25 = Object.assign({
         value: getNumber(html('td', m).eq(2).text().trim()),
         parameter: 'pm25',
         date: {
-          utc: dt.toDate(),
-          local: dt.format()
+          utc: dt.toUTC().toISO({ suppressMilliseconds: true }),
+          local: dt.toISO({ suppressMilliseconds: true })
         }
       }, base);
       measurements.push(pm25);
@@ -126,8 +131,8 @@ const formatData = function (results) {
         value: getNumber(html('td', m).eq(3).text().trim()),
         parameter: 'pm10',
         date: {
-          utc: dt.toDate(),
-          local: dt.format()
+          utc: dt.toUTC().toISO({ suppressMilliseconds: true }),
+          local: dt.toISO({ suppressMilliseconds: true })
         }
       }, base);
       measurements.push(pm10);
@@ -137,8 +142,8 @@ const formatData = function (results) {
         value: getNumber(html('td', m).eq(4).text().trim()),
         parameter: 'so2',
         date: {
-          utc: dt.toDate(),
-          local: dt.format()
+          utc: dt.toUTC().toISO({ suppressMilliseconds: true }),
+          local: dt.toISO({ suppressMilliseconds: true })
         }
       }, base);
       measurements.push(so2);
@@ -148,8 +153,8 @@ const formatData = function (results) {
         value: getNumber(html('td', m).eq(5).text().trim()),
         parameter: 'no2',
         date: {
-          utc: dt.toDate(),
-          local: dt.format()
+          utc: dt.toUTC().toISO({ suppressMilliseconds: true }),
+          local: dt.toISO({ suppressMilliseconds: true })
         }
       }, base);
       measurements.push(no2);
@@ -159,8 +164,8 @@ const formatData = function (results) {
         value: getNumber(html('td', m).eq(6).text().trim()),
         parameter: 'o3',
         date: {
-          utc: dt.toDate(),
-          local: dt.format()
+          utc: dt.toUTC().toISO({ suppressMilliseconds: true }),
+          local: dt.toISO({ suppressMilliseconds: true })
         }
       }, base);
       measurements.push(o3);
@@ -170,8 +175,8 @@ const formatData = function (results) {
         value: getNumber(html('td', m).eq(7).text().trim().replace(',', '')),
         parameter: 'co',
         date: {
-          utc: dt.toDate(),
-          local: dt.format()
+          utc: dt.toUTC().toISO({ suppressMilliseconds: true }),
+          local: dt.toISO({ suppressMilliseconds: true }) 
         }
       }, base);
       measurements.push(co);
