@@ -2,28 +2,29 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { convertUnits } from '../lib/utils.js';
-import { default as baseRequest } from 'request';
+
+import got from 'got';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
 import { load } from 'cheerio';
 import { parallel } from 'async';
 
-const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
+const getter = got.extend({ timeout: { request: REQUEST_TIMEOUT } });
 
 export const name = 'stateair';
 
-export function fetchData (source, cb) {
+export async function fetchData (source, cb) {
   // Generic fetch function
-  const getData = (url, done) => {
-    return request(url, (err, res, body) => {
-      if (err) {
-        return done(err);
-      } else if (res.statusCode === 404) {
+  const getData = async (url, done) => {
+    try {
+      const response = await getter(url);
+      return done(null, response.body);
+    } catch (error) {
+      if (error.response && error.response.statusCode === 404) {
         return done(null, '');
       }
-
-      return done(null, body);
-    });
+      return done(error);
+    }
   };
   // Check for PM2.5 and Ozone measurements
   const tasks = {
@@ -149,27 +150,16 @@ const formatData = function (data) {
           return 'Africa/Accra';
       }
     };
-    console.log(dateString);
-  //   const date = moment.tz(
-  //     dateString,
-  //     'YYYY-MM-DD HH:mm:ss',
-  //     getTZ(location)
-  //   );
-  //   return {
-  //     utc: date.toDate(),
-  //     local: date.format('YYYY-MM-DDTHH:mm:ssZ'),
-  //   };
-  // };
-  const date = DateTime.fromFormat(
-    dateString,
-    'yyyy-MM-dd HH:mm:ss',
-    getTZ(location)
-  );
-  return {
-    utc: date.toUTC().toISO({ suppressMilliseconds: true }),
-    local: date.toISO({ suppressMilliseconds: true }),
+    const date = DateTime.fromFormat(
+      dateString,
+      'yyyy-MM-dd HH:mm:ss',
+      getTZ(location)
+    );
+    return {
+      utc: date.toUTC().toISO({ suppressMilliseconds: true }),
+      local: date.toISO({ suppressMilliseconds: true })
+    };
   };
-};
 
   const getCoordinates = function (location) {
     switch (location) {
@@ -460,7 +450,7 @@ const formatData = function (data) {
       // Clone base object
       const obj = _.cloneDeep(baseObj);
 
-      obj.value = Number($(elem).children('Conc').text());
+      obj.value = parseFloat($(elem).children('Conc').text());
       obj.date = getDate(
         $(elem).children('ReadingDateTime').text(),
         location
