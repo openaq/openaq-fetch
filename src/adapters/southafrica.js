@@ -26,7 +26,7 @@ export const name = 'southafrica';
  * @param {function} cb A callback of the form cb(err, data)
  */
 
-export async function fetchData(source, cb) {
+export async function fetchData (source, cb) {
   try {
     const response = await got(source.url, {
       timeout: { request: REQUEST_TIMEOUT },
