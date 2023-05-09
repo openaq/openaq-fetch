@@ -1,7 +1,7 @@
 [
     {
         "url": "http://data.spartan-network.org/GroupedBySite/",
-        "adapter": "spartan2",
+        "adapter": "spartan",
         "name": "spartan-network",
         "city": "",
         "country": "",
