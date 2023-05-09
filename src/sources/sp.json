@@ -1,0 +1,15 @@
+[
+    {
+        "url": "http://data.spartan-network.org/GroupedBySite/",
+        "adapter": "spartan2",
+        "name": "spartan-network",
+        "city": "",
+        "country": "",
+        "description": "Spartan network reference grade monitors",
+        "sourceURL": "http://data.spartan-network.org/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
