@@ -3,39 +3,38 @@
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { acceptableParameters } from '../lib/utils.js';
 import log from '../lib/logger.js';
-import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
-import cheerio from 'cheerio';
 
-const request = baseRequest
-  .defaults({ timeout: REQUEST_TIMEOUT })
-  .defaults({ strictSSL: false });
+import { DateTime } from 'luxon';
+import { load } from 'cheerio';
+import got from 'got';
 
 export const name = 'stockholm';
 
-export function fetchData (source, cb) {
-  request(source.url, function (err, res, body) {
-    if (err || res.statusCode !== 200) {
-      return cb({ message: 'Failure to load data url.' });
-    }
+export function fetchData(source, cb) {
+  got(source.url, { timeout: { request: REQUEST_TIMEOUT } })
+    .then(response => {
+      try {
+        if (response.statusCode !== 200) {
+          throw new Error('Failure to load data url.');
+        }
 
-    // Wrap everything in a try/catch in case something goes wrong
-    try {
-      // Format the data
-      const data = formatData(body);
-      // Make sure the data is valid
-      if (data === undefined) {
-        return cb({ message: 'Failure to parse data.' });
+        // Format the data
+        const data = formatData(response.body);
+        // Make sure the data is valid
+        if (data === undefined) {
+          throw new Error('Failure to parse data.');
+        }
+
+        cb(null, data);
+      } catch (error) {
+        log.error(error);
+        cb(error, { message: 'Unknown adapter error.' }, null);
       }
-      cb(null, data);
-    } catch (e) {
-      return cb({ message: 'Unknown adapter error.' });
-    }
-  });
-};
+    });
+}
 
 const formatData = function (result) {
-  let measurements = [];
+  const measurements = [];
 
   // Source: Hardcoded in source-code in http://slb.nu/slbanalys/matningar/
   const getCoordinates = function (id) {
@@ -138,8 +137,8 @@ const formatData = function (result) {
   };
 
   // Load the html into Cheerio
-  var $ = cheerio.load(result, { decodeEntities: false });
-  var items = {};
+  const $ = load(result, { decodeEntities: false });
+  const items = {};
   $('.entry-content').each(function () {
     const rendered = $(this).html();
     acceptableParameters.forEach((pollutant) => {
@@ -148,7 +147,7 @@ const formatData = function (result) {
         rendered.split('\n').forEach((line) => {
           if (line.indexOf(strFind) > -1) {
             const htmlFind = line.replace(strFind, '');
-            const c$ = cheerio.load(htmlFind);
+            const c$ = load(htmlFind);
             const values = c$.text().split('█');
             if (items[pollutant]) {
               items[pollutant] = items[pollutant].concat(values);
@@ -172,10 +171,16 @@ const formatData = function (result) {
           .trim()
           .replace(/ /g, '')
           .split('kl.');
-        const dateMoment = moment
-          .tz(siteDate[1], 'HH:mm', 'Europe/Stockholm')
-          .date(moment().date());
-        date = { utc: dateMoment.toDate(), local: dateMoment.format() };
+        let dateLuxon = DateTime.fromFormat(siteDate[1].trim(), 'HH:mm', {
+          zone: 'Europe/Stockholm'
+        });
+        dateLuxon = dateLuxon.set({ day: DateTime.local().day });
+        date = {
+          utc: dateLuxon
+            .toUTC()
+            .toISO({ suppressMilliseconds: true }),
+          local: dateLuxon.toISO({ suppressMilliseconds: true }),
+        };
       } else {
         // Remove empty values
         if (itemValue.length > 2) {
@@ -196,14 +201,17 @@ const formatData = function (result) {
             location,
             city: city,
             attribution: [
-              { name: 'SLB', url: 'http://slb.nu/slbanalys/luften-idag/' }
+              {
+                name: 'SLB',
+                url: 'http://slb.nu/slbanalys/luften-idag/',
+              },
             ],
             averagingPeriod: { value: 1, unit: 'hours' },
             coordinates: getCoordinates(location),
             date,
             parameter,
-            value: Number(measurement.trim()),
-            unit: 'µg/m³'
+            value: parseFloat(measurement.trim()),
+            unit: 'µg/m³',
           };
 
           if (!isNaN(base.value) && base.coordinates) {
