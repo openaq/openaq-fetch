@@ -1,13 +1,15 @@
 'use strict';
 
+import got from 'got';
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { convertUnits } from '../lib/utils.js';
+
 import { default as baseRequest } from 'request';
 import cheerio from 'cheerio';
 import isFinite from 'lodash/isFinite.js';
 import flattenDeep from 'lodash/flattenDeep.js';
 import { parallel } from 'async';
-import { default as moment } from 'moment-timezone';
+import { DateTime } from 'luxon';
 
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
@@ -102,7 +104,7 @@ const formatData = function (source, body, city, cb) {
       const hours = $(el).find('td').eq(1).text();
 
       $(el).find('td').each((i, el) => {
-        if (i < 2 || !isFinite(Number($(el).text()))) { return; }
+        if (i < 2 || !isFinite(parseFloat($(el).text()))) { return; }
         const location = stationMeta.split(' (')[0];
         if (skippableLocations.indexOf(location) > -1) {
           return;
@@ -120,7 +122,7 @@ const formatData = function (source, body, city, cb) {
           location: location,
           parameter: parameters[i],
           unit: units[i],
-          value: Number($(el).text()),
+          value: parseFloat($(el).text()),
           coordinates: coordinates[location],
           date: getDate(date, hours, source.timezone),
           description: stationMeta,
@@ -147,10 +149,16 @@ const formatData = function (source, body, city, cb) {
 };
 
 const getDate = function (dateText, hours, timezone) {
-  const date = moment.tz(`${dateText} ${hours}`, 'YYYY.MM.DD HH', timezone);
+  let [year, month, day] = dateText.trim().split('.');
+  month = String(month).padStart(2, '0');
+  day = String(day).padStart(2, '0');
+  hours = String(hours.trim()).padStart(2, '0');
+  dateText = `${year}.${month}.${day}`.trim();
+
+  const date = DateTime.fromFormat(`${dateText} ${hours}`, 'yyyy.LL.dd HH', { zone: timezone });
   return {
-    utc: date.toDate(),
-    local: date.format()
+    utc: date.toUTC().toISO({ suppressMilliseconds: true }),
+    local: date.toISO({ suppressMilliseconds: true })
   };
 };
 
