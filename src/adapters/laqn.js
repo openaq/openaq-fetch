@@ -20,12 +20,12 @@ const unitLookup = {
   SO2: 'µg/m3',
 };
 
-export async function fetchData (source, cb) {
+export async function fetchData(source, cb) {
   try {
     const timeZone = 'Europe/London';
     const dateNow = source.datetime
-      ? DateTime.fromISO(source.datetime, { zone: timeZone })
-      : DateTime.now().setZone(timeZone);
+      ? source.datetime.setZone(timeZone)
+      : DateTime.local().setZone(timeZone);
 
     const startDate = dateNow.toFormat('dd LLL yyyy');
     const endDate = dateNow.plus({ days: 1 }).toFormat('dd LLL yyyy');
@@ -64,7 +64,7 @@ export async function fetchData (source, cb) {
 }
 
 // Convert data to standard format
-function formatData (data, siteLookup) {
+function formatData(data, siteLookup) {
   if (!data) return null;
   const dataObject = JSON.parse(data);
   if (!_.isArray(dataObject.AirQualityData.Data)) return null;
