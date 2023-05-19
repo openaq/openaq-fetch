@@ -7,12 +7,9 @@ import { MeasurementValidationError } from '../lib/errors.js';
 
 import got from 'got';
 import { DateTime } from 'luxon';
-import { default as baseRequest } from 'request';
 import sj from 'scramjet';
 
 const { StringStream } = sj;
-
-const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
 
 export const name = 'airnow-http';
 
@@ -51,11 +48,13 @@ const convertCity = function (city) {
 // map of promises for each url (probably this will have just a single key)
 const _locationsStream = {};
 
-function getLocations(url) {
+async function getLocations(url) {
   if (!_locationsStream[url]) {
     const locationsUrl = `${url}airnow/today/monitoring_site_locations.dat`;
     log.verbose(`Fetching AirNow locations from "${locationsUrl}"`);
-    _locationsStream[url] = StringStream.from(request(locationsUrl))
+
+    const locationsData = await got(locationsUrl, { timeout: { request: REQUEST_TIMEOUT }, responseType: 'text' });
+    _locationsStream[url] = StringStream.from(locationsData.body)
       .lines('\n')
       .parse((s) => {
         s = s.split('|');
@@ -95,7 +94,10 @@ export async function fetchStream (source) {
   const url = `${source.url}airnow/today/HourlyData_${dateString}.dat`;
 
   log.info(`Fetching AirNow measurements from "${url}"`);
-  return StringStream.from(request(url))
+
+  const response = await got(url, { timeout: { request: REQUEST_TIMEOUT }, responseType: 'text' });
+
+  return StringStream.from(response.body)
     .lines('\n')
     .parse(async (m) => {
       m = m.split('|');
