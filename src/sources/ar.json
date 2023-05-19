@@ -13,5 +13,20 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+     {
+        "url": "http://jmb.acumar.gov.ar/calidad/contaminantes.php",
+        "adapter": "acumar",
+        "name": "ACUMAR",
+        "country": "AR",
+        "city": "Buenos Aires",
+        "description": "Air quality data for Buenos Aires",
+        "sourceURL": "https://www.acumar.gob.ar/monitoreo-ambiental/calidad-de-aire/",
+        "license": "",
+        "licenseURL": "",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
