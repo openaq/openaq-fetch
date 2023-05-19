@@ -1,17 +1,22 @@
-/** adapted from magnus' code @magsyg PR #754 OpenAQ Fetch repo
- * this adapter pulls data for Trinidad and Tobago
+/**
+ * This adapter pulls AQ data for Iceland
  */
+
 'use strict';
 
-import { default as moment } from 'moment-timezone';
-import { acceptableParameters, promiseRequest } from '../lib/utils.js';
+import { acceptableParameters } from '../lib/utils.js';
+import { DateTime } from 'luxon';
+import got from 'got';
 
 export const name = 'ust-ist';
 
 export async function fetchData (source, cb) {
   try {
-    const allData = JSON.parse(await promiseRequest(source.url));
-    const allMeta = JSON.parse(await promiseRequest('https://api.ust.is/aq/a/getStations'));
+    const allDataResponse = await got(source.url);
+    const allData = JSON.parse(allDataResponse.body);
+
+    const allMetaResponse = await got('https://api.ust.is/aq/a/getStations');
+    const allMeta = JSON.parse(allMetaResponse.body);
 
     // Generate an array of station IDs there is data for.
     const stations = Object.keys(allData);
@@ -24,8 +29,8 @@ export async function fetchData (source, cb) {
         location: stationData.name,
         city: stationMeta.municipality,
         coordinates: {
-          latitude: Number(stationMeta.latitude),
-          longitude: Number(stationMeta.longitude)
+          latitude: parseFloat(stationMeta.latitude),
+          longitude: parseFloat(stationMeta.longitude)
         },
         attribution: [{
           name: source.name,
@@ -76,7 +81,7 @@ function parseParams (params) {
     // Assumes that '0' is always latest
     const latestM = params[p]['0'];
 
-    const date = moment.tz(latestM.endtime, 'Atlantic/Reykjavik');
+    const date = DateTime.fromFormat(latestM.endtime.trimEnd(), 'yyyy-LL-dd HH:mm:ss', { zone: 'Atlantic/Reykjavik' });
 
     // Resolution is reported as 1h. Anything else will break.
     const resolution = params[p].resolution === '1h'
@@ -85,11 +90,11 @@ function parseParams (params) {
 
     return {
       date: {
-        utc: date.toDate(), // 2020-01-03T04:00:00.000Z
-        local: date.format('YYYY-MM-DDTHH:mm:ssZ') // '2020-01-03T04:00:00+00:00'
+        utc: date.toUTC().toISO({ suppressMilliseconds: true }),
+        local: date.toISO({ suppressMilliseconds: true })
       },
       parameter: p.toLowerCase().replace('.', ''),
-      value: Number(latestM.value),
+      value: parseFloat(latestM.value),
       unit: params[p].unit,
       averagingPeriod: resolution
     };
