@@ -96,7 +96,7 @@
     "active": true
   },
   {
-    "url": "https://arpabaegis.arpab.it/Datascape/v3/locations?category=All&basin_org_id&basin_id&region_id&province_id&station_id&filter_central_id&filter_id&_=1677195752467",
+    "url": "https://arpabaegis.arpab.it/Datascape/v3/elements?station_id=",
     "adapter": "basilicata",
     "name": "arpa-basilicata",
     "city": "",
