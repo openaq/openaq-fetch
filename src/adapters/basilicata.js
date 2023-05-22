@@ -40,41 +40,47 @@ const getter = got.extend({
 export const name = 'basilicata';
 
 export async function fetchData(source, cb) {
-  let stations = await fetchStations();
+  try {
+    let stations = await fetchStations();
 
-  let requests = stations.map(async (station) => {
-    if (station.hasOwnProperty('i')) {
-      const stationId = station.i;
-      const url = `${source.url}${stationId}&longitude&latitude&category=1&ui_culture=en&field=ElementName&field=Time&field=Value&field=Decimals&field=MeasUnit&field=Trend&field=StateId&field=IsQueryable&filter_central_id&filter_id&_=`;
-      try {
-        const response = await getter(url);
-        const data = JSON.parse(response.body);
-        // Add fetched data to station object
-        station.data = data;
-        return station;
-      } catch (error) {
-        log.error(
-          `Failed to fetch data for station: ${stationId}. Error: ${error}`
-        );
-        return cb(error)
+    let requests = stations.map(async (station) => {
+      if (station.hasOwnProperty('i')) {
+        const stationId = station.i;
+        const url = `${source.url}${stationId}&longitude&latitude&category=1&ui_culture=en&field=ElementName&field=Time&field=Value&field=Decimals&field=MeasUnit&field=Trend&field=StateId&field=IsQueryable&filter_central_id&filter_id&_=`;
+        try {
+          const response = await getter(url);
+          const data = JSON.parse(response.body);
+          // Add fetched data to station object
+          station.data = data;
+          return station;
+        } catch (error) {
+          log.error(
+            `Failed to fetch data for station: ${stationId}. Error: ${error}`
+          );
+          return null;
+        }
       }
-    }
-  });
-
-  let stationData = await Promise.all(requests);
-
-  let formattedData = formatData(stationData);
-  // Filter the data and replace 'parameter' with value from 'translations'
-  let translatedData = formattedData
-    .filter((measurement) =>
-      translations.hasOwnProperty(measurement.parameter)
-    )
-    .map((measurement) => {
-      measurement.parameter = translations[measurement.parameter];
-      return measurement;
     });
 
-  cb(null, { name: 'unused', measurements: translatedData });
+    let stationData = await Promise.all(requests);
+    stationData = stationData.filter(station => station !== null); // remove any failed requests
+
+    let formattedData = formatData(stationData);
+    // Filter the data and replace 'parameter' with value from 'translations'
+    let translatedData = formattedData
+      .filter((measurement) =>
+        translations.hasOwnProperty(measurement.parameter)
+      )
+      .map((measurement) => {
+        measurement.parameter = translations[measurement.parameter];
+        return measurement;
+      });
+
+    cb(null, { name: 'unused', measurements: translatedData });
+  } catch (error) {
+    log.error(`Failed to fetch data. Error: ${error}`);
+    cb(error);
+  }
 }
 
 async function fetchStations() {
@@ -83,7 +89,8 @@ async function fetchStations() {
     const data = JSON.parse(response.body);
     return data;
   } catch (error) {
-    log.error(error);
+    log.error(`Failed to fetch stations. Error: ${error}`);
+    throw error;
   }
 }
 
