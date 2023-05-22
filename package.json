@@ -37,6 +37,7 @@
     "node-html-parser": "^6.1.5",
     "proj4": "^2.8.0",
     "proj4js-defs": "0.0.1",
+    "puppeteer": "^20.3.0",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
     "rss-parser": "^3.12.0",
