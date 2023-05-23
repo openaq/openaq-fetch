@@ -1,3 +1,8 @@
+/**
+ * This code is responsible for implementing all methods related to fetching
+ * and returning data for the Basilicata, IT data source.
+ */
+
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import log from '../lib/logger.js';
 
@@ -9,8 +14,11 @@ const bearerAuth = await getBearerAuth().then(
   (bearerAuth) => bearerAuth
 );
 
+const now = DateTime.now()
+const unixTime = now.toMillis()
+
 const STATIONS_URL =
-  'https://arpabaegis.arpab.it/Datascape/v3/locations?category=All&basin_org_id&basin_id&region_id&province_id&station_id&filter_central_id&filter_id&_=1677195752467';
+  `https://arpabaegis.arpab.it/Datascape/v3/locations?category=All&basin_org_id&basin_id&region_id&province_id&station_id&filter_central_id&filter_id&_=${unixTime}`;
 
 const HEADERS = {
   authorization: bearerAuth,
@@ -46,7 +54,7 @@ export async function fetchData(source, cb) {
     let requests = stations.map(async (station) => {
       if (station.hasOwnProperty('i')) {
         const stationId = station.i;
-        const url = `${source.url}${stationId}&longitude&latitude&category=1&ui_culture=en&field=ElementName&field=Time&field=Value&field=Decimals&field=MeasUnit&field=Trend&field=StateId&field=IsQueryable&filter_central_id&filter_id&_=`;
+        const url = `${source.url}${stationId}&longitude&latitude&category=1&ui_culture=en&field=ElementName&field=Time&field=Value&field=Decimals&field=MeasUnit&field=Trend&field=StateId&field=IsQueryable&filter_central_id&filter_id&_=${unixTime}`;
         try {
           const response = await getter(url);
           const data = JSON.parse(response.body);
@@ -63,7 +71,7 @@ export async function fetchData(source, cb) {
     });
 
     let stationData = await Promise.all(requests);
-    stationData = stationData.filter(station => station !== null); // remove any failed requests
+    stationData = stationData.filter((station) => station !== null); // remove any failed requests
 
     let formattedData = formatData(stationData);
     // Filter the data and replace 'parameter' with value from 'translations'
@@ -75,7 +83,6 @@ export async function fetchData(source, cb) {
         measurement.parameter = translations[measurement.parameter];
         return measurement;
       });
-
     cb(null, { name: 'unused', measurements: translatedData });
   } catch (error) {
     log.error(`Failed to fetch data. Error: ${error}`);
@@ -98,15 +105,10 @@ function formatData(stationData) {
   const formattedData = [];
 
   stationData.forEach((station) => {
-    const {
-      n: location,
-      x: longitude,
-      y: latitude,
-    } = station;
+    const { n: location, x: longitude, y: latitude } = station;
 
     station.data.forEach((data) => {
       const dt = DateTime.fromISO(data.time, { setZone: true });
-
       if (data.time && data.value) {
         const formattedMeasurement = {
           location,
@@ -128,7 +130,7 @@ function formatData(stationData) {
               name: 'arpa-basilicata',
               url: 'https://arpabaegis.arpab.it',
             },
-          ]
+          ],
         };
         formattedData.push(formattedMeasurement);
       }
@@ -140,7 +142,9 @@ function formatData(stationData) {
 
 async function getBearerAuth() {
   let auth;
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    headless: 'new',
+  });
   const page = await browser.newPage();
 
   await page.goto('https://arpabaegis.arpab.it');
@@ -159,20 +163,22 @@ async function getBearerAuth() {
   return auth;
 }
 
-let translations = { // other values are from the same locations
-  'PM2.5, particolato_val': 'pm25',
-  'PM10, particolato_val': 'pm10',
-  // 'PM10, particulate material fr': 'pm10',
-  // 'Monossido di carbonio': 'co',
-  'Monossido di carbonio_val': 'co',
-  // 'SO2, biossido di zolfo': 'so2',
-  'SO2, biossido di zolfo_val': 'so2',
-  // 'NO2, biossido di azoto': 'no2',
-  'NO2, biossido di azoto_val': 'no2',
-  // 'O3, ozono': 'o3',
-  'O3, ozono_val': 'o3',
-  // 'NO, monossido di azoto': 'no',
-  'NO, monossido di azoto_val': 'no',
-  // 'NOx, ossidi di azoto': 'nox',
-  'NOx, nitrogen oxides_val': 'nox',
+let translations = {
+  // other values are from the same locations
+  // 'PM2.5, particolato_val': 'pm25',
+  'PM2.5, materiale particolato f': 'pm25',
+  // 'PM10, particolato_val': 'pm10',
+  'PM10, particulate material fr': 'pm10',
+  'Monossido di carbonio': 'co',
+  // 'Monossido di carbonio_val': 'co',
+  'SO2, biossido di zolfo': 'so2',
+  // 'SO2, biossido di zolfo_val': 'so2',
+  'NO2, biossido di azoto': 'no2',
+  // 'NO2, biossido di azoto_val': 'no2',
+  'O3, ozono': 'o3',
+  // 'O3, ozono_val': 'o3',
+  'NO, monossido di azoto': 'no',
+  // 'NO, monossido di azoto_val': 'no',
+  'NOx, ossidi di azoto': 'nox',
+  // 'NOx, nitrogen oxides_val': 'nox',
 };
