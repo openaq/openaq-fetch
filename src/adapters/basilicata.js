@@ -164,7 +164,7 @@ async function getBearerAuth() {
 }
 
 let translations = {
-  // other values are from the same locations
+  // other values are from the same locations, but don't report frequently
   // 'PM2.5, particolato_val': 'pm25',
   'PM2.5, materiale particolato f': 'pm25',
   // 'PM10, particolato_val': 'pm10',
