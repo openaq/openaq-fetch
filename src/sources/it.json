@@ -94,5 +94,18 @@
       "info@openaq.org"
     ],
     "active": true
+  },
+  {
+    "url": "https://arpabaegis.arpab.it/Datascape/v3/elements?station_id=",
+    "adapter": "basilicata",
+    "name": "arpa-basilicata",
+    "city": "",
+    "country": "IT",
+    "description": "AGENZIA REGIONALE PER LA PROTEZIONE DELL'AMBIENTE",
+    "sourceURL": "https://arpabaegis.arpab.it",
+    "contacts": [
+      "info@openaq.org"
+    ],
+    "active": true
   }
 ]
