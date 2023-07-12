@@ -1,0 +1,15 @@
+[
+    {
+        "url": "https://soramame.env.go.jp/data/sokutei/NoudoTime/",
+        "adapter": "japan",
+        "name": "japan-soramame",
+        "city": "",
+        "country": "JP",
+        "description": "Ministry of the Environment Air Pollutant Wide Area Monitoring System",
+        "sourceURL": "https://soramame.env.go.jp/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": false
+    }
+]
