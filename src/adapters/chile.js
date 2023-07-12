@@ -8,20 +8,22 @@
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { default as baseRequest } from 'request';
 import _ from 'lodash';
-import { default as moment } from 'moment-timezone';
 import async from 'async';
-import { join } from 'path';
 import cheerio from 'cheerio';
+import { DateTime } from 'luxon';
+import got from 'got';
+
+const gotExtended = got.extend({
+  retry: { limit: 3 },
+  timeout: { request: REQUEST_TIMEOUT },
+});
 
 // Adding in certs to get around unverified connection issue
 // 2022-04-29 - this should no longer be needed
 //require('ssl-root-cas')
 //  .inject()
 //  .addFile(join(__dirname, '..', '/certs/OrganizationSSL.crt.txt'));
-
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'chile';
 
@@ -37,14 +39,18 @@ export function fetchData (source, cb) {
 
   _.forEach(sources, function (e) {
     var task = function (cb) {
-      request(e, function (err, res, body) {
-        if (err || res.statusCode !== 200) {
-          return cb(err || res);
-        }
-        cb(null, body);
-      });
+      gotExtended(e)
+        .then((response) => {
+          if (response.statusCode !== 200) {
+            return cb(response);
+          }
+          cb(null, response.body);
+        })
+        .catch((error) => {
+          cb(error);
+        });
     };
-
+  
     tasks.push(task);
   });
 
@@ -72,7 +78,7 @@ export function fetchData (source, cb) {
  * @param {array} results Fetched source data and other metadata
  * @return {object} Parsed and standarized data our system can use
  */
-var formatData = function (results) {
+const formatData = function (results) {
   try {
     var data = JSON.parse(results[0]);
     var meta = JSON.parse(results[1]);
@@ -86,7 +92,7 @@ var formatData = function (results) {
     return s.realtime.length > 0;
   });
 
-  var paramMap = {
+  const paramMap = {
     'PM25': 'pm25',
     'PM10': 'pm10',
     '0001': 'so2', // Dióxido de azufre
@@ -100,7 +106,7 @@ var formatData = function (results) {
    * @param {string} id The communa id
    * @return {string} The communa name
    */
-  var getComuna = function (id) {
+  const getComuna = function (id) {
     var s = _.get(_.find(meta, _.matchesProperty('key', id)), 'comuna');
     return s;
   };
@@ -110,17 +116,41 @@ var formatData = function (results) {
    * @param {object} m A source measurement object
    * @return {object} An object containing both UTC and local times
    */
-  var parseDate = function (m) {
-    var date = moment.tz(m, 'YYYY-MM-DD HH:mm', 'America/Santiago');
-    return {utc: date.toDate(), local: date.format()};
-  };
 
+  const parseDate = function (dateString) {
+    // Validate input
+    if (typeof dateString !== 'string' || dateString.trim() === '') {
+      throw new Error('Invalid date string');
+    }
+
+    try {
+      // Create DateTime object with timezone using the fromFormat() method
+      const date = DateTime.fromFormat(
+        dateString,
+        'yyyy-MM-dd HH:mm',
+        {
+          zone: 'America/Santiago',
+        }
+      );
+
+      // Return UTC and local ISO strings
+      return {
+        utc: date.toUTC().toISO({
+          suppressMilliseconds: true,
+        }),
+        local: date.toISO({ suppressMilliseconds: true }),
+      };
+    } catch (error) {
+      console.error('Error parsing date:', error);
+      throw new Error('Error parsing date');
+    }
+  };
   /**
    * Make 'µg/m³' pretty
    * @param {string} u The measurement unit
    * @return {string} It's pretty!
    */
-  var parseUnit = function (u) {
+  const parseUnit = function (u) {
     var $ = cheerio.load(u, { decodeEntities: false });
     var str = $.text();
     return str.indexOf('µg⁄m3') > -1 ? 'µg/m³' : null;
@@ -148,7 +178,7 @@ var formatData = function (results) {
         var m = _.clone(base);
         m.parameter = paramMap[valueMeasurment.code];
         m.date = parseDate(value.c[0].v);
-        m.value = Number(value.c[1].v);
+        m.value = parseFloat(value.c[1].v);
         var unit = parseUnit(value.c[3].v);
         if (unit) {
           m.unit = unit;
@@ -157,7 +187,6 @@ var formatData = function (results) {
       });
     });
   });
-
   return {
     name: 'unused',
     measurements: measurements

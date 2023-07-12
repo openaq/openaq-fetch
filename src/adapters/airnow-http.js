@@ -5,26 +5,36 @@ import { acceptableParameters } from '../lib/utils.js';
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { MeasurementValidationError } from '../lib/errors.js';
 
-import { default as moment } from 'moment-timezone';
-import { default as baseRequest } from 'request';
+import got from 'got';
+import { DateTime } from 'luxon';
 import sj from 'scramjet';
-const { StringStream } = sj;
 
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+const { StringStream } = sj;
 
 export const name = 'airnow-http';
 
 const getDate = (day, time, offset) => {
-  // Grab date from page, add time string and convert to date
   const dateString = `${day} ${time}`;
-  if(!dateString || !offset) {
+  if (!dateString || !offset) {
     return false;
   }
-  // A bit odd looking here based on what we're getting in the files
-  const utc = moment.utc(dateString, 'MM/DD/YYYY HH:mm');
-  const local = moment.utc(dateString, 'MM/DD/YYYY HH:mm').utcOffset(offset);
 
-  return {utc: utc.toDate(), local: local.format(), raw: `${dateString}(${offset})`};
+  const utc = DateTime.fromFormat(
+    dateString,
+    'MM/dd/yy HH:mm',
+    { zone: 'utc' }
+  );
+  const local = DateTime.fromFormat(
+    dateString,
+    'MM/dd/yy HH:mm',
+    { zone: 'utc' }
+  ).setZone(offset);
+
+  return {
+    utc: utc.toISO({ suppressMilliseconds: true }),
+    local: local.toISO({ suppressMilliseconds: true }),
+    raw: `${dateString}(${offset})`,
+  };
 };
 
 // Helper to convert city name
@@ -38,23 +48,24 @@ const convertCity = function (city) {
 // map of promises for each url (probably this will have just a single key)
 const _locationsStream = {};
 
-function getLocations (url) {
+async function getLocations(url) {
   if (!_locationsStream[url]) {
     const locationsUrl = `${url}airnow/today/monitoring_site_locations.dat`;
     log.verbose(`Fetching AirNow locations from "${locationsUrl}"`);
-    _locationsStream[url] = StringStream
-      .from(request(locationsUrl))
+
+    const locationsData = await got(locationsUrl, { timeout: { request: REQUEST_TIMEOUT }, responseType: 'text' });
+    _locationsStream[url] = StringStream.from(locationsData.body)
       .lines('\n')
       .parse((s) => {
         s = s.split('|');
         const ret = {
           aqsid: s[0],
           coordinates: {
-            latitude: Number(s[8]),
-            longitude: Number(s[9])
+            latitude: parseFloat(s[8]),
+            longitude: parseFloat(s[9]),
           },
           country: s[12],
-          city: convertCity(s[16]) || s[20]
+          city: convertCity(s[16]) || s[20],
         };
 
         if (s[0].slice(0, 3) === 'NRB') {
@@ -77,30 +88,45 @@ export async function fetchStream (source) {
   log.debug(`Got ${Object.keys(locations).length} locations.`);
 
   const dateString = source.datetime
-        ? source.datetime.format('YYYYMMDDHH')
-        : moment.utc().subtract(1.1, 'hours').format('YYYYMMDDHH');
+    ? source.datetime.toFormat('yyyyMMddHH')
+    : DateTime.utc().minus({ hours: 1.1 }).toFormat('yyyyMMddHH');
 
   const url = `${source.url}airnow/today/HourlyData_${dateString}.dat`;
 
   log.info(`Fetching AirNow measurements from "${url}"`);
-  return StringStream.from(request(url))
+
+  const response = await got(url, { timeout: { request: REQUEST_TIMEOUT }, responseType: 'text' });
+
+  return StringStream.from(response.body)
     .lines('\n')
-    .parse(async m => {
+    .parse(async (m) => {
       m = m.split('|');
       const parameter = m[5] && m[5].toLowerCase().replace('.', '');
       const station = locations[m[2]];
-      const datetime = getDate(m[0], m[1], Number(m[4]));
+      const datetime = getDate(m[0], m[1], parseFloat(m[4]));
 
       if (!datetime) {
-        throw new MeasurementValidationError(source, `Cannot parse date ${m[0]} ${m[1]} offset: ${m[4]}`, m);
+        throw new MeasurementValidationError(
+          source,
+          `Cannot parse date ${m[0]} ${m[1]} offset: ${m[4]}`,
+          m
+        );
       }
 
       if (!parameter) {
-        throw new MeasurementValidationError(source, `Cannot parse parameter ${m[5]}`, m);
+        throw new MeasurementValidationError(
+          source,
+          `Cannot parse parameter ${m[5]}`,
+          m
+        );
       }
 
       if (!station) {
-        throw new MeasurementValidationError(source, `Cannot find station`, m);
+        throw new MeasurementValidationError(
+          source,
+          `Cannot find station`,
+          m
+        );
       }
 
       return {
@@ -109,13 +135,15 @@ export async function fetchStream (source) {
         country: station.country,
         location: m[3].trim(),
         date: datetime,
-        parameter: (parameter === 'ozone') ? 'o3' : parameter,
+        parameter: parameter === 'ozone' ? 'o3' : parameter,
         unit: m[6].toLowerCase(),
-        value: Number(m[7]),
-        attribution: [{name: 'US EPA AirNow', url: 'http://www.airnow.gov/'}, {name: m[8].trim()}],
-        averagingPeriod: {unit: 'hours', value: 1}
+        value: parseFloat(m[7]),
+        attribution: [
+          { name: 'US EPA AirNow', url: 'http://www.airnow.gov/' },
+          { name: m[8].trim() },
+        ],
+        averagingPeriod: { unit: 'hours', value: 1 },
       };
     })
-    .filter(m => m && acceptableParameters.includes(m.parameter))
-  ;
-};
+    .filter((m) => m && acceptableParameters.includes(m.parameter));
+}

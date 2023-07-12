@@ -37,6 +37,6 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     }
 ]

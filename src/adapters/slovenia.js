@@ -1,60 +1,63 @@
-'use strict';
-
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { convertUnits } from '../lib/utils.js';
-import { default as baseRequest } from 'request';
 import cloneDeep from 'lodash/cloneDeep.js';
-import { default as moment } from 'moment-timezone';
-import cheerio from 'cheerio';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+import { DateTime } from 'luxon';
+import { load } from 'cheerio';
+import got from 'got';
 
 export const name = 'slovenia';
 
 export function fetchData (source, cb) {
-  request(source.url, function (err, res, body) {
-    if (err || res.statusCode !== 200) {
-      return cb({message: 'Failure to load data url.'});
-    }
+  got(source.url, { timeout: { request: REQUEST_TIMEOUT } })
+    .then((response) => {
+      if (response.statusCode !== 200) {
+        throw new Error('Failure to load data url.');
+      }
 
-    // Wrap everything in a try/catch in case something goes wrong
-    try {
       // Format the data
-      var data = formatData(body, source);
+      const data = formatData(response.body, source);
 
       // Make sure the data is valid
       if (data === undefined) {
-        return cb({message: 'Failure to parse data.'});
+        throw new Error('Failure to parse data.');
       }
-      cb(null, data);
-    } catch (e) {
-      return cb({message: 'Unknown adapter error.'});
-    }
-  });
-};
 
-var formatData = function (data, source) {
-  var getDate = function (dateString) {
-    var date = moment.tz(dateString, 'YYYY-MM-DD HH:mm', 'Europe/Ljubljana');
-    return {utc: date.toDate(), local: date.format()};
+      cb(null, data);
+    })
+    .catch((err) => {
+      cb(new Error(err.message || 'Unknown adapter error.'));
+    });
+}
+
+const formatData = function (data, source) {
+  const getDate = function (dateString) {
+    const date = DateTime.fromFormat(dateString, 'yyyy-MM-dd HH:mm', {
+      zone: 'Europe/Ljubljana',
+    });
+
+    return {
+      utc: date.toUTC().toISO({ suppressMilliseconds: true }),
+      local: date.toISO({ suppressMilliseconds: true }),
+    };
   };
 
-  var getUnit = function (parameter) {
-    var units = {
-      'so2': 'µg/m³',
-      'co': 'mg/m³',
-      'o3': 'µg/m³',
-      'no2': 'µg/m³',
-      'pm10': 'µg/m³'
+  const getUnit = function (parameter) {
+    const units = {
+      so2: 'µg/m³',
+      co: 'mg/m³',
+      o3: 'µg/m³',
+      no2: 'µg/m³',
+      pm10: 'µg/m³',
     };
 
     return units[parameter];
   };
 
   // Load all the XML
-  var $ = cheerio.load(data, {xmlMode: true});
+  const $ = load(data, { xmlMode: true });
 
   // Create measurements array
-  var measurements = [];
+  let measurements = [];
 
   // There are a number of "postaja" elements in this XML.
   // This is described (in Slovene) here: http://www.arso.gov.si/zrak/kakovost%20zraka/podatki/opis_ones_zrak_urni_xml.pdf
@@ -71,53 +74,57 @@ var formatData = function (data, source) {
   //   <no2> - hourly concentration of NO2 in µg/m³
   //   <pm10> - hourly concentration of PM10 in µg/m³
 
-  var baseObj = {
-    averagingPeriod: {'value': 1, 'unit': 'hours'},
-    attribution: [{
-      name: source.name,
-      url: source.sourceURL
-    }]
+  const baseObj = {
+    averagingPeriod: { value: 1, unit: 'hours' },
+    attribution: [
+      {
+        name: source.name,
+        url: source.sourceURL,
+      },
+    ],
   };
 
   // Loop over each item and save the object
   $('postaja').each(function (i, elem) {
-    var coordinates = {
+    const coordinates = {
       latitude: parseFloat($(elem).attr('ge_sirina')),
-      longitude: parseFloat($(elem).attr('ge_dolzina'))
+      longitude: parseFloat($(elem).attr('ge_dolzina')),
     };
 
-    var date = getDate($(elem).children('datum_do').text());
-    var location = $(elem).children('merilno_mesto').text();
+    const date = getDate($(elem).children('datum_do').text());
+    const location = $(elem).children('merilno_mesto').text();
 
-    $(elem).children().each(function (i, e) {
-      // Currently only storing PM10 as the other measurements
-      // should be picked up by EEA.
-      if (this.tagName !== 'pm10') {
-        return;
-      }
+    $(elem)
+      .children()
+      .each(function (i, e) {
+        // Currently only storing PM10 as the other measurements
+        // should be picked up by EEA.
+        if (this.tagName !== 'pm10') {
+          return;
+        }
 
-      var obj = cloneDeep(baseObj);
+        const obj = cloneDeep(baseObj);
 
-      var unit = getUnit(this.tagName);
-      var value = parseFloat($(this).text());
+        const unit = getUnit(this.tagName);
+        let value = parseFloat($(this).text());
 
-      if (unit === 'mg/m³') {
-        value = value * 1000;
-      }
+        if (unit === 'mg/m³') {
+          value = value * 1000;
+        }
 
-      if (unit && value) {
-        // Since there is limited information, both city &
-        // location will be set to same value.
-        obj.city = location;
-        obj.location = location;
-        obj.parameter = this.tagName;
-        obj.unit = 'µg/m³';
-        obj.value = value;
-        obj.coordinates = coordinates;
-        obj.date = date;
-        measurements.push(obj);
-      }
-    });
+        if (unit && value) {
+          // Since there is limited information, both city &
+          // location will be set to same value.
+          obj.city = location;
+          obj.location = location;
+          obj.parameter = this.tagName;
+          obj.unit = 'µg/m³';
+          obj.value = value;
+          obj.coordinates = coordinates;
+          obj.date = date;
+          measurements.push(obj);
+        }
+      });
   });
 
   // Convert units to platform standard
@@ -125,6 +132,6 @@ var formatData = function (data, source) {
 
   return {
     name: source.name,
-    measurements: measurements
+    measurements: measurements,
   };
 };

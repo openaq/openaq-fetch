@@ -8,144 +8,157 @@
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { removeUnwantedParameters, unifyMeasurementUnits, unifyParameters } from '../lib/utils.js';
-import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
-import async from 'async';
-import cheerio from 'cheerio';
+import { DateTime } from 'luxon';
+import { load } from 'cheerio';
+import got from 'got';
+import {
+  removeUnwantedParameters,
+  unifyMeasurementUnits,
+  unifyParameters,
+} from '../lib/utils.js';
 
-// Adding in certs to get around unverified connection issue
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+const gotInstance = got.extend({ timeout: { request: REQUEST_TIMEOUT } });
 
 export const name = 'montenegro';
 
-/**
- * Fetches the data for a given source and returns an appropriate object
- * @param {object} source A valid source object
- * @param {function} cb A callback of the form cb(err, data)
- */
-export async function fetchData (source, cb) {
-  // Fetches pages with valid data
-  var tasks = [];
+export async function fetchData(source, cb) {
+  let tasks = [];
 
-  // First finds pages that has data, some of these pages may give a nullresponse, so I have to add all the other sites instead
   for (let i = 1; i < 20; i++) {
     try {
-      // Tests if method works
-      await new Promise((resolve, reject) => {
-        request(source.url + i, (error, response, body) => {
-          if (error) reject(new Error(error));
-          if (response.statusCode !== 200) {
-            reject(new Error('Invalid status code <' + response.statusCode + '>'));
-          }
-          resolve(body);
-        });
-      });
-      var task = function (cb) {
-        request(source.url + i, function (err, res, body) {
-          if (err || res.statusCode !== 200) {
-            return cb(err || res);
-          }
-          cb(null, body);
-        });
+      await gotInstance(source.url + i);
+      let task = async function () {
+        try {
+          const response = await gotInstance(source.url + i);
+          return response.body;
+        } catch (error) {
+          console.error('Error in task:', error.message);
+          throw error;
+        }
       };
       tasks.push(task);
-    } catch (e) {
+    } catch (error) {
+      console.error('Error while creating tasks:', error.message);
       continue;
     }
   }
 
-  async.parallel(tasks, function (err, results) {
-    if (err) {
-      return cb({message: 'Failure to load data urls.'});
+  try {
+    const results = await Promise.all(tasks.map((task) => task()));
+    const data = formatData(results);
+    if (data === undefined) {
+      console.error('Failed to parse data');
+      return cb({ message: 'Failure to parse data.' });
     }
-    // Wrap everything in a try/catch in case something goes wrong
-    try {
-      // Format the data
-      var data = formatData(results);
-      if (data === undefined) {
-        return cb({message: 'Failure to parse data.'});
-      }
-      cb(null, data);
-    } catch (e) {
-      console.log(e);
-      return cb({message: 'Unknown adapter error.'});
-    }
-  });
-};
+    cb(null, data);
+  } catch (error) {
+    console.error('Error in async.parallel:', error.message);
+    return cb({ message: 'Failure to load data urls.' });
+  }
+}
 
-/**
- * Given fetched data, turn it into a format our system can use.
- * @param {array} results Fetched source data and other metadata
- * @return {object} Parsed and standarized data our system can use
- */
-var formatData = function (results) {
-  /**
-   * Given a string and the template json object, parses the string into coordinates, location and city
-   * and adds it to the template
-   * @param {string} location String containing coordinates, city and location
-   * @param {object} template Object to add the parsed values to
-   */
-  var parseLocation = (location, template) => {
-    location = location.split('|');
-    var city = location[0].split(',');
-    template['city'] = city[0].trim();
-    template['location'] = (city.length === 1) ? city[0].trim() : city[1].trim();
-    var coordinates = location[1].replace('Geolokacija:', '').split(',');
-    coordinates = {
-      latitude: Number(coordinates[0]),
-      longitude: Number(coordinates[1])
-    };
-    template['coordinates'] = coordinates;
-  };
-  /**
-   * Given a string and the template json object, parses a string into a moment object
-   * and adds it to the template
-   * @param {string} date String containing the data
-   * @param {object} template Object to add the parsed values to
-   */
-  var parseDate = (date, template) => {
-    date = date.replace('Pregled mjerenja za', '').replace('h', '');
-    const dateMoment = moment.tz(date, 'DD.MM.YYYY HH:mm', 'Europe/Podgorica');
-    date = {
-      utc: dateMoment.toDate(),
-      local: dateMoment.format()
-    };
-    template['date'] = date;
-  };
-  /**
-   * Given a string and a measurement json object, parses the string into value and unit
-   * and adds it to the measurement object
-   * @param {string} value String value and unit
-   * @param {object} measurement Object to add the parsed values to
-   */
-  var parseValueAndUnit = (value, measurement) => {
-    value = value.replace(/<|>/gi, '').trim();
-    var splitPos = -1;
-    // For some reason JS can not recognize the space between value and parameter, so I have to find the first letter
-    for (let i = 0; i < value.length; i++) {
-      if (value.charAt(i).toLowerCase() !== value.charAt(i).toUpperCase()) {
-        splitPos = i;
-        break;
+const formatData = function (results) {
+  const parseLocation = (location, template) => {
+    try {
+      if (location === undefined || location === null) {
+        console.error('Location is undefined or null');
+        return;
       }
+      location = location.split('|');
+      if (
+        location.length < 2 ||
+        location[0].includes('Otvori veću kartu')
+      ) {
+        // Add this check
+        console.error('Invalid location format');
+        return;
+      }
+      const city = location[0].split(',');
+      template.city = city[0].trim();
+      template.location =
+        city.length === 1 ? city[0].trim() : city[1].trim();
+      let coordinates = location[1]
+        .replace('Geolokacija:', '')
+        .split(',');
+      coordinates = {
+        latitude: parseFloat(coordinates[0]),
+        longitude: parseFloat(coordinates[1]),
+      };
+      template.coordinates = coordinates;
+    } catch (e) {
+      console.error('Error in parseLocation:', e);
     }
-    measurement['unit'] = value.substring(splitPos);
-    measurement['value'] = Number(value.substring(0, splitPos).replace(',', '.').trim());
   };
-  var measurements = [];
-  // loops through all sites
-  results.forEach(p => {
-    let $ = cheerio.load(p);
-    // base template of object
+
+  const parseDate = function (date, template) {
+    // Validate input
+    if (typeof date !== 'string' || date.trim() === '') {
+      throw new Error('Invalid date string');
+    }
+    try {
+      // Create DateTime object with timezone using the fromFormat() method
+      date = date.replace('Pregled mjerenja za', '').replace('h', '');
+      date = date.trim(); // remove whitespace
+      const dateLuxon = DateTime.fromFormat(
+        date,
+        'dd.MM.yyyy HH:mm',
+        {
+          zone: 'Europe/Podgorica',
+        }
+      );
+      // Return UTC and local ISO strings
+      const utc = dateLuxon
+        .toUTC()
+        .toISO({ suppressMilliseconds: true });
+      const local = dateLuxon.toISO({ suppressMilliseconds: true });
+      template.date = {
+        utc: utc,
+        local: local,
+      };
+    } catch (error) {
+      throw new Error('Error parsing date');
+    }
+  };
+
+  const parseValueAndUnit = (value, measurement) => {
+    try {
+      value = value.replace(/<|>/gi, '').trim();
+      let splitPos = -1;
+      for (let i = 0; i < value.length; i++) {
+        if (
+          value.charAt(i).toLowerCase() !==
+          value.charAt(i).toUpperCase()
+        ) {
+          splitPos = i;
+          break;
+        }
+      }
+      measurement.unit = value.substring(splitPos);
+      measurement.value = parseFloat(
+        value.substring(0, splitPos).replace(',', '.').trim()
+      );
+    } catch (e) {
+      console.error('Error in parseValueAndUnit:', e);
+    }
+  };
+
+  let measurements = [];
+
+  results.forEach((p) => {
+    const $ = load(p);
+
     let template = {
-      attribution: [{name: 'epa.me', url: 'https://epa.org.me/'}],
-      averagingPeriod: {unit: 'hours', value: 1}
+      date: {},
+      attribution: [{ name: 'epa.me', url: 'https://epa.org.me/' }],
+      averagingPeriod: { unit: 'hours', value: 1 },
     };
-    // Finds the location and date string
+
     $('.col-6.col-12-medium').each((i, e) => {
       $('h6 a', e).each((i, e) => {
-        if ($(e).text().search('|') !== -1 && $(e).text().charAt(0) !== '*') {
-          parseLocation($(e).text(), template);
+        const text = $(e).text();
+        // console.log('Text:', text); // Add this line for additional logging
+        if (text.search('|') !== -1 && text.charAt(0) !== '*') {
+          parseLocation(text, template);
         }
       });
       $('h4', e).each((i, e) => {
@@ -154,9 +167,10 @@ var formatData = function (results) {
         }
       });
     });
+
     let parameterIndex = -1;
     let valueIndex = -1;
-    // finds the index of value and parameter
+
     $('.sortable thead th').each((i, e) => {
       if ($(e).text().search('Oznaka') !== -1) {
         parameterIndex = i;
@@ -165,11 +179,14 @@ var formatData = function (results) {
         valueIndex = i;
       }
     });
-    // loops through all the parameters and values and adds them to a measurement and adds it to measurements
+
     $('.sortable tbody tr').each((i, e) => {
       if (parameterIndex !== -1 && valueIndex !== -1) {
-        var m = Object.assign({'parameter': $($('td', e).get(parameterIndex)).text()}, template);
-        var value = $($('td', e).get(valueIndex)).text();
+        let m = Object.assign(
+          { parameter: $($('td', e).get(parameterIndex)).text() },
+          template
+        );
+        const value = $($('td', e).get(valueIndex)).text();
         parseValueAndUnit(value, m);
         m = unifyMeasurementUnits(m);
         m = unifyParameters(m);
@@ -177,10 +194,10 @@ var formatData = function (results) {
       }
     });
   });
-  // removes unwanted parameters such as C6H6
+
   measurements = removeUnwantedParameters(measurements);
   return {
     name: 'unused',
-    measurements: measurements
+    measurements: measurements,
   };
 };

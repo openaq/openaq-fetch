@@ -2,41 +2,63 @@
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { convertUnits } from '../lib/utils.js';
-import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
-import cheerio from 'cheerio';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
+
+import got from 'got';
+import { load } from 'cheerio';
+import { DateTime } from 'luxon';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import sslRootCas from 'ssl-root-cas';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const certificatePath = join(
+  __dirname,
+  '..',
+  '/certs/senamhi-intermediate.pem'
+);
+
+const rootCas = sslRootCas.create();
+
+rootCas.inject().addFile(certificatePath);
 
 export const name = 'senamhi';
 
-export function fetchData (source, cb) {
-  request(source.url, (err, res, body) => {
-    if (err || res.statusCode !== 200) {
-      return cb(err || res);
-    }
+export async function fetchData (source, cb) {
+  try {
+    const response = await got(source.url, {
+      timeout: { request: REQUEST_TIMEOUT },
+      https: {
+        certificateAuthority: rootCas,
+      },
+    });
 
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-      const data = formatData(body);
+      const data = formatData(response.body);
       if (data === undefined) {
-        return cb({message: 'Failure to parse data.'});
+        return cb({ message: 'Failure to parse data.' });
       }
       cb(null, data);
     } catch (e) {
-      return cb({message: 'Unknown adapter error.'});
+      return cb({ message: 'Unknown adapter error.' });
     }
-  });
+  } catch (error) {
+    return cb(error);
+  }
 }
-
 const formatData = function (results) {
   let measurements = [];
-  const $ = cheerio.load(results);
+  const $ = load(results);
 
   // We're looking for the script tag with the locations in it
   let scriptText;
   $('script').each((i, elem) => {
-    if ($(elem).contents().get(0) && $(elem).contents().get(0).data.indexOf('var locations =') !== -1) {
+    if (
+      $(elem).contents().get(0) &&
+      $(elem).contents().get(0).data.indexOf('var locations =') !== -1
+    ) {
       scriptText = $(elem).contents().get(0).data;
     }
   });
@@ -53,7 +75,7 @@ const formatData = function (results) {
   // TODO, loop over all
   locations.forEach((l) => {
     // The HTML element stored in the JS ¯\_(ツ)_/¯
-    const html = cheerio.load(l[4]);
+    const html = load(l[4]);
 
     // Make sure we've got some valid html in here and not an error message
     if (!html('td', html('tr').eq(0)).eq(1).html()) {
@@ -64,16 +86,34 @@ const formatData = function (results) {
     const location = html('td', html('tr').eq(0)).eq(1).html().trim();
 
     // Convert DMS to decimal degrees for fun
-    let coordsRe = /: (\d[0-9]*)°([0-9]*)′([0-9]*\.?[0-9]*)″ .*: (\d[0-9]*)°([0-9]*)′([0-9]*\.?[0-9]*)″/gmi.exec(html('td', html('tr').eq(2)).eq(1).html().trim());
+    let coordsRe =
+      /: (\d[0-9]*)°([0-9]*)′([0-9]*\.?[0-9]*)″ .*: (\d[0-9]*)°([0-9]*)′([0-9]*\.?[0-9]*)″/gim.exec(
+        html('td', html('tr').eq(2)).eq(1).html().trim()
+      );
     if (!coordsRe) {
-      coordsRe = /: (\d[0-9]*)&#xB0;([0-9]*)&#x2032;([0-9]*\.?[0-9]*)&#x2033; .*: (\d[0-9]*)&#xB0;([0-9]*)&#x2032;([0-9]*\.?[0-9]*)&#x2033;/gmi.exec(html('td', html('tr').eq(2)).eq(1).html().trim());
+      coordsRe =
+        /: (\d[0-9]*)&#xB0;([0-9]*)&#x2032;([0-9]*\.?[0-9]*)&#x2033; .*: (\d[0-9]*)&#xB0;([0-9]*)&#x2032;([0-9]*\.?[0-9]*)&#x2033;/gim.exec(
+          html('td', html('tr').eq(2)).eq(1).html().trim()
+        );
     }
     var coordinates = null;
 
     if (coordsRe && coordsRe.length > 5) {
       coordinates = {
-        latitude: -1.0 * (Number(coordsRe[1]) + Number(coordsRe[2]) / 60.0 + Number(coordsRe[3]) / 3600.0).toFixed(6),
-        longitude: -1.0 * (Number(coordsRe[4]) + Number(coordsRe[5]) / 60.0 + Number(coordsRe[6]) / 3600.0).toFixed(6)
+        latitude:
+          -1.0 *
+          (
+            parseFloat(coordsRe[1]) +
+            parseFloat(coordsRe[2]) / 60.0 +
+            parseFloat(coordsRe[3]) / 3600.0
+          ).toFixed(6),
+        longitude:
+          -1.0 *
+          (
+            parseFloat(coordsRe[4]) +
+            parseFloat(coordsRe[5]) / 60.0 +
+            parseFloat(coordsRe[6]) / 3600.0
+          ).toFixed(6),
       };
     }
 
@@ -82,14 +122,21 @@ const formatData = function (results) {
       location: location,
       coordinates: coordinates,
       city: 'Lima',
-      attribution: [{'name': 'Peru Ministerio de Ambiente', 'url': 'http://www.senamhi.gob.pe/'}],
-      averagingPeriod: {'value': 1, 'unit': 'hours'},
-      unit: 'µg/m³'
+      attribution: [
+        {
+          name: 'Peru Ministerio de Ambiente',
+          url: 'http://www.senamhi.gob.pe/',
+        },
+      ],
+      averagingPeriod: { value: 1, unit: 'hours' },
+      unit: 'µg/m³',
     };
 
     // Filter out for <td> that match the format we want for the concentrations
-    let ms = html('tr').filter((i, elem) => {
-      return /^\d{2}\/\d{2}\/\d{4}$/.test(html('td', elem).first().text().trim());
+    const ms = html('tr').filter((i, elem) => {
+      return /^\d{2}\/\d{2}\/\d{4}$/.test(
+        html('td', elem).first().text().trim()
+      );
     });
 
     // Loop over first 4 time rows to minimize number of inserts to database upstream
@@ -104,82 +151,111 @@ const formatData = function (results) {
           return NaN;
         }
 
-        return Number(string);
+        return parseFloat(string);
       };
 
       // Build the datetime
-      const dt = moment.tz(`${html('td', m).eq(0).text().trim()} ${html('td', m).eq(1).text().trim()}`, 'DD/MM/YYYY HH:mm', 'America/Lima');
+      const dt = DateTime.fromFormat(
+        `${html('td', m).eq(0).text().trim()} ${html('td', m)
+          .eq(1)
+          .text()
+          .trim()}`,
+        'dd/MM/yyyy HH:mm',
+        { zone: 'America/Lima' }
+      );
 
       // pm25
-      let pm25 = Object.assign({
-        value: getNumber(html('td', m).eq(2).text().trim()),
-        parameter: 'pm25',
-        date: {
-          utc: dt.toDate(),
-          local: dt.format()
-        }
-      }, base);
+      const pm25 = Object.assign(
+        {
+          value: getNumber(html('td', m).eq(2).text().trim()),
+          parameter: 'pm25',
+          date: {
+            utc: dt.toUTC().toISO({ suppressMilliseconds: true }),
+            local: dt.toISO({ suppressMilliseconds: true }),
+          },
+        },
+        base
+      );
       measurements.push(pm25);
 
       // pm10
-      let pm10 = Object.assign({
-        value: getNumber(html('td', m).eq(3).text().trim()),
-        parameter: 'pm10',
-        date: {
-          utc: dt.toDate(),
-          local: dt.format()
-        }
-      }, base);
+      const pm10 = Object.assign(
+        {
+          value: getNumber(html('td', m).eq(3).text().trim()),
+          parameter: 'pm10',
+          date: {
+            utc: dt.toUTC().toISO({ suppressMilliseconds: true }),
+            local: dt.toISO({ suppressMilliseconds: true }),
+          },
+        },
+        base
+      );
       measurements.push(pm10);
 
       // so2
-      let so2 = Object.assign({
-        value: getNumber(html('td', m).eq(4).text().trim()),
-        parameter: 'so2',
-        date: {
-          utc: dt.toDate(),
-          local: dt.format()
-        }
-      }, base);
+      const so2 = Object.assign(
+        {
+          value: getNumber(html('td', m).eq(4).text().trim()),
+          parameter: 'so2',
+          date: {
+            utc: dt.toUTC().toISO({ suppressMilliseconds: true }),
+            local: dt.toISO({ suppressMilliseconds: true }),
+          },
+        },
+        base
+      );
       measurements.push(so2);
 
       // no2
-      let no2 = Object.assign({
-        value: getNumber(html('td', m).eq(5).text().trim()),
-        parameter: 'no2',
-        date: {
-          utc: dt.toDate(),
-          local: dt.format()
-        }
-      }, base);
+      const no2 = Object.assign(
+        {
+          value: getNumber(html('td', m).eq(5).text().trim()),
+          parameter: 'no2',
+          date: {
+            utc: dt.toUTC().toISO({ suppressMilliseconds: true }),
+            local: dt.toISO({ suppressMilliseconds: true }),
+          },
+        },
+        base
+      );
       measurements.push(no2);
 
       // o3
-      let o3 = Object.assign({
-        value: getNumber(html('td', m).eq(6).text().trim()),
-        parameter: 'o3',
-        date: {
-          utc: dt.toDate(),
-          local: dt.format()
-        }
-      }, base);
+      const o3 = Object.assign(
+        {
+          value: getNumber(html('td', m).eq(6).text().trim()),
+          parameter: 'o3',
+          date: {
+            utc: dt.toUTC().toISO({ suppressMilliseconds: true }),
+            local: dt.toISO({ suppressMilliseconds: true }),
+          },
+        },
+        base
+      );
       measurements.push(o3);
 
       // co
-      let co = Object.assign({
-        value: getNumber(html('td', m).eq(7).text().trim().replace(',', '')),
-        parameter: 'co',
-        date: {
-          utc: dt.toDate(),
-          local: dt.format()
-        }
-      }, base);
+      const co = Object.assign(
+        {
+          value: getNumber(
+            html('td', m).eq(7).text().trim().replace(',', '')
+          ),
+          parameter: 'co',
+          date: {
+            utc: dt.toUTC().toISO({ suppressMilliseconds: true }),
+            local: dt.toISO({ suppressMilliseconds: true }),
+          },
+        },
+        base
+      );
       measurements.push(co);
     });
   });
 
   // Be kind, convert units
-  measurements = convertUnits(measurements.filter(i => !isNaN(i.value)));
+  measurements = convertUnits(
+    measurements.filter((i) => !isNaN(i.value))
+  );
 
-  return {name: 'unused', measurements: measurements};
+  return { name: 'unused', measurements: measurements };
 };

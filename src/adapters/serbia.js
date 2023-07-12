@@ -7,10 +7,9 @@
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { default as baseRequest } from 'request';
+import got from 'got';
 import { DateTime } from 'luxon';
 import { unifyMeasurementUnits } from '../lib/utils.js';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'serbia';
 
@@ -20,25 +19,30 @@ export const name = 'serbia';
  * @param {function} cb A callback of the form cb(err, data)
  */
 
-export function fetchData (source, cb) {
-  request(source.url, function (err, res, body) {
-    if (err || res.statusCode !== 200) {
-      return cb({message: 'Failure to load data url.'});
+export async function fetchData (source, cb) {
+  try {
+    const response = await got(source.url, { timeout: { request: REQUEST_TIMEOUT } });
+
+    if (response.statusCode !== 200) {
+      return cb({ message: 'Failure to load data url.' });
     }
+
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-      const data = formatData(body);
+      const data = formatData(response.body);
       // Make sure the data is valid
       if (data === undefined) {
-        return cb({message: 'Failure to parse data.'});
+        return cb({ message: 'Failure to parse data.' });
       }
       cb(null, data);
     } catch (e) {
-      return cb({message: 'Unknown adapter error.'});
+      return cb(e, { message: 'Unknown adapter error.' });
     }
-  });
-};
+  } catch (err) {
+    return cb({ message: 'Failure to load data url.' });
+  }
+}
 
 /**
  * Given fetched data, turn it into a format our system can use.
@@ -63,19 +67,19 @@ const formatData = function (data) {
 
   // the parameters here are given numbers instead of measurement name, there a convertion is needed
   const paramMap = {
-    '1': 'so2',
-    '8': 'no2',
-    '10': 'co',
-    '7': 'o3',
-    '5': 'pm10',
-    '6001': 'pm25'
+    1: 'so2',
+    8: 'no2',
+    10: 'co',
+    7: 'o3',
+    5: 'pm10',
+    6001: 'pm25'
   };
 
   let measurements = [];
   Object.keys(data).forEach(key => {
     // The data itself has no timestamp, but according to http://www.amskv.sepa.gov.rs/index.php, the data is from the last hour
-    const dateMoment = DateTime.local().startOf('hour').setZone('Europe/Belgrade');
-    let baseObject = {
+    const dateLuxon = DateTime.local().startOf('hour').setZone('Europe/Belgrade');
+    const baseObject = {
       location: data[key].k_name,
       city: data[key].k_city ? data[key].k_city : data[key].k_name,
       coordinates: {
@@ -83,11 +87,11 @@ const formatData = function (data) {
         longitude: parseFloat(data[key].k_longitude_d)
       },
       date: {
-        utc: dateMoment.toUTC().toISO({suppressMilliseconds: true}),
-        local: dateMoment.toISO({suppressMilliseconds: true}) 
+        utc: dateLuxon.toUTC().toISO({ suppressMilliseconds: true }),
+        local: dateLuxon.toISO({ suppressMilliseconds: true })
       },
-      attribution: [{name: 'SEPA', url: 'http://www.amskv.sepa.gov.rs/index.php'}],
-      averagingPeriod: {unit: 'hours', value: 1}
+      attribution: [{ name: 'SEPA', url: 'http://www.amskv.sepa.gov.rs/index.php' }],
+      averagingPeriod: { unit: 'hours', value: 1 }
     };
     if (typeof data[key].components !== 'undefined') {
       Object.keys(data[key].components).forEach(p => {
@@ -97,7 +101,8 @@ const formatData = function (data) {
             let m = Object.assign({
               value: parseFloat(data[key].components[p]['1h'].raw_value),
               unit: (param !== 'co') ? 'µg/m³' : 'mg/m³',
-              parameter: param},
+              parameter: param
+            },
             baseObject);
             m = unifyMeasurementUnits(m);
             measurements.push(m);
@@ -107,5 +112,5 @@ const formatData = function (data) {
     }
   });
   measurements = measurements.filter(m => !isNaN(m.coordinates.latitude) || !isNaN(m.coordinates.longitude));
-  return {name: 'unused', measurements: measurements};
+  return { name: 'unused', measurements: measurements };
 };

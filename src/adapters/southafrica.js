@@ -2,49 +2,60 @@
  * This code is responsible for implementing all methods related to fetching
  * and returning data for the South African data sources.
  */
+
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { unifyMeasurementUnits, removeUnwantedParameters, unifyParameters } from '../lib/utils.js';
+import {
+  unifyMeasurementUnits,
+  removeUnwantedParameters,
+  unifyParameters,
+} from '../lib/utils.js';
+import log from '../lib/logger.js';
 
-import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
+import { DateTime } from 'luxon';
+import got from 'got';
 import _ from 'lodash';
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 export const name = 'southafrica';
 
 /**
- * Fetches the data for a given source and returns an appropriate object
+ * Fetches the data for a given source and returns an appropriate objectlog
+ *
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
  */
-export function fetchData (source, cb) {
-  request(source.url, function (err, res, body) {
-    if (err || res.statusCode !== 200) {
-      return cb({message: 'Failure to load data url.'});
-    }
 
-    // Wrap everything in a try/catch in case something goes wrong
-    try {
-      // Format the data
-      const data = formatData(body);
-      // Make sure the data is valid
-      if (data === undefined) {
-        return cb({message: 'Failure to parse data.'});
-      }
-      cb(null, data);
-    } catch (e) {
-      return cb({message: 'Unknown adapter error.'});
+export async function fetchData (source, cb) {
+  try {
+    const response = await got(source.url, {
+      timeout: { request: REQUEST_TIMEOUT },
+    });
+
+    if (response.statusCode !== 200) {
+      log.error('Request error:', response.statusCode); // Log the error status code
+      return cb({ message: 'Failure to load data url.' });
     }
-  });
-};
+    // Wrap everything in a try/catch in case something goes wrong
+    // Format the data
+    const data = formatData(response.body);
+    // Make sure the data is valid
+    if (data === undefined) {
+      return cb({ message: 'Failure to parse data.' });
+    }
+    cb(null, data);
+  } catch (err) {
+    log.error('Request error:', err); // Log the error object
+    return cb(err, { message: 'Failure to load data url.' });
+  }
+}
 
 /**
  * Given fetched data, turn it into a format our system can use.
  * @param {array} results Fetched source data and other metadata
  * @return {object} Parsed and standarized data our system can use
  */
+
 const formatData = function (data) {
   // Wrap the JSON.parse() in a try/catch in case it fails
   try {
@@ -58,27 +69,45 @@ const formatData = function (data) {
    * @param {object} m A source measurement object
    * @return {object} An object containing both UTC and local times
    */
-  var parseDate = function (m) {
-    var date = moment.tz(m, 'YYYY-MM-DDHH:mm', 'Africa/Johannesburg');
-    return {utc: date.toDate(), local: date.format()};
+  const parseDate = function (m) {
+    let date;
+    if (m.includes('/')) {
+      date = DateTime.fromFormat(m, 'yyyy/MM/dd HH:mm', {
+        zone: 'Africa/Johannesburg',
+      });
+    } else if (m.includes('T') && m.includes('+')) {
+      date = DateTime.fromISO(m, { zone: 'Africa/Johannesburg' });
+    } else {
+      return null;
+    }
+    return {
+      utc: date.toUTC().toISO({ suppressMilliseconds: true }),
+      local: date.toISO({ suppressMilliseconds: true }),
+    };
   };
-  var measurements = [];
+
+  let measurements = [];
   _.forEach(data, function (s) {
     const base = {
       location: s.name,
       city: s.city,
       coordinates: {
-        latitude: Number(s.latitude),
-        longitude: Number(s.longitude)
+        latitude: parseFloat(s.latitude),
+        longitude: parseFloat(s.longitude),
       },
-      attribution: [{name: 'South African Air Quality Information System', url: 'http://saaqis.environment.gov.za'}],
-      averagingPeriod: {unit: 'hours', value: 1}
+      attribution: [
+        {
+          name: 'South African Air Quality Information System',
+          url: 'http://saaqis.environment.gov.za',
+        },
+      ],
+      averagingPeriod: { unit: 'hours', value: 1 },
     };
     _.forOwn(s.monitors, function (v, key) {
       if (v.value !== null && v.value !== '' && v.DateVal !== null) {
-        var m = _.clone(base);
+        let m = _.clone(base);
         m.parameter = v.Pollutantname;
-        m.value = Number(v.value);
+        m.value = parseFloat(v.value);
         m.unit = v.unit;
         m.date = parseDate(v.DateVal);
         m = unifyMeasurementUnits(m);
@@ -87,6 +116,7 @@ const formatData = function (data) {
       }
     });
   });
+
   measurements = removeUnwantedParameters(measurements);
-  return {name: 'unused', measurements: measurements};
+  return { name: 'unused', measurements: measurements };
 };
