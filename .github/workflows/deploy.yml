@@ -1,9 +1,6 @@
 name: Deploy prod
 
-on: 
-  push:
-    branches:
-      - main
+on: workflow_dispatch
 
 env:
   ENV: "prod"
