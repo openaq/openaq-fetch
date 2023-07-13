@@ -27,9 +27,9 @@ const stations = [
 
 let offset;
 
-export const name = 'acumar';
+export const name = 'acumar-peru';
 
-export async function fetchData(source, cb) {
+export async function fetchData (source, cb) {
   try {
     if (source.datetime) {
       const sourceLuxon = DateTime.fromISO(source.datetime);

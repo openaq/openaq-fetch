@@ -37,5 +37,18 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "http://jmb.acumar.gov.ar/calidad/contaminantes.php",
+        "adapter": "acumar",
+        "name": "acumar-peru",
+        "city": "",
+        "country": "PE",
+        "description": "Autoridad de Cuenca Matanza Riachuelo (ACUMAR)",
+        "sourceURL": "http://jmb.acumar.gov.ar/calidad/contaminantesEmcII.php",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
