@@ -17,7 +17,7 @@
     {
         "url": "http://jmb.acumar.gov.ar/calidad/contaminantes.php",
         "adapter": "acumar",
-        "name": "acumar-peru",
+        "name": "acumar",
         "city": "",
         "country": "PE",
         "description": "Autoridad de Cuenca Matanza Riachuelo (ACUMAR)",
