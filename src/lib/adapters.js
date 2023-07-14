@@ -158,6 +158,7 @@ export function markSourceAs (value, runningSources) {
  * @param {FetchReport} fetchReport
  */
 export function prepareCompleteResultsMessage (stream, fetchReport, {dryrun}) {
+  log.info(`complete results - ${Date.now()}`);
   return stream.map(
     measurements => {
       log.debug(`Fetch results for ${measurements.source.name}`);
