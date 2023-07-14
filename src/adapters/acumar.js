@@ -27,7 +27,7 @@ const stations = [
 
 let offset;
 
-export const name = 'acumar-ar';
+export const name = 'acumar';
 
 export async function fetchData (source, cb) {
   try {
