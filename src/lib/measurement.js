@@ -87,7 +87,11 @@ function createFetchObject (input, source, failures, dryRun) {
     .catch(ignore);
 
   return {
-    fetchStarted: Date.now(),
+    get fetchStarted () {
+      const now = Date.now();
+      log.info(`Started ${source.name} - ${now}`);
+      return now;
+    },
     get fetchEnded () {
       return fetchEnded;
     },

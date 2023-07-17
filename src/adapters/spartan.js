@@ -109,7 +109,7 @@ async function fetchCsv(url, slug) {
                     url: 'http://data.spartan-network.org/',
                   },
                 ],
-                averagingPeriod: { unit: 'days', value: 1 },
+                averagingPeriod: { unit: 'hours', value: 1 },
               };
             });
 
