@@ -12,44 +12,6 @@ import got from 'got';
 import { parse } from 'csv-parse';
 import { DateTime } from 'luxon';
 
-const slugs = [ // commented out ones are missing data, might be useful later
-  'AEAZ',
-  'ARCB',
-  'AUMN',
-  'BDDU',
-  // 'BIBU',
-  'CADO',
-  'CAHA',
-  'CAKE',
-  'CALE',
-  'CASH',
-  'CHTS',
-  // 'CLST',
-  // 'CODC',
-  // 'ETAD',
-  'IDBD',
-  // 'ILHA',
-  'ILNZ',
-  // 'INDH',
-  'INKA',
-  'KRSE',
-  'KRUL',
-  'MXMC',
-  'NGIL',
-  // 'PHMO',
-  // 'PRFJ',
-  'SGSU',
-  // 'TWKA',
-  // 'TWTA',
-  // 'USBA',
-  // 'USBO',
-  // 'USMC',
-  // 'USPA',
-  'VNHN',
-  // 'ZAJB',
-  'ZAPR',
-];
-
 export const name = 'spartan';
 
 export async function fetchData (source, cb) {
@@ -84,7 +46,9 @@ async function fetchCsv(url, slug) {
             log.error('Error parsing CSV:', err);
             reject(err); // Reject the promise when there's an error
           } else {
-            const formattedRecords = records.map((record) => {
+            // Get only the last 12 records
+            const lastRecords = records.slice(-12);
+            const formattedRecords = lastRecords.map((record) => {
               const date = getDate(
                 `${record.Year_local}/${String(record.Month_local).padStart(2, '0')}/${String(record.Day_local).padStart(2, '0')} ${String(record.hour_local).padStart(2, '0')}`,
                 slug
@@ -101,15 +65,15 @@ async function fetchCsv(url, slug) {
                 date,
                 coordinates: {
                   latitude: parseFloat(record.Latitude),
-                  longitude: parseFloat(record.Longitude),
+                  longitude: parseFloat(record.Longitude)
                 },
                 attribution: [
                   {
                     name: 'spartan-network',
-                    url: 'http://data.spartan-network.org/',
+                    url: 'http://data.spartan-network.org/'
                   },
                 ],
-                averagingPeriod: { unit: 'hours', value: 1 },
+                averagingPeriod: { unit: 'hours', value: 1 }
               };
             });
 
@@ -129,223 +93,223 @@ const getLocation = function (location) {
       return {
         location: 'SPARTAN - IIT Kanpur',
         city: 'Kanpur',
-        country: 'IN',
+        country: 'IN'
       };
     case 'CHTS':
       return {
         location: 'SPARTAN - Tsinghua University',
         city: 'Beijing',
-        country: 'CN',
+        country: 'CN'
       };
     case 'BDDU':
       return {
         location: 'SPARTAN - Dhaka University',
         city: 'Dhaka',
-        country: 'BD',
+        country: 'BD'
       };
     case 'USEM':
       return {
         location: 'SPARTAN - Emory University',
         city: 'Atlanta',
-        country: 'US',
+        country: 'US'
       };
     case 'USMC':
       return {
         location: 'SPARTAN - Mammoth Cave',
         city: 'Mammoth Cave NP',
-        country: 'US',
+        country: 'US'
       };
     case 'PHMO':
       return {
         location: 'SPARTAN - Manila Observatory',
         city: 'Manila',
-        country: 'PH',
+        country: 'PH'
       };
     case 'ARCB':
       return {
         location: 'SPARTAN - CITEDEF',
         city: 'Buenos Aires',
-        country: 'AR',
+        country: 'AR'
       };
     case 'NGIL':
       return {
         location: 'SPARTAN - Ilorin University',
         city: 'Ilorin',
-        country: 'NG',
+        country: 'NG'
       };
     case 'IDBD':
       return {
         location: 'SPARTAN - ITB Bandung',
         city: 'Bandung',
-        country: 'ID',
+        country: 'ID'
       };
     case 'VNHN':
       return {
         location: 'SPARTAN - Vietnam Acad. Sci.',
         city: 'Hanoi',
-        country: 'VN',
+        country: 'VN'
       };
     case 'SGSU':
       return {
         location: 'SPARTAN - NUS',
         city: 'Singapore',
-        country: 'SG',
+        country: 'SG'
       };
     case 'ILNZ':
       return {
         location: 'SPARTAN - Weizmann Institute',
         city: 'Rehovot',
-        country: 'IL',
+        country: 'IL'
       };
     case 'ZAPR':
       return {
         location: 'SPARTAN - CSIR',
         city: 'Pretoria',
-        country: 'ZA',
+        country: 'ZA'
       };
     case 'AEAZ':
       return {
         location: 'SPARTAN - Abu Dhabi',
         city: 'Abu Dhabi',
-        country: 'AE',
+        country: 'AE'
       };
     case 'AUMN':
       return {
         location: 'SPARTAN - Melbourne',
         city: 'Melbourne',
-        country: 'AU',
+        country: 'AU'
       };
     case 'BIBU':
       return {
         location: 'SPARTAN - Bujumbura',
         city: 'Bujumbura',
-        country: 'BI',
+        country: 'BI'
       };
     case 'CADO':
       return {
         location: 'SPARTAN - Downsview',
         city: 'Toronto',
-        country: 'CA',
+        country: 'CA'
       };
     case 'CAHA':
       return {
         location: 'SPARTAN - Halifax',
         city: 'Halifax',
-        country: 'CA',
+        country: 'CA'
       };
     case 'CAKE':
       return {
         location: 'SPARTAN - Kelowna',
         city: 'Kelowna',
-        country: 'CA',
+        country: 'CA'
       };
     case 'CALE':
       return {
         location: 'SPARTAN - Lethbridge',
         city: 'Lethbridge',
-        country: 'CA',
+        country: 'CA'
       };
     case 'CASH':
       return {
         location: 'SPARTAN - Sherbrooke',
         city: 'Sherbrooke',
-        country: 'CA',
+        country: 'CA'
       };
     case 'CLST':
       return {
         location: 'SPARTAN - Santiago',
         city: 'Santiago',
-        country: 'CL',
+        country: 'CL'
       };
     case 'CODC':
       return {
         location: 'SPARTAN - Palmira',
         city: 'Palmira',
-        country: 'CO',
+        country: 'CO'
       };
     case 'ETAD':
       return {
         location: 'SPARTAN - Addis Ababa',
         city: 'Addis Ababa',
-        country: 'ET',
+        country: 'ET'
       };
     case 'ILHA':
       return {
         location: 'SPARTAN - Haifa',
         city: 'Haifa',
-        country: 'IL',
+        country: 'IL'
       };
     case 'INDH':
       return {
         location: 'SPARTAN - Delhi',
         city: 'Delhi',
-        country: 'IN',
+        country: 'IN'
       };
     case 'KRSE':
       return {
         location: 'SPARTAN - Seoul',
         city: 'Seoul',
-        country: 'KR',
+        country: 'KR'
       };
     case 'KRUL':
       return {
         location: 'SPARTAN - Ulsan',
         city: 'Ulsan',
-        country: 'KR',
+        country: 'KR'
       };
     case 'MXMC':
       return {
         location: 'SPARTAN - Mexico City',
         city: 'Mexico City',
-        country: 'MX',
+        country: 'MX'
       };
     case 'PRFJ':
       return {
         location: 'SPARTAN - Fajardo',
         city: 'Fajardo',
-        country: 'PR',
+        country: 'PR'
       };
     case 'TWKA':
       return {
         location: 'SPARTAN - Kaohsiung',
         city: 'Kaohsiung',
-        country: 'TW',
+        country: 'TW'
       };
     case 'TWTA':
       return {
         location: 'SPARTAN - Taipei',
         city: 'Taipei',
-        country: 'TW',
+        country: 'TW'
       };
     case 'USBA':
       return {
         location: 'SPARTAN - Baltimore',
         city: 'Baltimore',
-        country: 'US',
+        country: 'US'
       };
     case 'USBO':
       return {
         location: 'SPARTAN - Bondville',
         city: 'Bondville',
-        country: 'US',
+        country: 'US'
       };
     case 'USPA':
       return {
         location: 'SPARTAN - Pasadena',
         city: 'Pasadena',
-        country: 'US',
+        country: 'US'
       };
     case 'ZAJB':
       return {
         location: 'SPARTAN - Johannesburg',
         city: 'Johannesburg',
-        country: 'ZA',
+        country: 'ZA'
       };
     default:
       return {
         location: 'Unknown',
         city: 'Unknown',
-        country: 'Unknown',
+        country: 'Unknown'
       };
   }
 };
@@ -439,3 +403,41 @@ const getDate = function (dateString, location) {
     local: date.toISO({ suppressMilliseconds: true }),
   };
 };
+
+const slugs = [ // commented out slugs are missing data, might be useful later
+  'AEAZ',
+  'ARCB',
+  'AUMN',
+  'BDDU',
+  // 'BIBU',
+  'CADO',
+  'CAHA',
+  'CAKE',
+  'CALE',
+  'CASH',
+  'CHTS',
+  // 'CLST',
+  // 'CODC',
+  // 'ETAD',
+  'IDBD',
+  // 'ILHA',
+  'ILNZ',
+  // 'INDH',
+  'INKA',
+  'KRSE',
+  'KRUL',
+  'MXMC',
+  'NGIL',
+  // 'PHMO',
+  // 'PRFJ',
+  'SGSU',
+  // 'TWKA',
+  // 'TWTA',
+  // 'USBA',
+  // 'USBO',
+  // 'USMC',
+  // 'USPA',
+  'VNHN',
+  // 'ZAJB',
+  'ZAPR'
+];
