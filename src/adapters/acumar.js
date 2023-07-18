@@ -1,8 +1,3 @@
-/**
- * This code is responsible for implementing all methods related to fetching
- * and returning data for the ACUMAR Argentina data source.
- */
-
 'use strict';
 
 import got from 'got';
@@ -38,7 +33,7 @@ export async function fetchData (source, cb) {
 
       const results = await Promise.all(
         stations.map((station) =>
-          getPollutionData(station, dateLuxon, hourLuxon)
+          getPollutionData(station, dateLuxon, hourLuxon, 1)
         )
       );
 
@@ -52,11 +47,10 @@ export async function fetchData (source, cb) {
       offset = 1;
 
       const results = await Promise.all(
-        stations.map((station) => getPollutionData(station))
+        stations.map((station) => getPollutionData(station, null, null, 3))
       );
 
       const flattenedResults = results.flat();
-
       cb(null, {
         name: 'unused',
         measurements: flattenedResults,
@@ -68,7 +62,7 @@ export async function fetchData (source, cb) {
   }
 }
 
-async function getPollutionData(station, dateLuxon, hourLuxon) {
+async function getPollutionData(station, dateLuxon, hourLuxon, numRows) {
   const pollutantParams = [
     'no2',
     'no',
@@ -94,9 +88,8 @@ async function getPollutionData(station, dateLuxon, hourLuxon) {
     });
     const $ = load(response.body);
 
-    let firstDataRow;
     if (dateLuxon && hourLuxon) {
-      firstDataRow = $('table')
+      const firstDataRow = $('table')
         .eq(station.table)
         .find('tr')
         .filter((_, row) => {
@@ -110,63 +103,71 @@ async function getPollutionData(station, dateLuxon, hourLuxon) {
           return dateCell === dateLuxon && hourCell === hourLuxon;
         })
         .first();
+
+      processRow($, firstDataRow, station, pollutantParams, results);
     } else {
-      firstDataRow = $('table')
+      const dataRows = $('table')
         .eq(station.table)
         .find('tr')
-        .eq(offset);
-    }
+        .slice(offset, offset + numRows);
 
-    const dateStr = firstDataRow.find('td').eq(0).text().trim();
-    const timeStr = firstDataRow
-      .find('td')
-      .eq(1)
-      .text()
-      .trim()
-      .replace(' hs.', '');
-    const localDate = DateTime.fromFormat(
-      `${dateStr} ${timeStr}`,
-      'dd/MM/yy H',
-      { zone: 'America/Argentina/Buenos_Aires' }
-    );
-    const utcDate = localDate.toUTC();
-
-    pollutantParams.forEach((param, index) => {
-      const value = parseFloat(
-        firstDataRow
-          .find('td')
-          .eq(index + 2)
-          .text()
-          .trim()
-      );
-
-      results.push({
-        city: 'Buenos Aires',
-        location: station.station,
-        parameter: param,
-        value,
-        unit: param === 'co' ? 'mg/m³' : 'µg/m³',
-        date: {
-          local: localDate.toISO({ suppressMilliseconds: true }),
-          utc: utcDate.toISO({ suppressMilliseconds: true }),
-        },
-        coordinates: station.coordinates,
-        attribution: [
-          {
-            name: 'ACUMAR',
-            url: station.url,
-          },
-        ],
-        averagingPeriod: {
-          unit: 'hours',
-          value: 1,
-        },
+      dataRows.each((_, row) => {
+        processRow($, row, station, pollutantParams, results);
       });
-    });
+    }
   } catch (error) {
     log.error(`Error fetching data: ${error.message}`);
   }
 
   results = results.filter((m) => m.value !== 0 && !isNaN(m.value));
   return results;
+}
+
+function processRow($, row, station, pollutantParams, results) {
+  const dateStr = $(row).find('td').eq(0).text().trim();
+  const timeStr = $(row)
+    .find('td')
+    .eq(1)
+    .text()
+    .trim()
+    .replace(' hs.', '');
+  const localDate = DateTime.fromFormat(
+    `${dateStr} ${timeStr}`,
+    'dd/MM/yy H',
+    { zone: 'America/Argentina/Buenos_Aires' }
+  );
+  const utcDate = localDate.toUTC();
+
+  pollutantParams.forEach((param, index) => {
+    const value = parseFloat(
+      $(row)
+        .find('td')
+        .eq(index + 2)
+        .text()
+        .trim()
+    );
+
+    results.push({
+      city: 'Buenos Aires',
+      location: station.station,
+      parameter: param,
+      value,
+      unit: param === 'co' ? 'mg/m³' : 'µg/m³',
+      date: {
+        local: localDate.toISO({ suppressMilliseconds: true }),
+        utc: utcDate.toISO({ suppressMilliseconds: true }),
+      },
+      coordinates: station.coordinates,
+      attribution: [
+        {
+          name: 'ACUMAR',
+          url: station.url,
+        },
+      ],
+      averagingPeriod: {
+        unit: 'hours',
+        value: 1,
+      },
+    });
+  });
 }
