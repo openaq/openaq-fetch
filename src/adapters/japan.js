@@ -13,8 +13,8 @@ import Bottleneck from 'bottleneck';
 import got from 'got';
 
 const limiter = new Bottleneck({
-  minTime: 100, // Minimum time between requests (ms)
-  maxConcurrent: 10
+  minTime: 50, // Minimum time between requests (ms)
+  maxConcurrent: 16
 });
 
 const translation = {
