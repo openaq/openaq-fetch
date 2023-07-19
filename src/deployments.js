@@ -20,11 +20,11 @@ const deploymentsArray = [
     name: 'eea',
     adapter: 'eea-direct',
     offset: 24
+  },
+  {
+    name: 'japan',
+    source: 'japan-soramame'
   }
-  // {
-  //   name: 'japan',
-  //   source: 'japan-soramame',
-  // }
 ];
 
 export { deploymentsArray };
