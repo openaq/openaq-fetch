@@ -51,6 +51,7 @@ export async function fetchData (source, cb) {
       );
 
       const flattenedResults = results.flat();
+      console.log(flattenedResults)
       cb(null, {
         name: 'unused',
         measurements: flattenedResults,
@@ -138,36 +139,40 @@ function processRow($, row, station, pollutantParams, results) {
   );
   const utcDate = localDate.toUTC();
 
-  pollutantParams.forEach((param, index) => {
-    const value = parseFloat(
-      $(row)
-        .find('td')
-        .eq(index + 2)
-        .text()
-        .trim()
-    );
+  // Check if the date is within the last 24 hours
+  const now = DateTime.now().setZone('America/Argentina/Buenos_Aires');
+  if (now.diff(localDate, 'hours').hours <= 24) {
+    pollutantParams.forEach((param, index) => {
+      const value = parseFloat(
+        $(row)
+          .find('td')
+          .eq(index + 2)
+          .text()
+          .trim()
+      );
 
-    results.push({
-      city: 'Buenos Aires',
-      location: station.station,
-      parameter: param,
-      value,
-      unit: param === 'co' ? 'mg/m³' : 'µg/m³',
-      date: {
-        local: localDate.toISO({ suppressMilliseconds: true }),
-        utc: utcDate.toISO({ suppressMilliseconds: true }),
-      },
-      coordinates: station.coordinates,
-      attribution: [
-        {
-          name: 'ACUMAR',
-          url: station.url,
+      results.push({
+        city: 'Buenos Aires',
+        location: station.station,
+        parameter: param,
+        value,
+        unit: param === 'co' ? 'mg/m³' : 'µg/m³',
+        date: {
+          local: localDate.toISO({ suppressMilliseconds: true }),
+          utc: utcDate.toISO({ suppressMilliseconds: true }),
         },
-      ],
-      averagingPeriod: {
-        unit: 'hours',
-        value: 1,
-      },
+        coordinates: station.coordinates,
+        attribution: [
+          {
+            name: 'ACUMAR',
+            url: station.url,
+          },
+        ],
+        averagingPeriod: {
+          unit: 'hours',
+          value: 1,
+        },
+      });
     });
-  });
+  }
 }
