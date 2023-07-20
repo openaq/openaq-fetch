@@ -51,7 +51,6 @@ export async function fetchData (source, cb) {
       );
 
       const flattenedResults = results.flat();
-      console.log(flattenedResults)
       cb(null, {
         name: 'unused',
         measurements: flattenedResults,

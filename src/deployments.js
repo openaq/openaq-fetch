@@ -20,6 +20,11 @@ const deploymentsArray = [
     name: 'eea',
     adapter: 'eea-direct',
     offset: 24
+  },
+  {
+    name: 'acumar',
+    adapter: 'acumar',
+    offset: 12
   }
   // {
   //   name: 'japan',
