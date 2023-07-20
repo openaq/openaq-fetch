@@ -21,15 +21,16 @@ const deploymentsArray = [
     adapter: 'eea-direct',
     offset: 24
   },
+  // one of ACUMAR's stations is always late
   {
     name: 'acumar',
     adapter: 'acumar',
     offset: 12
   }
-  // {
-  //   name: 'japan',
-  //   source: 'japan-soramame',
-  // }
+//   }
+//     name: 'japan',
+//     source: 'japan-soramame'
+//   }
 ];
 
 export { deploymentsArray };
