@@ -27,9 +27,8 @@ export const name = 'acumar';
 export async function fetchData (source, cb) {
   try {
     if (source.datetime) {
-      const sourceLuxon = DateTime.fromISO(source.datetime);
-      const dateLuxon = sourceLuxon.toFormat('dd/MM/yy');
-      const hourLuxon = sourceLuxon.toFormat('HH');
+      const dateLuxon = source.datetime.toFormat('dd/MM/yy');
+      const hourLuxon = source.datetime.toFormat('HH');
 
       const results = await Promise.all(
         stations.map((station) =>
@@ -47,7 +46,9 @@ export async function fetchData (source, cb) {
       offset = 1;
 
       const results = await Promise.all(
-        stations.map((station) => getPollutionData(station, null, null, 3))
+        stations.map((station) =>
+          getPollutionData(station, null, null, 3)
+        )
       );
 
       const flattenedResults = results.flat();
@@ -62,7 +63,12 @@ export async function fetchData (source, cb) {
   }
 }
 
-async function getPollutionData(station, dateLuxon, hourLuxon, numRows) {
+async function getPollutionData (
+  station,
+  dateLuxon,
+  hourLuxon,
+  numRows
+) {
   const pollutantParams = [
     'no2',
     'no',
@@ -89,10 +95,11 @@ async function getPollutionData(station, dateLuxon, hourLuxon, numRows) {
     const $ = load(response.body);
 
     if (dateLuxon && hourLuxon) {
-      const firstDataRow = $('table')
+      const firstDataRowIndex = $('table')
         .eq(station.table)
         .find('tr')
-        .filter((_, row) => {
+        .get()
+        .findIndex((row) => {
           const dateCell = $(row).find('td').eq(0).text().trim();
           const hourCell = $(row)
             .find('td')
@@ -101,17 +108,23 @@ async function getPollutionData(station, dateLuxon, hourLuxon, numRows) {
             .trim()
             .replace(' hs.', '');
           return dateCell === dateLuxon && hourCell === hourLuxon;
-        })
-        .first();
+        });
 
-      processRow($, firstDataRow, station, pollutantParams, results);
+      const timeRows = $('table')
+        .eq(station.table)
+        .find('tr')
+        .slice(firstDataRowIndex, firstDataRowIndex + numRows);
+
+      timeRows.each((_, row) => {
+        processRow($, row, station, pollutantParams, results);
+      });
     } else {
-      const dataRows = $('table')
+      const recentRows = $('table')
         .eq(station.table)
         .find('tr')
         .slice(offset, offset + numRows);
 
-      dataRows.each((_, row) => {
+      recentRows.each((_, row) => {
         processRow($, row, station, pollutantParams, results);
       });
     }
@@ -123,7 +136,7 @@ async function getPollutionData(station, dateLuxon, hourLuxon, numRows) {
   return results;
 }
 
-function processRow($, row, station, pollutantParams, results) {
+function processRow ($, row, station, pollutantParams, results) {
   const dateStr = $(row).find('td').eq(0).text().trim();
   const timeStr = $(row)
     .find('td')
@@ -138,40 +151,36 @@ function processRow($, row, station, pollutantParams, results) {
   );
   const utcDate = localDate.toUTC();
 
-  // Check if the date is within the last 24 hours
-  const now = DateTime.now().setZone('America/Argentina/Buenos_Aires');
-  if (now.diff(localDate, 'hours').hours <= 24) {
-    pollutantParams.forEach((param, index) => {
-      const value = parseFloat(
-        $(row)
-          .find('td')
-          .eq(index + 2)
-          .text()
-          .trim()
-      );
+  pollutantParams.forEach((param, index) => {
+    const value = parseFloat(
+      $(row)
+        .find('td')
+        .eq(index + 2)
+        .text()
+        .trim()
+    );
 
-      results.push({
-        city: 'Buenos Aires',
-        location: station.station,
-        parameter: param,
-        value,
-        unit: param === 'co' ? 'mg/m³' : 'µg/m³',
-        date: {
-          local: localDate.toISO({ suppressMilliseconds: true }),
-          utc: utcDate.toISO({ suppressMilliseconds: true }),
+    results.push({
+      city: 'Buenos Aires',
+      location: station.station,
+      parameter: param,
+      value,
+      unit: param === 'co' ? 'mg/m³' : 'µg/m³',
+      date: {
+        local: localDate.toISO({ suppressMilliseconds: true }),
+        utc: utcDate.toISO({ suppressMilliseconds: true }),
+      },
+      coordinates: station.coordinates,
+      attribution: [
+        {
+          name: 'ACUMAR',
+          url: station.url,
         },
-        coordinates: station.coordinates,
-        attribution: [
-          {
-            name: 'ACUMAR',
-            url: station.url,
-          },
-        ],
-        averagingPeriod: {
-          unit: 'hours',
-          value: 1,
-        },
-      });
+      ],
+      averagingPeriod: {
+        unit: 'hours',
+        value: 1,
+      },
     });
-  }
+  });
 }
