@@ -91,7 +91,7 @@ function formatData(results) {
       averagingPeriod: { unit: 'minutes', value: 10 },
     };
 
-    let d = itemData;
+    const d = itemData;
 
     // Gets the dateLuxon and correct timezone of time from item
     const dateLuxon = DateTime.fromISO(d.DateTime, {
