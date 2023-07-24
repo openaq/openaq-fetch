@@ -71,16 +71,17 @@ export function fetchData(source, cb) {
  * @return {object} Parsed and standarized data our system can use
  */
 
-async function formatData(results) {
+// Removed 'async' from here
+function formatData(results) {
   // Filter out undefined values
   results = results.filter((r) => r[0] !== undefined);
-  let measurements = [];
+  const measurements = [];
 
-  results.forEach((r) => {
+  results.forEach(([itemData, stationData]) => {
     const template = {
-      city: r[1].city,
-      location: r[1].location,
-      coordinates: r[1].coordinates,
+      city: stationData.city,
+      location: stationData.location,
+      coordinates: stationData.coordinates,
       attribution: [
         {
           name: 'Environment Canterbury',
@@ -90,7 +91,7 @@ async function formatData(results) {
       averagingPeriod: { unit: 'minutes', value: 10 },
     };
 
-    let d = r[0];
+    let d = itemData;
 
     // Gets the dateLuxon and correct timezone of time from item
     const dateLuxon = DateTime.fromISO(d.DateTime, {
