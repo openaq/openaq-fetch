@@ -25,7 +25,7 @@ const deploymentsArray = [
   {
     name: 'acumar',
     adapter: 'acumar',
-    offset: 72
+    offset: 150
   }
 //   }
 //     name: 'japan',
