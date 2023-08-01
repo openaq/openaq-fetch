@@ -35,6 +35,7 @@ export function fetchData (source, cb) {
         if (data === undefined) {
           cb(new Error('Failure to parse data.'));
         } else {
+          console.dir(data, {depth:null})
           cb(null, data);
         }
       }
@@ -67,7 +68,9 @@ function formatData (locations) {
         return key in validParameters;
       })
       // filter out null values
-      .filter((o) => o[1])
+      // .filter((o) => o[1])
+      .filter(([key, value]) => value != null)
+
       // map to the correct format
       .map((o) => {
         return {
