@@ -24,7 +24,7 @@ export function fetchData (source, cb) {
         if (data === undefined) {
           throw new Error('Failure to parse data.');
         }
-
+console.dir(data, {depth: null})
         cb(null, data);
       } catch (error) {
         cb(error, { message: 'Unknown adapter error.' }, null);
@@ -38,13 +38,19 @@ const formatData = function (data, source) {
     const date = DateTime.fromFormat(
       string.trim(),
       'HHmmss',
-      'Australia/Hobart'
+      { zone: 'Australia/Hobart' }
     );
+
+    if (!date.isValid) {
+      throw new Error('Invalid date format');
+    }
+
     return {
       utc: date.toUTC().toISO({ suppressMilliseconds: true }),
       local: date.toISO({ suppressMilliseconds: true }),
     };
   };
+
   // manually retrieved list of station names
   // new stations should be checked for naming on this map:
   // http://epa.tas.gov.au/_layouts/15/Lightbox.aspx?url=http%3A%2F%2Fepa.tas.gov.au%2FAir%2FLive%2Flatest_air_data_on_map.jpg
@@ -101,15 +107,10 @@ const formatData = function (data, source) {
 
   // loop through the csv rows
   for (let k = 0; k < output.length; k++) {
-    // Station, hhmmss(AEST), PM2.5(ug/m^3), PM10(ug/m^3), lat(deg), long(degE), alt(m), Station name
     const value = output[k];
     const currentDate = value[1];
-
-    // Tasmania stations seem to use hhmmss = 999999 when the station
-    // is not available. check for and ignore these records
-    // also check the name matched in the locations list, otherwise this is a new station
     const location = stations[value[0]];
-    if (currentDate === '999999' || location === 'undefined') {
+    if (currentDate === '999999' || location === undefined) {
       continue;
     }
     const dates = parseDate(currentDate);
@@ -118,7 +119,6 @@ const formatData = function (data, source) {
     const lat = value[4];
     const lng = value[5];
 
-    // base obj for resuse
     const baseObj = {
       location: location,
       city: source.city,
@@ -137,18 +137,17 @@ const formatData = function (data, source) {
       date: dates,
     };
 
-    // PM2.5 entry
     const objPM25 = cloneDeep(baseObj);
     objPM25.value = parseFloat(pm25);
     objPM25.parameter = 'pm25';
     measurements.push(objPM25);
 
-    // PM10 entry
     const objPM10 = cloneDeep(baseObj);
     objPM10.value = parseFloat(pm10);
     objPM10.parameter = 'pm10';
     measurements.push(objPM10);
   }
+
   measurements = convertUnits(flatten(measurements));
   return {
     name: 'unused',
