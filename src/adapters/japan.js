@@ -109,8 +109,10 @@ async function getAirQualityData (jpDataUrl) {
         );
 
         const result = data.flatMap((row) => {
-          const dateTimeStr = `${row['年']}-${row['月']}-${row['日']}T${row['時']}:00:00`;
-          const jstTime = DateTime.fromISO(dateTimeStr, { zone: 'Asia/Tokyo' });
+          const hour = parseInt(row['時']) - 1;
+          const dateTimeStr = `${row['年']}-${row['月']}-${row['日']}T${String(hour).padStart(2, '0')}:59:00`;
+          let jstTime = DateTime.fromISO(dateTimeStr, { zone: 'Asia/Tokyo' });
+          jstTime = jstTime.plus({ minutes: 1 });
 
           return Object.entries(units)
             .filter(
