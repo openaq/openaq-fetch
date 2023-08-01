@@ -24,7 +24,6 @@ export function fetchData (source, cb) {
         if (data === undefined) {
           throw new Error('Failure to parse data.');
         }
-console.dir(data, {depth: null})
         cb(null, data);
       } catch (error) {
         cb(error, { message: 'Unknown adapter error.' }, null);
