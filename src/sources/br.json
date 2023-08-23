@@ -11,7 +11,7 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "https://jeap.rio.rj.gov.br/je-metinfosmac/portalV2/estacao",
