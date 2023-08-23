@@ -2,6 +2,14 @@
 
 Changes to adapters will be documented in this file.
 
+## 08/23/2023
+### Set active: false
+- all China stateair adapters (stateair.net not resolving)
+- Brazil CETESB (needs environment variables)
+- south-australia-epa (needs environment variables)
+- Australia - Victoria (needs environment variables)
+- Australia - New South Wales (needs environment variables)
+
 ## 07/13/2023
 ### Removed
 - src/adapters/moscow.js
