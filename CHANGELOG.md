@@ -9,6 +9,7 @@ Changes to adapters will be documented in this file.
 - south-australia-epa (needs environment variables)
 - Australia - Victoria (needs environment variables)
 - Australia - New South Wales (needs environment variables)
+- Trinidad & Tobago ( needs fix )
 
 ## 07/13/2023
 ### Removed
