@@ -94,19 +94,16 @@ const formatData = function (results) {
     }
     return data;
   };
-  // Loops through all items
   const validParameters = ['CO', 'NO2', 'O3', 'PM-10', 'PM-2.5', 'SO2'];
 
   results.forEach((item) => {
     item = parseToJSON(item);
 
     if (item !== undefined) {
-      // Identify the parameter
       let parameter = validParameters.find((p) =>
         item.values.hasOwnProperty(p)
       );
 
-      // Check if parameter and xlabels have the same length
       if (
         !parameter ||
         item.values[parameter].length !== item.values.xlabels.length
@@ -133,7 +130,7 @@ const formatData = function (results) {
           },
         ],
         averagingPeriod: { unit: 'hours', value: 1 },
-        unit: parameter === 'CO' ? 'mg/m3' : 'ug/m3', // Units adjustment based on the parameter
+        unit: parameter === 'CO' ? 'mg/m3' : 'ug/m3',
       };
 
       item.values[parameter].forEach((value, i) => {
@@ -152,7 +149,6 @@ const formatData = function (results) {
             local: dateMoment.toISO({ suppressMilliseconds: true }),
           };
 
-          // unify parameters and measurement units
           m = unifyParameters(m);
           m = unifyMeasurementUnits(m);
           measurements.push(m);
@@ -161,9 +157,7 @@ const formatData = function (results) {
     }
   });
 
-  // corrects the parameter names
   measurements = correctMeasurementParameter(measurements);
-  // filters out the measurements that are not the latest
   measurements = getLatestMeasurements(measurements);
   return {
     name: 'unused',
