@@ -37,7 +37,7 @@ const formatData = function (data, source) {
     const date = DateTime.fromFormat(
       string.trim(),
       'HHmmss',
-      { zone: 'Australia/Hobart' }
+      { zone: 'Australia/Tasmania' }
     );
 
     if (!date.isValid) {
