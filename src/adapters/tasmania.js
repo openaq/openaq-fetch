@@ -12,7 +12,7 @@ import got from 'got';
 
 export const name = 'tasmania';
 
-export function fetchData (source, cb) {
+export function fetchData(source, cb) {
   got(source.url, { timeout: { request: REQUEST_TIMEOUT } }).then(
     (response) => {
       try {
@@ -34,19 +34,21 @@ export function fetchData (source, cb) {
 
 const formatData = function (data, source) {
   const parseDate = function (string) {
-    const date = DateTime.fromFormat(
-      string.trim(),
-      'HHmmss',
-      { zone: 'Australia/Tasmania' }
-    );
+    const now = DateTime.now().setZone('Australia/Tasmania');
+
+    const hours = parseInt(string.substring(0, 2), 10);
+    const minutes = parseInt(string.substring(2, 4), 10);
+    const seconds = parseInt(string.substring(4, 6), 10);
+
+    const date = now.set({ hour: hours, minute: minutes, second: seconds });
 
     if (!date.isValid) {
       throw new Error('Invalid date format');
     }
 
     return {
-      utc: date.toUTC().toISO({ suppressMilliseconds: true }),
-      local: date.toISO({ suppressMilliseconds: true }),
+      utc: date.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ssZZ"),
+      local: date.toFormat("yyyy-MM-dd'T'HH:mm:ssZZ"),
     };
   };
 
