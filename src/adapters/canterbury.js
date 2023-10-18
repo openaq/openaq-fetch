@@ -8,10 +8,6 @@
 
 'use strict';
 
-import {
-  unifyMeasurementUnits,
-  unifyParameters,
-} from '../lib/utils.js';
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { DateTime } from 'luxon';
 import got from 'got';
@@ -75,18 +71,17 @@ export function fetchData(source, cb) {
  * @return {object} Parsed and standarized data our system can use
  */
 
-async function formatData(results) {
-  // filter out undefined values
+// Removed 'async' from here
+function formatData(results) {
+  // Filter out undefined values
   results = results.filter((r) => r[0] !== undefined);
-  let measurements = [];
-  // Legal types, for some reason the JSON converts signs and spaces into unicode,
-  // and data has wind and temperature data also, which needs to be filtered out
-  const parameters = ['PM10', 'PM2.5', 'SO2', 'CO', 'NO2', 'O3'];
-  results.forEach((r) => {
+  const measurements = [];
+
+  results.forEach(([itemData, stationData]) => {
     const template = {
-      city: r[1].city,
-      location: r[1].location,
-      coordinates: r[1].coordinates,
+      city: stationData.city,
+      location: stationData.location,
+      coordinates: stationData.coordinates,
       attribution: [
         {
           name: 'Environment Canterbury',
@@ -95,56 +90,36 @@ async function formatData(results) {
       ],
       averagingPeriod: { unit: 'minutes', value: 10 },
     };
-    // Runs through all data items for the site
-    r.forEach((d) => {
-      // Gets the datemoment and correct timezone of time from item
-      let dateMoment = DateTime.fromISO(d.DateTime, {
-        zone: 'Pacific/Auckland',
-      });
-      let measurement = Object.assign(
-        {
+
+    const d = itemData;
+
+    // Gets the dateLuxon and correct timezone of time from item
+    const dateLuxon = DateTime.fromISO(d.DateTime, {
+      zone: 'Pacific/Auckland',
+    });
+
+    // Filters out all unwanted data, and then runs through all keys
+    Object.keys(d).forEach((m) => {
+      if (paramDict[m]) {
+        let measurement = {
           date: {
-            utc: dateMoment.toISO({ suppressMilliseconds: true }),
-            local: dateMoment.toISO({ suppressMilliseconds: true }),
+            utc: dateLuxon.toISO({ suppressMilliseconds: true }),
+            local: dateLuxon.toISO({ suppressMilliseconds: true }),
           },
-        },
-        template
-      );
-      // Filters out all unwanted data, and then runs through all keys
-      Object.keys(d)
-        .filter((m) => {
-          for (let p of parameters) {
-            if (m.search(p) !== -1) {
-              return true;
-            }
-          }
-          return false;
-        })
-        .forEach((m) => {
-          // Part of key is the measurement, substring until the first letter of _, to find parameter
-          measurement.parameter = m.substr(0, m.indexOf('_'));
-          measurement.value = parseFloat(d[m]);
-          // All data is in ug/m3, except CO, which is mg/m3
-          measurement.unit =
-            measurement.parameter !== 'CO' ? 'ug/m3' : 'mg/m3';
-          // Unifies measurement units and parameters before adding them
-          measurement = unifyMeasurementUnits(measurement);
-          measurement = unifyParameters(measurement);
-          measurements.push(measurement);
-        });
+          parameter: paramDict[m].param,
+          value: parseFloat(d[m]),
+          unit: paramDict[m].units,
+        };
+
+        measurement = Object.assign({}, measurement, template);
+        measurements.push(measurement);
+      }
     });
   });
-  //  filter out duplicates
-  measurements = measurements.filter(
-    (m, i, a) =>
-      a.findIndex(
-        (t) =>
-          t.date.utc === m.date.utc && t.parameter === m.parameter
-      ) === i
-  );
+
   return {
     name: 'unused',
-    measurements: measurements
+    measurements: measurements,
   };
 }
 
@@ -274,5 +249,26 @@ const stations = {
       latitude: -43.508568,
       longitude: 172.635835,
     },
+  },
+};
+
+const paramDict = {
+  PM10_x0020__x0028_ug_x002F_m3_x0029_: {
+    param: 'pm10',
+    units: 'µg/m³',
+  },
+  'PM2.5_x0020__x0028_ug_x002F_m3_x0029_': {
+    param: 'pm25',
+    units: 'µg/m³',
+  },
+  CO_x0020__x0028_mg_x002F_m3_x0029_: { param: 'co', units: 'mg/m³' },
+  NO_x0020__x0028_ug_x002F_m3_x0029_: { param: 'no', units: 'µg/m³' },
+  NO2_x0020__x0028_ug_x002F_m3_x0029_: {
+    param: 'no2',
+    units: 'µg/m³',
+  },
+  SO2_x0020__x0028_ug_x002F_m3_x0029_: {
+    param: 'so2',
+    units: 'µg/m³',
   },
 };

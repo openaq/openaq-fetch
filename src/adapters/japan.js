@@ -13,8 +13,8 @@ import Bottleneck from 'bottleneck';
 import got from 'got';
 
 const limiter = new Bottleneck({
-  minTime: 100, // Minimum time between requests (ms)
-  maxConcurrent: 10
+  minTime: 50, // Minimum time between requests (ms)
+  maxConcurrent: 16
 });
 
 const translation = {
@@ -77,11 +77,15 @@ const year = tokyoTime.toFormat('yyyy');
 const month = tokyoTime.toFormat('MM');
 const day = tokyoTime.toFormat('dd');
 
-const stationsCsvUrl = `https://soramame.env.go.jp/data/map/kyokuNoudo/${year}/${month}/${day}/01.csv`;
+const stationsCsvUrl = new URL('https://soramame.env.go.jp/data/map/kyokuNoudo/');
+stationsCsvUrl.pathname += `${year}/${month}/${day}/01.csv`;
 
 async function fetchStationData (latestDataUrl, stationId, unixTimeStamp) {
-  const url = `${latestDataUrl}${stationId}/today.csv?_=${unixTimeStamp}`;
-  const response = await got(url);
+  const url = new URL(latestDataUrl);
+  url.pathname += `${stationId}/today.csv`;
+  url.searchParams.append('_', unixTimeStamp);
+
+  const response = await got(url.href);
   return new Promise((resolve, reject) => {
     parse(response.body, { columns: true }, (err, records) => {
       err ? reject(err) : resolve(records);
@@ -90,7 +94,7 @@ async function fetchStationData (latestDataUrl, stationId, unixTimeStamp) {
 }
 
 async function getAirQualityData (jpDataUrl) {
-  const stationData = await fetchStations(stationsCsvUrl);
+  const stationData = await fetchStations(stationsCsvUrl.href);
 
   const now = DateTime.now().setZone('utc');
   const unixTimeStamp = now.toMillis();
@@ -105,6 +109,9 @@ async function getAirQualityData (jpDataUrl) {
         );
 
         const result = data.flatMap((row) => {
+          const dateTimeStr = `${row['年']}-${row['月']}-${row['日']}T${row['時']}:00:00`;
+          const jstTime = DateTime.fromISO(dateTimeStr, { zone: 'Asia/Tokyo' });
+
           return Object.entries(units)
             .filter(
               ([parameter]) =>
@@ -127,13 +134,8 @@ async function getAirQualityData (jpDataUrl) {
                       longitude: parseFloat(station.longitude)
                     },
                     date: {
-                      utc: now
-                        .startOf('hour')
-                        .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
-                      local: now
-                        .setZone('Asia/Tokyo')
-                        .startOf('hour')
-                        .toFormat("yyyy-MM-dd'T'HH:mm:ssZZ")
+                      utc: jstTime.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+                      local: jstTime.toFormat("yyyy-MM-dd'T'HH:mm:ssZZ")
                     },
                     parameter: standardizedParam,
                     value: value,

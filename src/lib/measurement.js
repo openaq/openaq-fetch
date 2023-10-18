@@ -49,10 +49,14 @@ async function getStreamFromAdapter (adapter, source) {
         adapter.name
       }"`
     );
-    const data = await promisify(adapter.fetchData)(source);
-    const out = DataStream.from(data.measurements);
-    out.name = data.name;
-    return out;
+		const fetchData = promisify(adapter.fetchData)
+		const data = await fetchData(source)
+					.catch(err => {
+            throw new AdapterError(ADAPTER_ERROR, null, err.code)
+					});
+		const out = DataStream.from(data.measurements);
+		out.name = data.name;
+		return out;
   }
 
   log.debug(
@@ -88,9 +92,10 @@ function createFetchObject (input, source, failures, dryRun) {
 
   return {
     get fetchStarted () {
-				log.info(`Started ${source.name}`);
-				return Date.now();
-		}, 
+      const now = Date.now();
+      log.info(`Started ${source.name} - ${now}`);
+      return now;
+    },
     get fetchEnded () {
       return fetchEnded;
     },
@@ -286,6 +291,7 @@ export function fetchCorrectedMeasurementsFromSourceStream (stream, env) {
       if (error) throw error;
       else error = true;
     } catch (cause) {
+      log.error(cause)
       await input.raise(
         cause instanceof AdapterError
           ? cause

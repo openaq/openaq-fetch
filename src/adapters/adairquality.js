@@ -1,18 +1,16 @@
 /**
  * This code is responsible for implementing all methods related to fetching
- * and returning data for the Taiwanese data sources.
+ * and returning data for the Arab Emirates data sources.
  */
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants';
-import { default as baseRequest } from 'request';
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import got from 'got';
 import { DateTime } from 'luxon';
 import { parallel } from 'async';
-import { flatMap } from 'lodash';
+import flatMap from 'lodash/flatMap.js';
 
-const request = baseRequest.defaults({ timeout: REQUEST_TIMEOUT });
-
-exports.name = 'adairquality-ae';
+export const name = 'adairquality-ae';
 
 /**
  * Fetches the data for a given source and returns an appropriate object
@@ -25,202 +23,206 @@ const stations = [
     name: 'Al Ain Islamic Institute',
     coordinates: {
       latitude: 24.219,
-      longitude: 55.7348
+      longitude: 55.7348,
     },
     slug: 'EAD_AlAinSchool',
-    city: 'Al Ain'
+    city: 'Al Ain',
   },
   {
     name: 'Al Ain Street',
     coordinates: {
       latitude: 24.22579,
-      longitude: 55.76579
+      longitude: 55.76579,
     },
     slug: 'EAD_AlAinStreet',
-    city: 'Al Ain'
+    city: 'Al Ain',
   },
   {
     name: 'Al Mafraq',
     coordinates: {
       latitude: 24.28697,
-      longitude: 54.5861
+      longitude: 54.5861,
     },
     slug: 'EAD_AlMafraq',
-    city: 'Abu Dhabi'
+    city: 'Abu Dhabi',
   },
   {
     name: "Al Qua'a",
     coordinates: {
       latitude: 23.53109,
-      longitude: 55.48589
+      longitude: 55.48589,
     },
     slug: 'EAD_AlQuaa',
-    city: 'Al Ain'
+    city: 'Al Ain',
   },
   {
     name: 'Al Tawia',
     coordinates: {
       latitude: 24.25909,
-      longitude: 55.70479
+      longitude: 55.70479,
     },
     slug: 'EAD_AlTawia',
-    city: 'Al Ain'
+    city: 'Al Ain',
   },
   {
     name: 'Al Maqtaa',
     coordinates: {
       latitude: 24.40349,
-      longitude: 54.51599
+      longitude: 54.51599,
     },
     slug: 'EAD_AlMaqta',
-    city: 'Abu Dhabi'
+    city: 'Abu Dhabi',
   },
   {
     name: 'Baniyas School',
     coordinates: {
       latitude: 24.32129,
-      longitude: 54.63589
+      longitude: 54.63589,
     },
     slug: 'EAD_Baniyas',
-    city: 'Abu Dhabi'
+    city: 'Abu Dhabi',
   },
   {
     name: 'Bida Zayed',
     coordinates: {
       latitude: 23.652199,
-      longitude: 53.70379
+      longitude: 53.70379,
     },
     slug: 'EAD_BidaZayed',
-    city: 'Abu Dhabi'
+    city: 'Abu Dhabi',
   },
   {
     name: 'Zakher',
     coordinates: {
       latitude: 24.16339,
-      longitude: 55.70209
+      longitude: 55.70209,
     },
     slug: 'EAD_Zakher',
-    city: 'Al Ain'
+    city: 'Al Ain',
   },
   {
     name: 'Gayathi',
     coordinates: {
       latitude: 23.83549,
-      longitude: 52.81029
+      longitude: 52.81029,
     },
     slug: 'EAD_Gayathi',
-    city: 'Ghiyathi'
+    city: 'Ghiyathi',
   },
   {
     name: 'Sweihan',
     coordinates: {
       latitude: 24.466506,
-      longitude: 55.34282475
+      longitude: 55.34282475,
     },
     slug: 'EAD_Sweihan',
-    city: 'Al Ain'
+    city: 'Al Ain',
   },
   {
     name: 'Ruwais',
     coordinates: {
       latitude: 24.09079,
-      longitude: 52.75479
+      longitude: 52.75479,
     },
     slug: 'EAD_RuwaisTransco',
-    city: 'Al Ruways Industrial City'
+    city: 'Al Ruways Industrial City',
   },
   {
     name: 'Mussafah',
     coordinates: {
       latitude: 24.34715,
-      longitude: 54.5028
+      longitude: 54.5028,
     },
     slug: 'EAD_Mussafah',
-    city: 'Abu Dhabi'
+    city: 'Abu Dhabi',
   },
   {
     name: 'Liwa',
     coordinates: {
       latitude: 23.09569,
-      longitude: 53.60639
+      longitude: 53.60639,
     },
     slug: 'EAD_Liwa',
-    city: 'Liwa'
+    city: 'Liwa',
   },
   {
     name: 'Khalifa School',
     coordinates: {
       latitude: 24.4299,
-      longitude: 54.408399
+      longitude: 54.408399,
     },
     slug: 'EAD_KhalifaSchool',
-    city: 'Abu Dhabi'
+    city: 'Abu Dhabi',
   },
   {
     name: 'Khalifa City A',
     coordinates: {
       latitude: 24.419899,
-      longitude: 54.57809
+      longitude: 54.57809,
     },
     slug: 'EAD_KhalifaCity',
-    city: 'Abu Dhabi'
+    city: 'Abu Dhabi',
   },
   {
     name: 'Khadeeja School',
     coordinates: {
       latitude: 24.48188,
-      longitude: 54.369138
+      longitude: 54.369138,
     },
     slug: 'EAD_KhadijaSchool',
-    city: 'Abu Dhabi'
+    city: 'Abu Dhabi',
   },
   {
     name: 'Hamdan Street',
     coordinates: {
       latitude: 24.48889,
-      longitude: 54.36369
+      longitude: 54.36369,
     },
     slug: 'EAD_HamdanStreet',
-    city: 'Abu Dhabi'
+    city: 'Abu Dhabi',
   },
   {
     name: 'Habshan South',
     coordinates: {
       latitude: 23.750399,
-      longitude: 53.745199
+      longitude: 53.745199,
     },
     slug: 'EAD_Habshan',
-    city: 'Habshan'
+    city: 'Habshan',
   },
   {
     name: 'E11+Road',
     coordinates: {
       latitude: 24.035099,
-      longitude: 53.88529
+      longitude: 53.88529,
     },
     slug: 'EAD_E11Road',
-    city: 'Abu Al Abyad'
-  }
+    city: 'Abu Al Abyad',
+  },
 ];
 
-exports.fetchData = function (source, cb) {
-  /**
-   * Given fetched data, turn it into a format our system can use.
-   * @param {object} results Fetched source data and other metadata
-   * @return {object} Parsed and standarized data our system can use
-   */
-
+export function fetchData(source, cb) {
   const requests = stations.map((station) => {
     return (done) => {
-      request(`${source.url}${station.slug}`, (err, res, body) => {
-        if (err || res.statusCode !== 200) {
+      got(`${source.url}${station.slug}`, {
+        timeout: {
+          request: REQUEST_TIMEOUT
+        },
+      })
+        .then((response) => {
+          if (response.statusCode !== 200) {
+            return done({
+              message: `Failure to load data url (${source.url}${station.slug})`,
+            });
+          }
+          let data = Object.assign(station, { body: response.body });
+          return done(null, data);
+        })
+        .catch((err) => {
           return done({
-            message: `Failure to load data url (${source.url}${station.slug})`
+            message: `Failure to load data url (${source.url}${station.slug}) due to error: ${err.message}`,
           });
-        }
-        let data = Object.assign(station, { body: body }); // add the body to the station object
-        return done(null, data);
-      });
+        });
     };
   });
 
@@ -238,17 +240,17 @@ exports.fetchData = function (source, cb) {
       return cb(e);
     }
   });
-};
+}
 
 const validParameters = {
   PM10: { value: 'pm10', unit: 'µg/m³' },
   O3: { value: 'o3', unit: 'µg/m³' },
   SO2: { value: 'so2', unit: 'µg/m³' },
   NO2: { value: 'no2', unit: 'µg/m³' },
-  CO: { value: 'co', unit: 'mg/m³' }
+  CO: { value: 'co', unit: 'mg/m³' },
 };
 
-function parseDate (dateString) {
+function parseDate(dateString) {
   /**
    * converts the given date string to a timezoned date
    * @param {string} dateString date as string in format 'dd/mm/yyyy hh:mm:ss AM'
@@ -274,13 +276,13 @@ function parseDate (dateString) {
       '0'
     )}T${hour}:${minutes}:${seconds}`,
     {
-      zone: 'Asia/Dubai'
+      zone: 'Asia/Dubai',
     }
   );
   return d;
 }
 
-function formatData (locations) {
+function formatData(locations) {
   let out = [];
   for (const location of locations) {
     const body = JSON.parse(location.body);
@@ -290,8 +292,7 @@ function formatData (locations) {
       return o;
     });
     const measurementsSorted = measurements.sort(
-      (a, b) => b.DateTime - a.DateTime
-    );
+      (a, b) => b.DateTime.valueOf() - a.DateTime.valueOf());
     const latestMeasurements = measurementsSorted[0];
     const filtered = Object.entries(latestMeasurements)
       .filter(([key, _]) => {
@@ -302,17 +303,17 @@ function formatData (locations) {
         return {
           parameter: validParameters[o[0]].value,
           unit: validParameters[o[0]].unit,
-          value: o[1]
+          value: o[1],
         };
       });
     const data = filtered.map((measurement) => {
       return {
         parameter: measurement.parameter,
         date: {
-          utc: latestMeasurements.DateTime,
+          utc: latestMeasurements.DateTime.toUTC().toISO(),
           local: latestMeasurements.DateTime.toISO({
-            suppressMilliseconds: true
-          })
+            suppressMilliseconds: true,
+          }),
         },
         value: measurement.value,
         unit: measurement.unit,
@@ -320,15 +321,15 @@ function formatData (locations) {
         city: location.city,
         coordinates: {
           latitude: location.coordinates.latitude,
-          longitude: location.coordinates.longitude
+          longitude: location.coordinates.longitude,
         },
         attribution: [
           {
             name: 'Abu Dhabi Air Quality',
-            url: 'https://www.adairquality.ae/'
-          }
+            url: 'https://www.adairquality.ae/',
+          },
         ],
-        averagingPeriod: { unit: 'hours', value: 1 }
+        averagingPeriod: { unit: 'hours', value: 1 },
       };
     });
     out.push(data);

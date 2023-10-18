@@ -1,29 +1,20 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
+//import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { DateTime } from 'luxon';
 import cheerio from 'cheerio';
-import got from 'got';
-
+//import got from 'got';
+import log from '../lib/logger.js';
+import client from '../lib/requests.js';
 export const name = 'defra';
 
-const headers = { 'User-Agent': 'OpenAQ' }
-
-const gotExtended = got.extend({
-	retry: { limit: 3 },
-	timeout: { request: REQUEST_TIMEOUT },
-  headers: headers
-	});
-
-
 export function fetchData(source, cb) {
-  gotExtended(source.url)
+  client(source, cb)
     .then((response) => {
       // Wrap everything in a try/catch in case something goes wrong
       try {
         // Format the data
         const data = formatData(source, response.body);
-
         // Make sure the data is valid
         if (data === undefined) {
           return cb({ message: 'Failure to parse data.' });
@@ -32,7 +23,7 @@ export function fetchData(source, cb) {
       } catch (e) {
         return cb({ message: 'Unknown adapter error.' });
       }
-    })
+		})
 }
 
 let formatData = function (source, data) {
