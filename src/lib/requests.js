@@ -7,9 +7,6 @@ import { AdapterError, DATA_URL_ERROR } from './errors.js';
 
 const headers = { 'User-Agent': 'OpenAQ' }
 
-
-
-
 export default (source, cb) => {
   let url, timeout, retries;
   if(typeof(source) === 'object' && source.url) {
@@ -28,10 +25,10 @@ export default (source, cb) => {
   // setup the options
   const requestClient = got.extend({
 	  timeout: {
-      request: REQUEST_TIMEOUT
+      request: timeout,
     },
 	  retry: {
-      limit: source.retries || 3,
+      limit: retries,
       errorCodes: [
         'ETIMEDOUT'
       ],

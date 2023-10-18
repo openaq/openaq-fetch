@@ -52,7 +52,7 @@ async function getStreamFromAdapter (adapter, source) {
 		const fetchData = promisify(adapter.fetchData)
 		const data = await fetchData(source)
 					.catch(err => {
-            throw new AdapterError(ADAPTER_ERROR, null, err.code)
+            throw new AdapterError(ADAPTER_ERROR, source, err && err.message && err.message.code)
 					});
 		const out = DataStream.from(data.measurements);
 		out.name = data.name;

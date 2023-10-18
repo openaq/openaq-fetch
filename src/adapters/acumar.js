@@ -96,12 +96,7 @@ async function getPollutionData (
     const $ = load(response.body);
 
     if (dateLuxon && hourLuxon) {
-<<<<<<< HEAD
-				log.debug(`Checking for data: ${dateLuxon}, ${hourLuxon}`);
-      firstDataRow = $('table')
-=======
       const firstDataRowIndex = $('table')
->>>>>>> b2f175dd5c954b41efe54f5765bd432930a53dd0
         .eq(station.table)
         .find('tr')
         .get()
@@ -114,71 +109,15 @@ async function getPollutionData (
             .trim()
             .replace(' hs.', '');
           return dateCell === dateLuxon && hourCell === hourLuxon;
-<<<<<<< HEAD
-        })
-        .first();
-    } else {
-				log.warn(`Could not match date and hour: ${dateLuxon}, ${hourLuxon}`);
-      firstDataRow = $('table')
-=======
         });
 
       const timeRows = $('table')
->>>>>>> b2f175dd5c954b41efe54f5765bd432930a53dd0
         .eq(station.table)
         .find('tr')
         .slice(firstDataRowIndex, firstDataRowIndex + numRows);
 
-<<<<<<< HEAD
-    const dateStr = firstDataRow.find('td').eq(0).text().trim();
-    const timeStr = firstDataRow
-      .find('td')
-      .eq(1)
-      .text()
-      .trim()
-      .replace(' hs.', '');
-    const localDate = DateTime.fromFormat(
-      `${dateStr} ${timeStr}`,
-      'dd/MM/yy H',
-      { zone: 'America/Argentina/Buenos_Aires' }
-    );
-    const utcDate = localDate.toUTC();
-
-    pollutantParams.forEach((param, index) => {
-      const value = parseFloat(
-        firstDataRow
-          .find('td')
-          .eq(index + 2)
-          .text()
-          .trim()
-      );
-
-
-      results.push({
-        city: 'Buenos Aires',
-        location: station.station,
-        parameter: param,
-        value,
-        unit: param === 'co' ? 'mg/m³' : 'µg/m³',
-        date: {
-          local: localDate.toISO({ suppressMilliseconds: true }),
-          utc: utcDate.toISO({ suppressMilliseconds: true }),
-        },
-        coordinates: station.coordinates,
-        attribution: [
-          {
-            name: 'ACUMAR',
-            url: station.url,
-          },
-        ],
-        averagingPeriod: {
-          unit: 'hours',
-          value: 1,
-        },
-=======
       timeRows.each((_, row) => {
         processRow($, row, station, pollutantParams, results);
->>>>>>> b2f175dd5c954b41efe54f5765bd432930a53dd0
       });
     } else {
       const recentRows = $('table')
