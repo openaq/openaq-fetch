@@ -32,6 +32,7 @@ export const name = 'acumar';
 export async function fetchData (source, cb) {
   try {
     if (source.datetime) {
+				log.debug(`Fetching data with ${source.datetime}`);
       const sourceLuxon = DateTime.fromISO(source.datetime);
       const dateLuxon = sourceLuxon.toFormat('dd/MM/yy');
       const hourLuxon = sourceLuxon.toFormat('HH');
@@ -96,6 +97,7 @@ async function getPollutionData(station, dateLuxon, hourLuxon) {
 
     let firstDataRow;
     if (dateLuxon && hourLuxon) {
+				log.debug(`Checking for data: ${dateLuxon}, ${hourLuxon}`);
       firstDataRow = $('table')
         .eq(station.table)
         .find('tr')
@@ -111,6 +113,7 @@ async function getPollutionData(station, dateLuxon, hourLuxon) {
         })
         .first();
     } else {
+				log.warn(`Could not match date and hour: ${dateLuxon}, ${hourLuxon}`);
       firstDataRow = $('table')
         .eq(station.table)
         .find('tr')
@@ -139,6 +142,7 @@ async function getPollutionData(station, dateLuxon, hourLuxon) {
           .text()
           .trim()
       );
+
 
       results.push({
         city: 'Buenos Aires',
