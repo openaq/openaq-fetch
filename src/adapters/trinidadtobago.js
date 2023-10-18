@@ -10,8 +10,9 @@
 
 import {
   unifyParameters,
-  unifyMeasurementUnits
+  unifyMeasurementUnits,
 } from '../lib/utils.js';
+import log from '../lib/logger.js';
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
@@ -28,7 +29,7 @@ const timestamp = DateTime.now().toMillis();
  * @param {function} cb A callback of the form cb(err, data)
  */
 
-export async function fetchData (source, cb) {
+export async function fetchData(source, cb) {
   // Fetch both the measurements and meta-data about the locations
   // List of keys for parameters used in url [3: 'CO', 1465: 'NO2', 2130: 'O3', 18: 'PM-10', 20: 'PM-2.5', 23: 'SO2']
   const parameterIDs = ['3', '1465', '2130', '18', '20', '23'];
@@ -43,7 +44,10 @@ export async function fetchData (source, cb) {
           .replace('$parameter', parameterIDs[i]) + timestamp;
       const task = async function () {
         try {
-          const { body } = await got(sourceURL, { cookieJar: new tough.CookieJar(), timeout: { request: REQUEST_TIMEOUT } });
+          const { body } = await got(sourceURL, {
+            cookieJar: new tough.CookieJar(),
+            timeout: { request: REQUEST_TIMEOUT },
+          });
           return { meta: e, values: body };
         } catch (err) {
           throw new Error(err.response.body);
@@ -54,7 +58,7 @@ export async function fetchData (source, cb) {
   });
 
   try {
-    const results = await Promise.all(tasks.map(task => task()));
+    const results = await Promise.all(tasks.map((task) => task()));
     // Format the data
     const data = formatData(results);
     if (data === undefined) {
@@ -90,15 +94,31 @@ const formatData = function (results) {
     }
     return data;
   };
-  // Loops through all items
+  const validParameters = ['CO', 'NO2', 'O3', 'PM-10', 'PM-2.5', 'SO2'];
+
   results.forEach((item) => {
     item = parseToJSON(item);
-    // If values are empty or something fails, dont run
+
     if (item !== undefined) {
+      let parameter = validParameters.find((p) =>
+        item.values.hasOwnProperty(p)
+      );
+
+      if (
+        !parameter ||
+        item.values[parameter].length !== item.values.xlabels.length
+      ) {
+        log.info(
+          'Parameter mismatch or length mismatch between readings and labels.',
+          item
+        );
+        return;
+      }
+
       const template = {
         city: item.meta.city,
         location: item.meta.location,
-        parameter: Object.keys(item.values)[0],
+        parameter: parameter.toLowerCase(),
         coordinates: {
           latitude: parseFloat(item.meta.latitude),
           longitude: parseFloat(item.meta.longitude),
@@ -110,18 +130,13 @@ const formatData = function (results) {
           },
         ],
         averagingPeriod: { unit: 'hours', value: 1 },
+        unit: parameter === 'CO' ? 'mg/m3' : 'ug/m3',
       };
-      // Units are mostly ug/m3, but CO is mg/m3, according to site
-      template.unit = template.parameter === 'CO' ? 'mg/m3' : 'ug/m3';
-      // Loops through the latest data for 24 hours, data is hourly
-      for (let i in item.values[template.parameter]) {
-        // Do not add values if values are Null
-        if (item.values[template.parameter][i] !== null) {
-          let m = Object.assign(
-            { value: item.values[template.parameter][i] },
-            template
-          );
-          // Adds the formated date
+
+      item.values[parameter].forEach((value, i) => {
+        if (value !== null) {
+          let m = Object.assign({ value: value }, template);
+
           const dateMoment = DateTime.fromFormat(
             item.values.xlabels[i],
             'yyyy-MM-dd HH',
@@ -133,17 +148,16 @@ const formatData = function (results) {
               .toISO({ suppressMilliseconds: true }),
             local: dateMoment.toISO({ suppressMilliseconds: true }),
           };
-          // unifies parameters and measurement units
+
           m = unifyParameters(m);
           m = unifyMeasurementUnits(m);
           measurements.push(m);
         }
-      }
+      });
     }
   });
-  // corrects the parameter names
+
   measurements = correctMeasurementParameter(measurements);
-  // filters out the measurements that are not the latest
   measurements = getLatestMeasurements(measurements);
   return {
     name: 'unused',
