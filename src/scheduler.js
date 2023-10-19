@@ -55,9 +55,9 @@ export async function handler (event, context) {
         try {
           d.suffix = `${d.name}_`;
           d.sources = sources;
-          console.log(`${d.name} with ${d.sources.length} sources`)
           let body = JSON.stringify(d)
           if (env.dryrun) {
+            console.log(`${d.name} with ${d.sources.length} sources`)
             let messageId = 'fake-message-id';
             let event = { name: d.name, Records: [{ body, messageId }] }
             return event
