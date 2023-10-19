@@ -105,7 +105,7 @@ export function handler (event, context) {
     );
   } else {
     log.debug(`Getting sources from active sources array`)
-    currentSources = sourcesArray;
+    currentSources = sourcesArray.filter(s => s.active);
   }
   // and the final file name
   env.key = `realtime/${DateTime.now().toFormat('yyyy-MM-dd/X')}${suffix}.ndjson`;
