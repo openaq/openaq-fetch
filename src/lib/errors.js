@@ -214,7 +214,6 @@ export async function handleUnresolvedPromises (strict) {
 
 export function handleFetchErrors () {
   return (error) => {
-    log.error('Handle fetch errors')
     const cause = error instanceof FetchError ? error : error.cause;
 
     if (cause instanceof FetchError) {
