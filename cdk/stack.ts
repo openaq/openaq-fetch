@@ -12,7 +12,7 @@ import { copyFileSync, readdirSync } from 'fs';
 
 
 interface keyable {
-    [key: string]: string  
+    [key: string]: string
 }
 
 interface StackProps extends cdk.StackProps {

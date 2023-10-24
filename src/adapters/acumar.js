@@ -25,10 +25,11 @@ let offset;
 export const name = 'acumar';
 
 export async function fetchData (source, cb) {
-  try {
-    if (source.datetime) {
-      const dateLuxon = source.datetime.toFormat('dd/MM/yy');
-      const hourLuxon = source.datetime.toFormat('HH');
+	try {
+		if (source.datetime) {
+			log.debug(`Fetching data with ${source.datetime}`);
+			const dateLuxon = source.datetime.toFormat('dd/MM/yy');
+			const hourLuxon = source.datetime.toFormat('HH');
 
       const results = await Promise.all(
         stations.map((station) =>

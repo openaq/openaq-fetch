@@ -95,6 +95,17 @@ const _argv = yargs
     alias: 'e',
     group: 'Main options:'
   })
+  .options('deployments', {
+    describe: 'Use the scheduler to pass deployment events to the fetcher. Specify all or a deployment name',
+    alias: 'D',
+    group: 'Testing options:'
+  })
+  .options('nofetch', {
+    boolean: false,
+    describe: 'Skip the actual fetch process',
+    alias: 'n',
+    group: 'Testing options:'
+  })
   .options('datetime', {
     describe: 'The date/time to query for, if the adapter handles it',
     alias: 't',
@@ -138,6 +149,8 @@ export const readEnvFromLocalFile = (envFile) => {
 export default () => {
   let {
     dryrun,
+    deployments,
+    nofetch,
     debug,
     source,
     adapter,
@@ -208,6 +221,8 @@ export default () => {
     doSaveToS3,
     strict,
     dryrun,
+    deployments,
+    nofetch,
     debug,
     source,
     datetime,
