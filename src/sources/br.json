@@ -21,6 +21,8 @@
         "country": "BR",
         "description": "",
         "resolution": "1 hr",
+        "timeout": 40000,
+        "retries": 0,
         "sourceURL": "https://jeap.rio.rj.gov.br/je-metinfosmac/portalV2/estacao",
         "contacts": [
             "info@openaq.org"

@@ -27,10 +27,14 @@ const deploymentsArray = [
     adapter: 'acumar',
     offset: 72
   },
-	// Japan is slow and needs to be alone
+  // Japan is slow and needs to be alone
   {
     name: 'japan',
     source: 'japan-soramame',
+  },
+  {
+    name: 'mexico',
+    source: 'Sinaica Mexico'
   }
 ];
 

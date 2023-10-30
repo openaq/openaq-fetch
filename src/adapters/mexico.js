@@ -13,33 +13,35 @@ import {
   unifyParameters,
   removeUnwantedParameters,
 } from '../lib/utils.js';
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import got from 'got';
 import { DateTime } from 'luxon';
 import async from 'async';
 import { load } from 'cheerio';
-import sslRootCas from 'ssl-root-cas';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
-// Adding in certs to get around unverified connection issue
-const rootCas = sslRootCas.create();
+// Adding in certs to get around unverified connection issue **NOT WORKING**
+// import sslRootCas from 'ssl-root-cas';
+// import { fileURLToPath } from 'url';
+// import { dirname, join } from 'path';
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename);
 
-const certificatePath = join(
-  __dirname,
-  '..',
-  '/certs/sinaica.inecc.gob.mx.chained.crt'
-);
-
-rootCas.inject().addFile(certificatePath);
+// const rootCas = sslRootCas.create();
+// const certificatePath = join(
+//   __dirname,
+//   '..',
+//   '/certs/sinaica.inecc.gob.mx.chained.crt'
+// );
+// rootCas.inject().addFile(certificatePath);
 
 const gotInstance = got.extend({
-  timeout: { request: REQUEST_TIMEOUT },
   https: {
-    certificateAuthority: rootCas,
+    rejectUnauthorized: false
   },
+  timeout: { request: 150000 },
+  // cert has not been behaving
+  // https: {
+  //   certificateAuthority: rootCas,
+  // },
 });
 
 export const name = 'mexico';
@@ -119,7 +121,7 @@ const formatData = function (pages) {
     });
     const hexPos = place.search('&');
     if (hexPos !== -1) {
-      console.log(place.substring(hexPos, hexPos + 6));
+      // console.log(place.substring(hexPos, hexPos + 6));
     }
     place = place.split('<br>');
     const locationMarkers = ['Municipio:', 'Colonia:', 'Estado:'];

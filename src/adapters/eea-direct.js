@@ -1,15 +1,14 @@
 import { acceptableParameters } from '../lib/utils.js';
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import log from '../lib/logger.js';
-import { default as baseRequest } from 'request';
-import { default as moment } from 'moment-timezone';
+import got from 'got';
+import { DateTime } from 'luxon';
 import tzlookup from 'tz-lookup';
 import sj from 'scramjet';
-const { MultiStream, DataStream, StringStream } = sj;
 import { default as JSONStream } from 'JSONStream';
+const { MultiStream, DataStream, StringStream } = sj;
 
-const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
-const stationsLink = 'http://battuta.s3.amazonaws.com/eea-stations-all.json';
+const stationsLink =
+  'http://battuta.s3.amazonaws.com/eea-stations-all.json';
 
 export const name = 'eea-direct';
 
@@ -21,8 +20,11 @@ export function fetchStream (source) {
 
   fetchMetadata(source)
     .then((stations) => fetchPollutants(source, stations))
-    .then(stream => stream.pipe(out))
-  ;
+    .then((stream) => stream.pipe(out))
+    .catch((error) => {
+      log.error(`Error fetching stream: ${error.message}`);
+      out.end();
+    });
 
   return out;
 }
@@ -31,7 +33,7 @@ export async function fetchData (source, cb) {
   try {
     const stream = await fetchStream(source);
     const measurements = await stream.toArray();
-    cb(null, {name: stream.name, measurements});
+    cb(null, { name: stream.name, measurements });
   } catch (e) {
     cb(e);
   }
@@ -40,15 +42,13 @@ export async function fetchData (source, cb) {
 let _battuta = null;
 function getBattutaStream () {
   if (!_battuta) {
-    const requestObject = request({url: stationsLink});
-    _battuta = DataStream
-      .pipeline(
-        requestObject,
-        JSONStream.parse('*')
-      )
-      .catch(e => {
-        requestObject.abort();
+    const gotStream = got.stream(stationsLink);
+
+    _battuta = DataStream.pipeline(gotStream, JSONStream.parse('*'))
+      .catch((e) => {
+        gotStream.destroy();
         e.stream.end();
+        log.debug(e);
         throw e;
       })
       .keep(Infinity);
@@ -56,86 +56,107 @@ function getBattutaStream () {
 
   return _battuta.rewind();
 }
-
-async function fetchMetadata (source) {
+async function fetchMetadata(source) {
   return getBattutaStream()
-    .filter(({stationId}) => stationId.startsWith(source.country))
+    .filter(({ stationId }) => stationId.startsWith(source.country))
     .accumulate((acc, item) => (acc[item.stationId] = item), {});
 }
 
-function fetchPollutants (source, stations) {
-  const pollutants = acceptableParameters.map(
-    (pollutant) => pollutant === 'pm25' ? 'PM2.5' : pollutant.toUpperCase()
+function fetchPollutants(source, stations) {
+  const pollutants = acceptableParameters.map((pollutant) =>
+    pollutant === 'pm25' ? 'PM2.5' : pollutant.toUpperCase()
   );
 
   return new MultiStream(
-    pollutants.map(pollutant => {
-      const url = source.url + source.country + '_' + pollutant + '.csv';
+    pollutants.map((pollutant) => {
+      const url =
+        source.url + source.country + '_' + pollutant + '.csv';
       const offset = source.offset || 2;
       const timeLastInsert = source.datetime
-            ? source.datetime
-            : moment().utc().subtract(offset, 'hours');
+        ? source.datetime
+        : DateTime.utc().minus({ hours: offset });
       let header;
 
       return new StringStream()
-        .use(stream => {
-          const resp = request.get({url})
-            .on('response', ({statusCode}) => {
-              +statusCode !== 200
-                ? stream.end()
-                : resp.pipe(stream);
-            });
+        .use((stream) => {
+          const resp = got.stream(url).on('error', (error) => {
+            stream.end();
+            log.debug(error);
+          });
+          resp.pipe(stream);
+
           return stream;
         })
-        .CSVParse({header: false, delimiter: ',', skipEmptyLines: true})
-        .shift(1, columns => (header = columns[0]))
-        .filter(o => o.length === header.length)
-        .map(o => header.reduce((a, c, i) => { a[c] = o[i]; return a; }, {}))
-        // TODO: it would be good to provide the actual last fetch time so that we can filter already inserted items in a better way
-        .filter(o => moment(o.value_datetime_inserted).utc().isAfter(timeLastInsert))
-        // eslint-disable-next-line eqeqeq
-        .filter(o => o.value_validity == 1) // Purposefully using '==' in case the 1 is a string or number
-        .filter(o => o.value_numeric.trim() !== '') // Catch emptry string
-        .filter(o => o.station_code in stations)
-        .map(record => {
+        .CSVParse({
+          header: false,
+          delimiter: ',',
+          skipEmptyLines: true,
+        })
+        .shift(1, (columns) => (header = columns[0]))
+        .filter((o) => o.length === header.length)
+        .map((o) =>
+          header.reduce((a, c, i) => {
+            a[c] = o[i];
+            return a;
+          }, {})
+        )
+        .filter((o) => {
+          const isoDate = o.value_datetime_inserted.replace(' ', 'T');
+          return (
+            DateTime.fromISO(isoDate, { setZone: true })
+              .toUTC()
+              .toMillis() > timeLastInsert.toMillis()
+          );
+        })
+
+        .filter((o) => o.value_validity == 1)
+        .filter((o) => o.value_numeric.trim() !== '')
+        .filter((o) => o.station_code in stations)
+        .map((record) => {
           const matchedStation = stations[record.station_code];
-          const timeZone = tzlookup(matchedStation.latitude, matchedStation.longitude);
+          const timeZone = tzlookup(
+            matchedStation.latitude,
+            matchedStation.longitude
+          );
           return {
-            location: record['station_code'],
-            city: matchedStation.city ? matchedStation.city : (
-              matchedStation.location ? matchedStation.location : source.city
-            ),
+            location: record.station_code,
+            city: matchedStation.city
+              ? matchedStation.city
+              : matchedStation.location
+                ? matchedStation.location
+                : source.city,
             coordinates: {
               latitude: Number(matchedStation.latitude),
-              longitude: Number(matchedStation.longitude)
+              longitude: Number(matchedStation.longitude),
             },
-            parameter: record['pollutant'].toLowerCase().replace('.', ''),
-            date: makeDate(record['value_datetime_end'], timeZone),
-            value: Number(record['value_numeric']),
-            unit: record['value_unit'],
-            attribution: [{
-              name: 'EEA',
-              url: source.sourceURL
-            }],
+            parameter: record.pollutant
+              .toLowerCase()
+              .replace('.', ''),
+            date: makeDate(record.value_datetime_end, timeZone),
+            value: Number(record.value_numeric),
+            unit: record.value_unit,
+            attribution: [
+              {
+                name: 'EEA',
+                url: source.sourceURL,
+              },
+            ],
             averagingPeriod: {
               unit: 'hours',
-              value: 1
-            }
+              value: 1,
+            },
           };
         });
-    }))
-    .mux()
-  ;
+    })
+  ).mux();
 }
 
 const makeDate = (date, timeZone) => {
-  // parse date, considering its utc offset
-  date = moment.parseZone(date);
-  // pass parsed date as a string plus station timeZone offset to generate local time.
-  const localDate = moment.tz(date.format(), timeZone);
-  // Force local data format to get around issue where +00:00 shows up as Z
+  date = DateTime.fromISO(date.replace(' ', 'T'), { setZone: true });
+  const localDate = date.setZone(timeZone);
+
   return {
-    utc: date.toDate(),
-    local: localDate.format('YYYY-MM-DDTHH:mm:ssZ')
+    utc: date.toUTC().toISO({ suppressMilliseconds: true }),
+    local: localDate.toISO({ suppressMilliseconds: true }),
   };
 };

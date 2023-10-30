@@ -4,6 +4,11 @@ Changes to adapters will be documented in this file.
 
 ## 08/23/2023
 ### Set active: false
+- Mexico Sinaica (Added to deployments)
+- Turkiye (Down)
+  
+## 08/23/2023
+### Set active: false
 - all China stateair adapters (stateair.net not resolving)
 - Brazil CETESB (needs environment variables)
 - south-australia-epa (needs environment variables)

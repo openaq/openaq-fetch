@@ -5,10 +5,12 @@
 
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { unifyParameters, unifyMeasurementUnits } from '../lib/utils.js';
 import { DateTime } from 'luxon';
-import fetch from 'node-fetch';
+import client from '../lib/requests.js';
+import {
+  unifyParameters,
+  unifyMeasurementUnits,
+} from '../lib/utils.js';
 
 export const name = 'air4thai';
 
@@ -18,27 +20,19 @@ export const name = 'air4thai';
  * @param {function} cb A callback of the form cb(err, data)
  */
 
-export function fetchData(source, cb) {
-  fetch(source.url, { timeout: REQUEST_TIMEOUT })
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error('Failure to load data url.');
-      }
-      return res.json();
-    })
-    .then((data) => {
-      // Format the data
+export function fetchData (source, cb) {
+  client(source.url)
+    .then((response) => {
+      const data = JSON.parse(response.body);
       const formattedData = formatData(data);
 
-      // Make sure the data is valid
       if (formattedData === undefined) {
         throw new Error('Failure to parse data.');
       }
       cb(null, formattedData);
     })
     .catch((error) => {
-      console.log(error);
-      cb({ message: 'Unknown adapter error.' });
+      cb(error);
     });
 }
 
@@ -53,45 +47,54 @@ const formatData = function (data) {
 
   data.stations.forEach((item) => {
     const city = String(item.areaEN).split(',');
-    const dateLuxon = DateTime.fromFormat(item.AQILast.date + ' ' + item.AQILast.time, 'yyyy-MM-dd HH:mm', { zone: 'Asia/Bangkok' });
+    const dateLuxon = DateTime.fromFormat(
+      item.AQILast.date + ' ' + item.AQILast.time,
+      'yyyy-MM-dd HH:mm',
+      { zone: 'Asia/Bangkok' }
+    );
     const base = {
       location: item.nameEN.trim(),
       city: city[city.length - 1].trim(),
       date: {
         utc: dateLuxon.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
-        local: dateLuxon.toFormat("yyyy-MM-dd'T'HH:mm:ssZZ")
+        local: dateLuxon.toFormat("yyyy-MM-dd'T'HH:mm:ssZZ"),
       },
       coordinates: {
         latitude: parseFloat(item.lat),
-        longitude: parseFloat(item.long)
+        longitude: parseFloat(item.long),
       },
-      attribution: [{ name: 'Air4Thai', url: 'http://air4thai.pcd.go.th/webV2/' }]
+      attribution: [
+        { name: 'Air4Thai', url: 'http://air4thai.pcd.go.th/webV2/' },
+      ],
     };
     Object.keys(item.AQILast).forEach((v) => {
       const unaccepted = ['date', 'AQI', 'time'];
       const unit = {
-        'PM25': 'µg/m³',
-        'PM10': 'µg/m³',
-        'O3': 'ppb',
-        'CO': 'ppm',
-        'NO2': 'ppb',
-        'SO2': 'ppb'
+        PM25: 'µg/m³',
+        PM10: 'µg/m³',
+        O3: 'ppb',
+        CO: 'ppm',
+        NO2: 'ppb',
+        SO2: 'ppb',
       };
       const average = {
-        'PM25': 24,
-        'PM10': 24,
-        'O3': 8,
-        'CO': 8,
-        'NO2': 1,
-        'SO2': 1
+        PM25: 24,
+        PM10: 24,
+        O3: 8,
+        CO: 8,
+        NO2: 1,
+        SO2: 1,
       };
       if (!unaccepted.includes(v)) {
-        let m = Object.assign({
-          unit: unit[v],
-          value: parseFloat(item.AQILast[v].value),
-          parameter: v,
-          averagingPeriod: { unit: 'hours', value: average[v] }
-        }, base);
+        let m = Object.assign(
+          {
+            unit: unit[v],
+            value: parseFloat(item.AQILast[v].value),
+            parameter: v,
+            averagingPeriod: { unit: 'hours', value: average[v] },
+          },
+          base
+        );
         m = unifyMeasurementUnits(unifyParameters(m));
         if (m.value >= 0) {
           measurements.push(m);
@@ -101,4 +104,4 @@ const formatData = function (data) {
   });
 
   return { name: 'unused', measurements: measurements };
-  };
+};
