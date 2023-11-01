@@ -1,10 +1,14 @@
 # Changelog
 
 Changes to adapters will be documented in this file.
-
-## 08/23/2023
-### Set active: false
+## 10/31/2023
+### Set active: true
 - Mexico Sinaica (Added to deployments)
+- Trinidad & Tobago ( needs fix )
+
+## 10/29/2023
+### Set active: false
+- Mexico Sinaica
 - Turkiye (Down)
   
 ## 08/23/2023
