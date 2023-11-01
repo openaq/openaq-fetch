@@ -5,19 +5,18 @@
  * This is a two-stage adapter requiring loading multiple urls before parsing
  * data.
  */
+
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { DateTime } from 'luxon';
 import { load } from 'cheerio';
-import got from 'got';
+import client from '../lib/requests.js';
+import log from '../lib/logger.js';
 import {
   removeUnwantedParameters,
   unifyMeasurementUnits,
   unifyParameters,
 } from '../lib/utils.js';
-
-const gotInstance = got.extend({ timeout: { request: REQUEST_TIMEOUT } });
 
 export const name = 'montenegro';
 
@@ -25,34 +24,29 @@ export async function fetchData(source, cb) {
   let tasks = [];
 
   for (let i = 1; i < 20; i++) {
-    try {
-      await gotInstance(source.url + i);
-      let task = async function () {
-        try {
-          const response = await gotInstance(source.url + i);
-          return response.body;
-        } catch (error) {
-          console.error('Error in task:', error.message);
-          throw error;
-        }
-      };
-      tasks.push(task);
-    } catch (error) {
-      console.error('Error while creating tasks:', error.message);
-      continue;
-    }
+    let task = async function () {
+      try {
+        const response = await client(source.url + i);
+        return response.body;
+      } catch (error) {
+        log.debug(`Error fetching data from URL: ${source.url + i}. Giving up after retries.`, error.message);
+        return null;
+      }
+    };
+    tasks.push(task);
   }
 
   try {
     const results = await Promise.all(tasks.map((task) => task()));
-    const data = formatData(results);
+    const filteredResults = results.filter(result => result);
+    const data = formatData(filteredResults);
     if (data === undefined) {
-      console.error('Failed to parse data');
+      log.debug('Failed to parse data');
       return cb({ message: 'Failure to parse data.' });
     }
     cb(null, data);
   } catch (error) {
-    console.error('Error in async.parallel:', error.message);
+    log.debug('Error in async.parallel:', error.message);
     return cb({ message: 'Failure to load data urls.' });
   }
 }
@@ -61,7 +55,7 @@ const formatData = function (results) {
   const parseLocation = (location, template) => {
     try {
       if (location === undefined || location === null) {
-        console.error('Location is undefined or null');
+        log.debug('Location is undefined or null');
         return;
       }
       location = location.split('|');
@@ -69,8 +63,7 @@ const formatData = function (results) {
         location.length < 2 ||
         location[0].includes('Otvori veću kartu')
       ) {
-        // Add this check
-        console.error('Invalid location format');
+        log.debug('Invalid location format');
         return;
       }
       const city = location[0].split(',');
@@ -86,19 +79,17 @@ const formatData = function (results) {
       };
       template.coordinates = coordinates;
     } catch (e) {
-      console.error('Error in parseLocation:', e);
+      log.debug('Error in parseLocation:', e);
     }
   };
 
   const parseDate = function (date, template) {
-    // Validate input
     if (typeof date !== 'string' || date.trim() === '') {
       throw new Error('Invalid date string');
     }
     try {
-      // Create DateTime object with timezone using the fromFormat() method
       date = date.replace('Pregled mjerenja za', '').replace('h', '');
-      date = date.trim(); // remove whitespace
+      date = date.trim();
       const dateLuxon = DateTime.fromFormat(
         date,
         'dd.MM.yyyy HH:mm',
@@ -106,7 +97,6 @@ const formatData = function (results) {
           zone: 'Europe/Podgorica',
         }
       );
-      // Return UTC and local ISO strings
       const utc = dateLuxon
         .toUTC()
         .toISO({ suppressMilliseconds: true });
@@ -138,7 +128,7 @@ const formatData = function (results) {
         value.substring(0, splitPos).replace(',', '.').trim()
       );
     } catch (e) {
-      console.error('Error in parseValueAndUnit:', e);
+      log.debug('Error in parseValueAndUnit:', e);
     }
   };
 
@@ -156,7 +146,7 @@ const formatData = function (results) {
     $('.col-6.col-12-medium').each((i, e) => {
       $('h6 a', e).each((i, e) => {
         const text = $(e).text();
-        // console.log('Text:', text); // Add this line for additional logging
+        // log.debug('Text:', text);
         if (text.search('|') !== -1 && text.charAt(0) !== '*') {
           parseLocation(text, template);
         }

@@ -1,24 +1,22 @@
 'use strict';
 
-import got from 'got';
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import client from '../lib/requests.js';
 import { acceptableParameters, convertUnits } from '../lib/utils.js';
-import cheerio from 'cheerio';
+import { load } from 'cheerio';
 import { parallel } from 'async';
 import flattenDeep from 'lodash/flattenDeep.js';
 import { DateTime } from 'luxon';
 
-const getter = got.extend({ timeout: { request: REQUEST_TIMEOUT } });
 const timezone = 'America/Argentina/Buenos_Aires';
 
 export const name = 'buenos-aires';
 
 export function fetchData(source, callback) {
-  getter(source.url)
+  client(source.url)
     .then((response) => {
       const body = response.body;
       let tasks = [];
-      let $ = cheerio.load(body);
+      let $ = load(body);
 
       const stations = $('#estacion option')
         .filter(function (i, el) {
@@ -103,7 +101,7 @@ const makeStationQuery = (sourceUrl, station, parameter, date) => {
 
 const handleStation = (url, station, parameter, today) => {
   return (done) => {
-    getter(url)
+    client(url)
       .then((response) => {
         const body = response.body;
         const results = formatData(body, station, parameter, today);
@@ -116,7 +114,7 @@ const handleStation = (url, station, parameter, today) => {
 };
 
 const formatData = (body, station, parameter, today) => {
-  const $ = cheerio.load(body);
+  const $ = load(body);
   let measurements = [];
 
   const averagingPeriod = getAveragingPeriod(parameter);

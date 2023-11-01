@@ -1,7 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
-import got from 'got';
+import client from '../lib/requests.js';
 import log from '../lib/logger.js';
 import { DateTime } from 'luxon';
 import {
@@ -30,14 +30,14 @@ export async function fetchData(source, cb) {
     const startDate = dateNow.toFormat('dd LLL yyyy');
     const endDate = dateNow.plus({ days: 1 }).toFormat('dd LLL yyyy');
 
-    const siteCodesResponse = await got(
+    const siteCodesResponse = await client(
       `${source.url}/AirQuality/Information/MonitoringSites/GroupName=All/Json`
     );
     let allSites = JSON.parse(siteCodesResponse.body).Sites.Site;
     allSites = allSites.filter((s) => !s['@DateClosed']);
     const siteLookup = _.keyBy(allSites, '@SiteCode');
     const dataPromises = allSites.map((site) =>
-      got(
+      client(
         `${source.url}/AirQuality/Data/Site/SiteCode=${site['@SiteCode']}/StartDate=${startDate}/EndDate=${endDate}/Json`
       )
         .catch((error) => {

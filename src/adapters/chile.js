@@ -7,17 +7,12 @@
  */
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import _ from 'lodash';
 import async from 'async';
-import cheerio from 'cheerio';
+import { load } from 'cheerio';
 import { DateTime } from 'luxon';
-import got from 'got';
-
-const gotExtended = got.extend({
-  retry: { limit: 3 },
-  timeout: { request: REQUEST_TIMEOUT },
-});
+import client from '../lib/requests.js';
+import log from '../lib/logger.js';
 
 // Adding in certs to get around unverified connection issue
 // 2022-04-29 - this should no longer be needed
@@ -39,7 +34,7 @@ export function fetchData (source, cb) {
 
   _.forEach(sources, function (e) {
     var task = function (cb) {
-      gotExtended(e)
+      client(e)
         .then((response) => {
           if (response.statusCode !== 200) {
             return cb(response);
@@ -141,7 +136,7 @@ const formatData = function (results) {
         local: date.toISO({ suppressMilliseconds: true }),
       };
     } catch (error) {
-      console.error('Error parsing date:', error);
+      log.error('Error parsing date:', error);
       throw new Error('Error parsing date');
     }
   };
@@ -151,7 +146,7 @@ const formatData = function (results) {
    * @return {string} It's pretty!
    */
   const parseUnit = function (u) {
-    var $ = cheerio.load(u, { decodeEntities: false });
+    var $ = load(u, { decodeEntities: false });
     var str = $.text();
     return str.indexOf('µg⁄m3') > -1 ? 'µg/m³' : null;
   };

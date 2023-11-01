@@ -1,13 +1,12 @@
 /**
  * This code is responsible for implementing all methods related to fetching
- * and returning data for the Norwegian data sources.
+ * and returning data for the Norway data sources.
  */
 
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { DateTime } from 'luxon';
-import got from 'got';
+import client from '../lib/requests.js';
 
 export const name = 'norway';
 
@@ -17,9 +16,9 @@ export const name = 'norway';
  * @param {function} cb A callback of the form cb(err, data)
  */
 
-export async function fetchData (source, cb) {
+export async function fetchData(source, cb) {
   try {
-    const response = await got(source.url, { timeout: { request: REQUEST_TIMEOUT } });
+    const response = await client(source.url);
 
     if (response.statusCode !== 200) {
       return cb({ message: 'Failure to load data url.' });
@@ -63,23 +62,30 @@ const formatData = function (data) {
    * @return {object} a repacked object
    */
   const aqRepack = (item) => {
-    const dateLuxon = DateTime.fromISO(item.toTime, { zone: 'Europe/Oslo' });
+    const dateLuxon = DateTime.fromISO(item.toTime, {
+      zone: 'Europe/Oslo',
+    });
     const template = {
       location: item.station,
       city: item.area,
       parameter: item.component.toLowerCase().replace('.', ''),
       date: {
         utc: dateLuxon.toUTC().toISO({ suppressMilliseconds: true }),
-        local: dateLuxon.toISO({ suppressMilliseconds: true })
+        local: dateLuxon.toISO({ suppressMilliseconds: true }),
       },
       coordinates: {
         latitude: item.latitude,
-        longitude: item.longitude
+        longitude: item.longitude,
       },
       value: parseFloat(item.value),
       unit: item.unit,
-      attribution: [{ name: 'Luftkvalitet.info', url: 'http://www.luftkvalitet.info/home.aspx' }],
-      averagingPeriod: { unit: 'hours', value: 1 }
+      attribution: [
+        {
+          name: 'Luftkvalitet.info',
+          url: 'http://www.luftkvalitet.info/home.aspx',
+        },
+      ],
+      averagingPeriod: { unit: 'hours', value: 1 },
     };
 
     return template;

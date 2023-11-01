@@ -5,20 +5,18 @@
 
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { removeUnwantedParameters } from '../lib/utils.js';
-
-import got from 'got';
-import _ from 'lodash';
 import { DateTime } from 'luxon';
 import { load } from 'cheerio';
+import client from '../lib/requests.js';
+import _ from 'lodash';
 import async from 'async';
 
 export const name = 'netherlands';
 
 export function fetchData(source, cb) {
   const finalURL = source.url;
-  got(finalURL, { timeout: { request: REQUEST_TIMEOUT } })
+  client(finalURL)
     .then((response) => {
       const body = response.body;
 
@@ -36,7 +34,7 @@ export function fetchData(source, cb) {
       _.forEach(recentFiles, function (f) {
         let task = function (cb) {
           // download the xml
-          got(f.url, { timeout: { request: REQUEST_TIMEOUT } })
+          client(f.url)
             .then((response) => {
               const body = response.body;
 
@@ -224,7 +222,10 @@ const formatData = function (name, data) {
       zone: 'Europe/Amsterdam',
     });
 
-    return { utc: date.toUTC().toISO({ suppressMilliseconds: true }), local: date.toISO({ suppressMilliseconds: true }) };
+    return {
+      utc: date.toUTC().toISO({ suppressMilliseconds: true }),
+      local: date.toISO({ suppressMilliseconds: true }),
+    };
   };
 
   const getStationId = function (string) {
