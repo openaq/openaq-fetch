@@ -6,11 +6,11 @@
 'use strict';
 
 import { acceptableParameters } from '../lib/utils.js';
-import log from '../lib/logger.js';
 import { DateTime } from 'luxon';
 import { parse } from 'csv-parse';
 import Bottleneck from 'bottleneck';
-import got from 'got';
+import client from '../lib/requests.js';
+import log from '../lib/logger.js';
 
 const limiter = new Bottleneck({
   minTime: 50, // Minimum time between requests (ms)
@@ -50,7 +50,7 @@ export async function fetchData (source, cb) {
 
 async function fetchStations (stationsCsvUrl) {
   try {
-    const response = await got(stationsCsvUrl);
+    const response = await client(stationsCsvUrl);
     return new Promise((resolve, reject) => {
       parse(
         response.body,
@@ -85,7 +85,7 @@ async function fetchStationData (latestDataUrl, stationId, unixTimeStamp) {
   url.pathname += `${stationId}/today.csv`;
   url.searchParams.append('_', unixTimeStamp);
 
-  const response = await got(url.href);
+  const response = await client(url.href);
   return new Promise((resolve, reject) => {
     parse(response.body, { columns: true }, (err, records) => {
       err ? reject(err) : resolve(records);

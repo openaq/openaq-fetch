@@ -1,14 +1,13 @@
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { convertUnits } from '../lib/utils.js';
 import cloneDeep from 'lodash/cloneDeep.js';
 import { DateTime } from 'luxon';
 import { load } from 'cheerio';
-import got from 'got';
+import client from '../lib/requests.js';
 
 export const name = 'slovenia';
 
 export function fetchData (source, cb) {
-  got(source.url, { timeout: { request: REQUEST_TIMEOUT } })
+  client(source.url)
     .then((response) => {
       if (response.statusCode !== 200) {
         throw new Error('Failure to load data url.');

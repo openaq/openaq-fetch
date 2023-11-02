@@ -5,16 +5,11 @@
 
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { convertUnits } from '../lib/utils.js';
 import { load } from 'cheerio';
 import { DateTime } from 'luxon';
-import got from 'got';
-
-const gotExtended = got.extend({
-  retry: { limit: 3 },
-  timeout: { request: REQUEST_TIMEOUT },
-});
+import client from '../lib/requests.js';
+import log from '../lib/logger.js';
 
 export const name = 'hong-kong';
 
@@ -22,9 +17,9 @@ const timeZone = 'Asia/Hong_Kong';
 
 export const fetchData = async (source, cb) => {
   try {
-    const response = await gotExtended(`${source.url}/24pc_Eng.xml`);
+    const response = await client(`${source.url}/24pc_Eng.xml`);
     if (response.statusCode !== 200) {
-      console.log('bad request');
+      log.debug('bad request');
       return;
     }
 
@@ -35,11 +30,10 @@ export const fetchData = async (source, cb) => {
     }
     return cb(null, data);
   } catch (err) {
-    console.log('Request error:', err);
+    log.debug('Request error:', err);
     return cb({ message: 'Unknown adapter error.' });
   }
 };
-
 
 const formatData = function (data) {
   let measurements = [];

@@ -1,6 +1,11 @@
 # Changelog
 
 Changes to adapters will be documented in this file.
+
+## 11/01/2023
+### DELETED
+- au_sa.js (replaced by southaustralia.js)
+
 ## 10/31/2023
 ### Set active: true
 - Mexico Sinaica (Added to deployments)
@@ -10,6 +15,7 @@ Changes to adapters will be documented in this file.
 ### Set active: false
 - Mexico Sinaica
 - Turkiye (Down)
+- Rwanda (Needs work, down?)
   
 ## 08/23/2023
 ### Set active: false

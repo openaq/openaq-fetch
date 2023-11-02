@@ -1,16 +1,15 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { removeUnwantedParameters } from '../lib/utils.js';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
 import { load } from 'cheerio';
-import got from 'got';
+import client from '../lib/requests.js';
 
 export const name = 'queensland';
 
 export function fetchData (source, cb) {
-  got(source.url, { timeout: { request: REQUEST_TIMEOUT } })
+  client(source.url)
     .then((response) => {
       try {
         const data = formatData(response.body, source);
