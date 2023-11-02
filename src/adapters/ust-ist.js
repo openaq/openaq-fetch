@@ -6,16 +6,15 @@
 
 import { acceptableParameters } from '../lib/utils.js';
 import { DateTime } from 'luxon';
-import got from 'got';
-
+import client from '../lib/requests.js';
 export const name = 'ust-ist';
 
 export async function fetchData (source, cb) {
   try {
-    const allDataResponse = await got(source.url);
+    const allDataResponse = await client(source.url);
     const allData = JSON.parse(allDataResponse.body);
 
-    const allMetaResponse = await got('https://api.ust.is/aq/a/getStations');
+    const allMetaResponse = await client('https://api.ust.is/aq/a/getStations');
     const allMeta = JSON.parse(allMetaResponse.body);
 
     // Generate an array of station IDs there is data for.

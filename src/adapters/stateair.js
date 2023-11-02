@@ -1,15 +1,12 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { convertUnits } from '../lib/utils.js';
 
-import got from 'got';
+import client from '../lib/requests.js';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
 import { load } from 'cheerio';
 import { parallel } from 'async';
-
-const getter = got.extend({ timeout: { request: REQUEST_TIMEOUT } });
 
 export const name = 'stateair';
 
@@ -17,7 +14,7 @@ export async function fetchData (source, cb) {
   // Generic fetch function
   const getData = async (url, done) => {
     try {
-      const response = await getter(url);
+      const response = await client(url);
       return done(null, response.body);
     } catch (error) {
       if (error.response && error.response.statusCode === 404) {

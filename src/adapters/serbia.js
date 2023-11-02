@@ -6,8 +6,7 @@
 
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import got from 'got';
+import client from '../lib/requests.js';
 import { DateTime } from 'luxon';
 import { unifyMeasurementUnits } from '../lib/utils.js';
 
@@ -21,7 +20,7 @@ export const name = 'serbia';
 
 export async function fetchData (source, cb) {
   try {
-    const response = await got(source.url, { timeout: { request: REQUEST_TIMEOUT } });
+    const response = await client(source.url);
 
     if (response.statusCode !== 200) {
       return cb({ message: 'Failure to load data url.' });

@@ -1,9 +1,8 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { convertUnits } from '../lib/utils.js';
 
-import got from 'got';
+import client from '../lib/requests.js';
 import { load } from 'cheerio';
 import { DateTime } from 'luxon';
 import { join, dirname } from 'path';
@@ -26,8 +25,7 @@ export const name = 'senamhi';
 
 export async function fetchData (source, cb) {
   try {
-    const response = await got(source.url, {
-      timeout: { request: REQUEST_TIMEOUT },
+    const response = await client(source.url, {
       https: {
         certificateAuthority: rootCas,
       },
