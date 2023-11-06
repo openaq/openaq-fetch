@@ -100,7 +100,7 @@ async function getAirQualityData (jpDataUrl) {
   const unixTimeStamp = now.toMillis();
 
   const bottleneckedStationRequests = stationData
-    // slice -HERE- to debug
+    // .slice(0, 10)// slice -HERE- to debug
     .map(async (station) => {
       const stationId = station.id;
       try {
@@ -109,10 +109,20 @@ async function getAirQualityData (jpDataUrl) {
         );
 
         const result = data.flatMap((row) => {
-          const hour = parseInt(row['時']) - 1;
-          const dateTimeStr = `${row['年']}-${row['月']}-${row['日']}T${String(hour).padStart(2, '0')}:59:00`;
-          let jstTime = DateTime.fromISO(dateTimeStr, { zone: 'Asia/Tokyo' });
-          jstTime = jstTime.plus({ minutes: 1 });
+          let hour = parseInt(row['時']);
+          let dateTimeStr;
+          let jstTime;
+          let nextDay;
+          // Check if hour is '24', and handle it as the start of the next day.
+          if (hour === 24) {
+            nextDay = DateTime.fromISO(`${row['年']}-${row['月']}-${row['日']}`).plus({ days: 1 });
+            dateTimeStr = `${nextDay.toFormat('yyyy-MM-dd')}T00:00:00`;
+            jstTime = DateTime.fromISO(dateTimeStr, { zone: 'Asia/Tokyo' });
+          } else {
+            hour -= 1; // Adjust hour from 1-24 to 0-23 format
+            dateTimeStr = `${row['年']}-${row['月']}-${row['日']}T${String(hour).padStart(2, '0')}:59:00`;
+            jstTime = DateTime.fromISO(dateTimeStr, { zone: 'Asia/Tokyo' }).plus({ minutes: 1 });
+          }
 
           return Object.entries(units)
             .filter(
