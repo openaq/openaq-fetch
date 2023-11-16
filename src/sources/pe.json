@@ -37,5 +37,18 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "https://desarrollo.oefa.gob.pe/openaq/backend/consulta/inf",
+        "adapter": "peru-oefa",
+        "name": "OEFA",
+        "city": "Lima",
+        "country": "PE",
+        "description": "",
+        "sourceURL": "https://www.gob.pe/oefa",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
