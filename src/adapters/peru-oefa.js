@@ -89,7 +89,6 @@ async function checkDataForStation (idStation, source) {
 
     const data = response.body.data;
     if (data && data.length > 0) {
-      // Return the last object in the 'data' array
       return { idStation, lastDataObject: data[data.length - 1] };
     }
     return null;
