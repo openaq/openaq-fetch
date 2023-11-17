@@ -14,10 +14,10 @@ export async function fetchData (source, cb) {
     // const stationIds = Array.from({ length: 30 }, (_, i) => i + 1);
     const stationIds = [2, 4, 5, 7, 9, 10, 11, 12, 13, 19, 22, 23, 24, 25, 26, 27, 28, 29, 32, 33, 34, 36, 37, 38, 39, 40, 41, 42, 47, 48, 49, 50, 51, 52];
 
-    const stationChecks = stationIds.map(idStation =>
-      createRequests(idStation, source)
+    const postResponses = stationIds.map(id =>
+      createRequests(id, source)
     );
-    const results = await Promise.all(stationChecks);
+    const results = await Promise.all(postResponses);
 
     let allMeasurements = [];
 
