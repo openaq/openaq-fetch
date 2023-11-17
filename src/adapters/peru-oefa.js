@@ -11,14 +11,32 @@ export const name = 'peru-oefa';
 
 export async function fetchData (source, cb) {
   try {
-    const data = await findStationsWithData(source);
-    cb(null, data);
+    // const stationIds = Array.from({ length: 30 }, (_, i) => i + 1);
+    const stationIds = [2, 4, 5, 7, 9, 10, 11, 12, 13, 19, 22, 23, 24, 25, 26, 27, 28, 29, 32, 33, 34, 36, 37, 38, 39, 40, 41, 42, 47, 48, 49, 50, 51, 52];
+
+    const stationChecks = stationIds.map(idStation =>
+      createRequests(idStation, source)
+    );
+    const results = await Promise.all(stationChecks);
+
+    let allMeasurements = [];
+
+    results
+      .filter(result => result !== null)
+      .forEach(result => {
+        const measurements = formatData(result.lastDataObject);
+        allMeasurements = allMeasurements.concat(measurements);
+      });
+
+    log.debug('All measurements:', allMeasurements);
+    cb(null, { name: 'unused', measurements: allMeasurements });
   } catch (error) {
+    log.error('Error in fetchData:', error);
     cb(error);
   }
 }
 
-function createMeasurements (data) {
+function formatData (data) {
   const pollutants = [
     'pm10',
     'pm25',
@@ -36,21 +54,24 @@ function createMeasurements (data) {
   ];
 
   const measurements = [];
+
   const latitude = parseFloat(data.coordinates.latitude);
   const longitude = parseFloat(data.coordinates.longitude);
-  const dateFormatter = (dateString) => {
+
+  const dateLuxon = (dateString) => {
     const customFormat = "yyyy-MM-dd HH:mm:ss 'UTC'";
     const utcTime = DateTime.fromFormat(dateString, customFormat);
     return utcTime;
   };
+
   for (const pollutant of pollutants) {
     if (data.hasOwnProperty(pollutant)) {
       const measurement = {
         date: {
-          utc: dateFormatter(data.date).toFormat(
+          utc: dateLuxon(data.date).toFormat(
             "yyyy-MM-dd'T'HH:mm:ss'Z'"
           ),
-          local: dateFormatter(data.date)
+          local: dateLuxon(data.date)
             .setZone('America/Lima')
             .toFormat("yyyy-MM-dd'T'HH:mm:ssZZ"),
         },
@@ -72,7 +93,7 @@ function createMeasurements (data) {
   return measurements;
 }
 
-async function checkDataForStation (idStation, source) {
+async function createRequests (idStation, source) {
   const body = {
     usuario: 'OPENAQ',
     clave: 'OPENAQ',
@@ -99,25 +120,4 @@ async function checkDataForStation (idStation, source) {
     );
     return null;
   }
-}
-
-// this should be updated when we know more about the stations
-async function findStationsWithData (source) {
-  const stationIds = Array.from({ length: 30 }, (_, i) => i + 1);
-  const stationChecks = stationIds.map((idStation) =>
-    checkDataForStation(idStation, source)
-  );
-  const results = await Promise.all(stationChecks);
-
-  let allMeasurements = [];
-
-  results
-    .filter((result) => result !== null)
-    .forEach((result) => {
-      const measurements = createMeasurements(result.lastDataObject);
-      allMeasurements = allMeasurements.concat(measurements);
-    });
-
-  log.debug('All measurements:', allMeasurements);
-  return { name: 'unused', measurements: allMeasurements };
 }
