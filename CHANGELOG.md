@@ -1,6 +1,9 @@
 # Changelog
 
 Changes to adapters will be documented in this file.
+## 11/22/2023
+### Set active: false
+- south-australia-epa (needs fix, url won't resolve)
 
 ## 11/01/2023
 ### DELETED
