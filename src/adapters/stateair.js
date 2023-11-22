@@ -1,8 +1,13 @@
+/**
+ * This code is responsible for implementing all methods related to fetching
+ * and returning data for the SateAir data sources.
+ */
+
 'use strict';
 
 import { convertUnits } from '../lib/utils.js';
-
 import client from '../lib/requests.js';
+
 import _ from 'lodash';
 import { DateTime } from 'luxon';
 import { load } from 'cheerio';
@@ -10,7 +15,7 @@ import { parallel } from 'async';
 
 export const name = 'stateair';
 
-export async function fetchData (source, cb) {
+export async function fetchData(source, cb) {
   // Generic fetch function
   const getData = async (url, done) => {
     try {
@@ -121,7 +126,7 @@ const formatData = function (data) {
         case 'Kabul':
           return 'Asia/Kabul';
         case 'Dharan':
-          return 'Asia/Aden';
+          return 'Asia/Riyadh';
         case 'Ashgabat':
           return 'Asia/Ashgabat';
         case 'Guatemala City':
@@ -147,14 +152,16 @@ const formatData = function (data) {
           return 'Africa/Accra';
       }
     };
+
     const date = DateTime.fromFormat(
       dateString,
       'yyyy-MM-dd HH:mm:ss',
-      getTZ(location)
+      { zone: getTZ(location) }
     );
+
     return {
       utc: date.toUTC().toISO({ suppressMilliseconds: true }),
-      local: date.toISO({ suppressMilliseconds: true })
+      local: date.toISO({ suppressMilliseconds: true }),
     };
   };
 
@@ -431,7 +438,7 @@ const formatData = function (data) {
     const location = $('channel').children('title').text().trim();
     const baseObj = {
       location: 'US Diplomatic Post: ' + location,
-      parameter: parameter,
+      parameter,
       unit: parameter === 'pm25' ? 'µg/m³' : 'ppb',
       averagingPeriod: { value: 1, unit: 'hours' },
       attribution: [
