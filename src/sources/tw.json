@@ -12,5 +12,18 @@
         ],
         "active": false,
         "notes": "Updated API. Working on updating the adapter"
+    },
+    {
+        "url": "https://airtw.moenv.gov.tw/json/airlist/airlist_{i}_{dateStr}.json",
+        "adapter": "taiwan",
+        "name": "taiwan-moenv",
+        "city": "",
+        "country": "TW",
+        "description": "Taiwanese data from EPA",
+        "sourceURL": "https://airtw.moenv.gov.tw/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
