@@ -1,14 +1,49 @@
+/**
+ * This code is responsible for implementing all methods related to fetching
+ * and returning data for the Taiwan data sources.
+ */
+
+'use strict';
+
 import got from 'got';
 import { DateTime } from 'luxon';
-import fs from 'fs/promises';
 
-const baseUrl =
-  'https://airtw.moenv.gov.tw/json/airlist/airlist_{i}_{dateStr}.json';
+import log from '../lib/logger.js';
+
 const start = 1;
 const end = 150;
-const stationDataPath = './stations2.json';
 
-function createUrls(baseUrl, start, end, dateStr) {
+export const name = 'taiwan';
+
+export async function fetchData (source, cb) {
+  const dateTimeOneHourAgo = DateTime.now()
+    .setZone('Asia/Taipei')
+    .minus({ hours: 1 });
+  const dateString = dateTimeOneHourAgo.toFormat('yyyyMMddHH');
+  const baseUrl = source.url.replace('{dateStr}', dateString);
+  const stationDataUrl =
+    source.stationURL + DateTime.now().toISODate();
+
+  try {
+    const formattedMeasurements = await allData(
+      baseUrl,
+      start,
+      end,
+      stationDataUrl
+    );
+    const data = {
+      name: 'unused',
+      measurements: formattedMeasurements,
+    };
+    log.debug(formattedMeasurements);
+    cb(null, data);
+  } catch (error) {
+    log.error(error);
+    cb(error);
+  }
+}
+
+function createUrls (baseUrl, start, end, dateStr) {
   return Array.from({ length: end - start + 1 }, (_, i) =>
     baseUrl
       .replace('{i}', (start + i).toString())
@@ -22,7 +57,7 @@ async function fetchUrl (url) {
       headers: { Accept: 'application/json' },
     }).json();
   } catch (error) {
-    console.error(
+    log.debug(
       `Error fetching or parsing data from: ${url}`,
       error.response?.body
     );
@@ -50,7 +85,7 @@ function combineData (airQualityData, stationData) {
   );
 }
 
-function formatData(combinedData) {
+function formatData (combinedData) {
   const parameters = {
     PM25_FIX: 'pm25',
     PM10_FIX: 'pm10',
@@ -62,13 +97,15 @@ function formatData(combinedData) {
   return Object.values(combinedData).flatMap((entry) =>
     Object.entries(parameters)
       .filter(([paramKey]) => entry[paramKey] !== undefined)
+      .filter(([paramKey]) => !Number.isNaN(parseFloat(entry[paramKey])))
       .map(([paramKey, paramName]) => ({
-        location: `Taiwan: ${entry.county} - ${entry.sitename}`,
+        location: `${entry.county} - ${entry.sitename}`,
+        city: ' ',
         parameter: paramName,
         unit: 'µg/m³',
         averagingPeriod: { value: 1, unit: 'hours' },
         attribution: [
-          { name: 'Taiwan EPA', url: 'https://epa.gov.tw' },
+          { name: 'Taiwan Ministry of Environment', url: 'https://airtw.moenv.gov.tw/' },
         ],
         coordinates: {
           latitude: entry.TWD97_Lat,
@@ -77,15 +114,19 @@ function formatData(combinedData) {
         value: parseFloat(entry[paramKey]),
         date: {
           utc: DateTime.fromFormat(entry.date, 'yyyy/MM/dd HH:mm', {
-            zone: 'utc',
-          }).toISO(),
-          local: entry.date,
+            zone: 'Asia/Taipei',
+          })
+            .toUTC()
+            .toISO({ suppressMilliseconds: true }),
+          local: DateTime.fromFormat(entry.date, 'yyyy/MM/dd HH:mm', {
+            zone: 'Asia/Taipei',
+          }).toISO({ suppressMilliseconds: true }),
         },
       }))
   );
 }
 
-async function fetchData(baseUrl, start, end, stationDataPath) {
+async function allData (baseUrl, start, end, stationDataUrl) {
   const dateTimeOneHourAgo = DateTime.now()
     .setZone('Asia/Taipei')
     .minus({ hours: 1 });
@@ -109,25 +150,14 @@ async function fetchData(baseUrl, start, end, stationDataPath) {
   );
 
   try {
-    const stationData = JSON.parse(
-      await fs.readFile(stationDataPath, 'utf8')
-    );
+    const stationData = await fetchUrl(stationDataUrl);
     const combinedData = combineData(airQualityData, stationData);
     return formatData(combinedData);
   } catch (error) {
-    console.error(
-      `Error reading station data from ${stationDataPath}:`,
+    log.debug(
+      `Error fetching station data from ${stationDataUrl}:`,
       error
     );
     return [];
   }
 }
-
-fetchData(baseUrl, start, end, stationDataPath).then(
-  (formattedMeasurements) => {
-    console.log(
-      `Total measurements: ${formattedMeasurements.length}`
-    );
-    console.log(formattedMeasurements);
-  }
-);

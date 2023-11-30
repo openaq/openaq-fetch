@@ -1,6 +1,11 @@
 # Changelog
 
 Changes to adapters will be documented in this file.
+
+## 11/30/2023
+### Set active: false
+- kosovo (needs fix / troubleshooting)
+
 ## 11/22/2023
 ### Set active: false
 - south-australia-epa (needs fix, url won't resolve)

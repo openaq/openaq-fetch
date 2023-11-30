@@ -20,6 +20,7 @@
         "city": "",
         "country": "TW",
         "description": "Taiwanese data from EPA",
+        "stationURL": "https://airtw.moenv.gov.tw/gis_ajax.aspx?Type=GetAQInfo&Layer=EPA&QueryTime=",
         "sourceURL": "https://airtw.moenv.gov.tw/",
         "contacts": [
             "info@openaq.org"
