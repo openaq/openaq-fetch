@@ -84,7 +84,11 @@ function fetchPollutants (source) {
           if (DateTime.fromISO(utcDate).toMillis() < timeThreshold.toMillis()) {
             return null;
           }
-
+          // fix units and convert values
+          if (record[23] === 'mg/m3' || record[23] === 'mg/m³') {
+            record[19] = parseFloat(record[19]) * 1000;
+            record[23] = 'µg/m³';
+          }
           return {
             location: record[1],
             city: record[2],
@@ -98,7 +102,7 @@ function fetchPollutants (source) {
               local: localDate,
             },
             value: parseFloat(record[19]),
-            unit: record[23],
+            unit: record[23] === 'ug/m3' || record[23] === 'µg/m3' ? 'µg/m³' : record[23],
             attribution: [
               {
                 name: 'EEA',
