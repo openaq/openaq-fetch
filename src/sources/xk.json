@@ -23,6 +23,6 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": false
+        "active": true
     }
 ]

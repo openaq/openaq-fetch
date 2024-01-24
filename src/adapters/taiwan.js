@@ -7,13 +7,11 @@
 
 import got from 'got';
 import { DateTime } from 'luxon';
-
 import log from '../lib/logger.js';
 
-const start = 1;
-const end = 150;
-
 export const name = 'taiwan';
+
+const locationIds = [...Array.from(new Array(150), (x, i) => i + 1)];
 
 export async function fetchData (source, cb) {
   const dateTimeOneHourAgo = DateTime.now()
@@ -27,8 +25,7 @@ export async function fetchData (source, cb) {
   try {
     const formattedMeasurements = await allData(
       baseUrl,
-      start,
-      end,
+      locationIds,
       stationDataUrl
     );
     const data = {
@@ -42,11 +39,10 @@ export async function fetchData (source, cb) {
     cb(error);
   }
 }
-
-function createUrls (baseUrl, start, end, dateStr) {
-  return Array.from({ length: end - start + 1 }, (_, i) =>
+function createUrls (baseUrl, locationIds, dateStr) {
+  return locationIds.map(id =>
     baseUrl
-      .replace('{i}', (start + i).toString())
+      .replace('{i}', id.toString())
       .replace('{dateStr}', dateStr)
   );
 }
@@ -126,28 +122,25 @@ function formatData (combinedData) {
   );
 }
 
-async function allData (baseUrl, start, end, stationDataUrl) {
+async function allData (baseUrl, locationIds, stationDataUrl) {
   const dateTimeOneHourAgo = DateTime.now()
     .setZone('Asia/Taipei')
     .minus({ hours: 1 });
   const dateString = dateTimeOneHourAgo.toFormat('yyyyMMddHH');
 
-  const urls = createUrls(baseUrl, start, end, dateString);
+  const urls = createUrls(baseUrl, locationIds, dateString);
   const airQualityData = (
     await Promise.all(urls.map(fetchUrl))
-  ).reduce(
-    (acc, data, index) =>
-      data
-        ? {
-            ...acc,
-            [index + start]: data.reduce(
-              (acc, obj) => ({ ...acc, ...obj }),
-              {}
-            ),
-          }
-        : acc,
-    {}
-  );
+  ).reduce((acc, data, index) => {
+    if (data) {
+      const locationId = locationIds[index];
+      acc[locationId] = data.reduce(
+        (acc, obj) => ({ ...acc, ...obj }),
+        {}
+      );
+    }
+    return acc;
+  }, {});
 
   try {
     const stationData = await fetchUrl(stationDataUrl);
