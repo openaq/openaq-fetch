@@ -28,10 +28,10 @@
     {
         "url": "https://moitruongthudo.vn/api/site",
         "adapter": "hanoi",
-        "name": "hanoi",
+        "name": "hanoi-aqmn",
         "city": "Hanoi",
         "country": "VN",
-        "description": "",
+        "description": "Data from the Hanoi Air Quality Monitoring Network",
         "sourceURL": "https://moitruongthudo.vn/",
         "contacts": [
             "info@openaq.org"

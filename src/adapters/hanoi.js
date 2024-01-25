@@ -13,9 +13,9 @@ import log from '../lib/logger.js';
 
 export const name = 'hanoi';
 
-export async function fetchData(source, cb) {
+export async function fetchData (source, cb) {
   try {
-    const stations = await fetchStations(source); // Assuming fetchStations takes the source URL
+    const stations = await fetchStations(source);
     const measurements = transformData(stations);
     log.debug(measurements);
     cb(null, {
@@ -28,7 +28,7 @@ export async function fetchData(source, cb) {
   }
 }
 
-async function fetchStations(source) {
+async function fetchStations (source) {
   try {
     const response = await client(source.url);
     const stations = JSON.parse(response.body);
@@ -50,7 +50,7 @@ async function fetchStations(source) {
   }
 }
 
-async function fetchStationData(baseURL, stationId) {
+async function fetchStationData (baseURL, stationId) {
   try {
     const response = await client(
       baseURL + `public/dailystat/${stationId}`
@@ -79,7 +79,7 @@ async function fetchStationData(baseURL, stationId) {
   }
 }
 
-function transformData(stations) {
+function transformData (stations) {
   let transformedData = [];
 
   stations.forEach((station) => {
@@ -96,7 +96,7 @@ function transformData(stations) {
             utc: hanoiTime
               .toUTC()
               .toISO({ suppressMilliseconds: true }),
-            local: hanoiTime.toISO({ suppressMilliseconds: true }),
+            local: hanoiTime.toISO({ suppressMilliseconds: true })
           },
           value: parseFloat(measurement.value),
           unit: 'µg/m³',
@@ -104,15 +104,15 @@ function transformData(stations) {
           city: 'Hanoi',
           coordinates: {
             latitude: station.latitude,
-            longitude: station.longtitude,
+            longitude: station.longtitude
           },
           attribution: [
             {
-              name: 'Hanoi Air Quality',
-              url: 'https://moitruongthudo.vn.ae/',
+              name: 'Hanoi Air Quality Monitoring Network',
+              url: 'https://moitruongthudo.vn.ae/'
             }
           ],
-          averagingPeriod: { unit: 'hours', value: 1 },
+          averagingPeriod: { unit: 'hours', value: 1 }
         };
         transformedData.push(unifyParameters(transformedMeasurement));
       });
