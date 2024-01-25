@@ -24,5 +24,18 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "https://moitruongthudo.vn/api/site",
+        "adapter": "hanoi",
+        "name": "hanoi",
+        "city": "Hanoi",
+        "country": "VN",
+        "description": "",
+        "sourceURL": "https://moitruongthudo.vn/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
