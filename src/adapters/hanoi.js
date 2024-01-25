@@ -7,22 +7,20 @@
 
 import { DateTime } from 'luxon';
 import client from '../lib/requests.js';
-import {
-  unifyParameters
-} from '../lib/utils.js';
+import { unifyParameters } from '../lib/utils.js';
 
 import log from '../lib/logger.js';
 
 export const name = 'hanoi';
 
-export async function fetchData (source, cb) {
+export async function fetchData(source, cb) {
   try {
     const stations = await fetchStations(source); // Assuming fetchStations takes the source URL
     const measurements = transformData(stations);
-
+    log.debug(measurements);
     cb(null, {
       name: 'unused',
-      measurements
+      measurements,
     });
   } catch (error) {
     log.error(error);
@@ -30,11 +28,9 @@ export async function fetchData (source, cb) {
   }
 }
 
-async function fetchStations (source) {
+async function fetchStations(source) {
   try {
-    const response = await client(
-      source.url
-    );
+    const response = await client(source.url);
     const stations = JSON.parse(response.body);
 
     const stationDataPromises = stations.map((station) =>
@@ -54,7 +50,7 @@ async function fetchStations (source) {
   }
 }
 
-async function fetchStationData (baseURL, stationId) {
+async function fetchStationData(baseURL, stationId) {
   try {
     const response = await client(
       baseURL + `public/dailystat/${stationId}`
@@ -89,19 +85,18 @@ function transformData(stations) {
   stations.forEach((station) => {
     Object.keys(station.measurements).forEach((parameter) => {
       station.measurements[parameter].forEach((measurement) => {
+        const hanoiTime = DateTime.fromFormat(
+          measurement.time,
+          'yyyy-MM-dd HH:mm',
+          { zone: 'Asia/Ho_Chi_Minh' }
+        );
         const transformedMeasurement = {
           parameter,
           date: {
-            utc: DateTime.fromFormat(
-              measurement.time,
-              'yyyy-MM-dd HH:mm'
-            )
+            utc: hanoiTime
               .toUTC()
               .toISO({ suppressMilliseconds: true }),
-            local: DateTime.fromFormat(
-              measurement.time,
-              'yyyy-MM-dd HH:mm'
-            ).toISO({ suppressMilliseconds: true }),
+            local: hanoiTime.toISO({ suppressMilliseconds: true }),
           },
           value: parseFloat(measurement.value),
           unit: 'µg/m³',
@@ -115,7 +110,7 @@ function transformData(stations) {
             {
               name: 'Hanoi Air Quality',
               url: 'https://moitruongthudo.vn.ae/',
-            },
+            }
           ],
           averagingPeriod: { unit: 'hours', value: 1 },
         };
@@ -123,7 +118,9 @@ function transformData(stations) {
       });
     });
   });
-  transformedData = transformedData.filter(measurement => !isNaN(measurement.value) && measurement.value !== null);
-
+  transformedData = transformedData.filter(
+    (measurement) =>
+      !isNaN(measurement.value) && measurement.value !== null
+  );
   return transformedData;
 }
