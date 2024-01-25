@@ -7,32 +7,38 @@
 
 import { DateTime } from 'luxon';
 import client from '../lib/requests.js';
+import {
+  unifyParameters
+} from '../lib/utils.js';
+
 import log from '../lib/logger.js';
 
-// export const name = 'hanoi';
+export const name = 'hanoi';
 
-// export async function fetchData (source, cb) {
-//     try {
-//         const data = await getAirQualityData(source.url);
-//         cb(null, {
-//         name: 'unused',
-//         measurements: data,
-//         });
-//     } catch (error) {
-//         log.error(error);
-//         cb(error);
-//     }
-//     }
+export async function fetchData (source, cb) {
+  try {
+    const stations = await fetchStations(source); // Assuming fetchStations takes the source URL
+    const measurements = transformData(stations);
 
-async function fetchStations() {
+    cb(null, {
+      name: 'unused',
+      measurements
+    });
+  } catch (error) {
+    log.error(error);
+    cb(error);
+  }
+}
+
+async function fetchStations (source) {
   try {
     const response = await client(
-      'https://moitruongthudo.vn/api/site'
+      source.url
     );
     const stations = JSON.parse(response.body);
 
     const stationDataPromises = stations.map((station) =>
-      fetchStationData(station.id)
+      fetchStationData(source.sourceURL, station.id)
     );
 
     const allStationData = await Promise.all(stationDataPromises);
@@ -48,10 +54,10 @@ async function fetchStations() {
   }
 }
 
-async function fetchStationData(stationId) {
+async function fetchStationData (baseURL, stationId) {
   try {
     const response = await client(
-      `https://moitruongthudo.vn/public/dailystat/${stationId}`
+      baseURL + `public/dailystat/${stationId}`
     );
     const data = JSON.parse(response.body);
 
@@ -77,11 +83,47 @@ async function fetchStationData(stationId) {
   }
 }
 
-// Use this function to get the data
-fetchStations()
-  .then((stations) => {
-    console.log(stations[0].measurements.PM10, { depth: null });
-  })
-  .catch((error) => {
-    log.error('An error occurred:', error);
+function transformData(stations) {
+  let transformedData = [];
+
+  stations.forEach((station) => {
+    Object.keys(station.measurements).forEach((parameter) => {
+      station.measurements[parameter].forEach((measurement) => {
+        const transformedMeasurement = {
+          parameter,
+          date: {
+            utc: DateTime.fromFormat(
+              measurement.time,
+              'yyyy-MM-dd HH:mm'
+            )
+              .toUTC()
+              .toISO({ suppressMilliseconds: true }),
+            local: DateTime.fromFormat(
+              measurement.time,
+              'yyyy-MM-dd HH:mm'
+            ).toISO({ suppressMilliseconds: true }),
+          },
+          value: parseFloat(measurement.value),
+          unit: 'µg/m³',
+          location: station.name,
+          city: 'Hanoi',
+          coordinates: {
+            latitude: station.latitude,
+            longitude: station.longtitude,
+          },
+          attribution: [
+            {
+              name: 'Hanoi Air Quality',
+              url: 'https://moitruongthudo.vn.ae/',
+            },
+          ],
+          averagingPeriod: { unit: 'hours', value: 1 },
+        };
+        transformedData.push(unifyParameters(transformedMeasurement));
+      });
+    });
   });
+  transformedData = transformedData.filter(measurement => !isNaN(measurement.value) && measurement.value !== null);
+
+  return transformedData;
+}
