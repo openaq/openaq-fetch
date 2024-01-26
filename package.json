@@ -14,8 +14,6 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.67.0",
     "@aws-sdk/client-sqs": "^3.78.0",
-    "@babel/register": "^7.23.7",
-    "@babel/runtime": "^7.23.9",
     "async": "^3.2.3",
     "aws-sdk": "^2.1544.0",
     "bottleneck": "^2.19.5",
