@@ -1,6 +1,11 @@
 # Changelog
 
 Changes to adapters will be documented in this file.
+## 11/26/2024
+### Removed eslint
+- Removed eslint from package.json
+- Removed .eslintrc
+
 ## 11/22/2023
 ### Set active: false
 - south-australia-epa (needs fix, url won't resolve)
