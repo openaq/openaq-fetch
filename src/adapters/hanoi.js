@@ -3,8 +3,6 @@
 //  * and returning data for the Hanoi data sources.
 //  */
 
-// 'use strict';
-
 import { DateTime } from 'luxon';
 import client from '../lib/requests.js';
 import { unifyParameters } from '../lib/utils.js';
