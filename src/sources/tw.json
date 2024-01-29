@@ -22,6 +22,7 @@
         "description": "Data from the Taiwan Ministry of Environment",
         "stationURL": "https://airtw.moenv.gov.tw/gis_ajax.aspx?Type=GetAQInfo&Layer=EPA&QueryTime=",
         "sourceURL": "https://airtw.moenv.gov.tw/",
+				"sourceName": "Taiwan",
         "contacts": [
             "info@openaq.org"
         ],
