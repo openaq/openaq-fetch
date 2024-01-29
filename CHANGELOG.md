@@ -2,9 +2,10 @@
 
 Changes to adapters will be documented in this file.
 
-## 11/30/2023
-### Set active: false
-- kosovo (needs fix / troubleshooting)
+## 11/26/2024
+### Removed eslint
+- Removed eslint from package.json
+- Removed .eslintrc
 
 ## 11/22/2023
 ### Set active: false

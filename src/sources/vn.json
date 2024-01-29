@@ -24,5 +24,18 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "https://moitruongthudo.vn/api/site",
+        "adapter": "hanoi",
+        "name": "hanoi-aqmn",
+        "city": "Hanoi",
+        "country": "VN",
+        "description": "Data from the Hanoi Air Quality Monitoring Network",
+        "sourceURL": "https://moitruongthudo.vn/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
