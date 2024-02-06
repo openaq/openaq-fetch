@@ -125,7 +125,7 @@ function createFetchObject (input, source, failures, dryRun) {
             failures: this.failures,
             count: this.count,
             duration: this.duration,
-            sourceName: this.source.sourceName || this.source.name,
+            sourceName: this.source.name,
           }
         : null;
     },
@@ -202,7 +202,7 @@ function fixMeasurements (stream, source) {
         country: country || source.country,
         coordinates,
         attribution,
-        sourceName: sourceName || source.sourceName || source.name,
+        sourceName: sourceName || source.name,
         sourceType: sourceType || source.type || 'government',
         mobile:
           typeof mobile === 'undefined' ? !!source.mobile : mobile,
