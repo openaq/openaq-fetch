@@ -35,6 +35,12 @@ const deploymentsArray = [
   {
     name: 'mexico',
     source: 'Sinaica Mexico'
+  },
+  {
+  // Fill gaps in Hanoi data
+    name: 'hanoi',
+    source: 'hanoi-aqmn',
+    offset: 12
   }
 ];
 
