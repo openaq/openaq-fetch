@@ -41,7 +41,13 @@ const deploymentsArray = [
     name: 'hanoi',
     source: 'hanoi-aqmn',
     offset: 12
-  }
+  },
+  {
+    // Fill gaps in Hanoi data
+      name: 'taiwan',
+      source: 'taiwan-moenv',
+      offset: 3
+    }
 ];
 
 export { deploymentsArray };

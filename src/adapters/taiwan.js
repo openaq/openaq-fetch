@@ -3,8 +3,6 @@
  * and returning data for the Taiwan data sources.
  */
 
-'use strict';
-
 import got from 'got';
 import { DateTime } from 'luxon';
 import log from '../lib/logger.js';
@@ -81,46 +79,54 @@ function combineData (airQualityData, stationData) {
   );
 }
 
-function formatData (combinedData) {
+function formatData(combinedData) {
   const parameters = {
     PM25_FIX: 'pm25',
     PM10_FIX: 'pm10',
     O3_FIX: 'o3',
     NO2_FIX: 'no2',
     SO2_FIX: 'so2',
+    CO_FIX: 'co',
   };
 
   return Object.values(combinedData).flatMap((entry) =>
     Object.entries(parameters)
       .filter(([paramKey]) => entry[paramKey] !== undefined)
       .filter(([paramKey]) => !Number.isNaN(parseFloat(entry[paramKey])))
-      .map(([paramKey, paramName]) => ({
-        location: `${entry.county} - ${entry.sitename}`,
-        city: ' ',
-        parameter: paramName,
-        unit: 'µg/m³',
-        averagingPeriod: { value: 1, unit: 'hours' },
-        attribution: [
-          { name: 'Taiwan Ministry of Environment', url: 'https://airtw.moenv.gov.tw/' },
-        ],
-        coordinates: {
-          latitude: entry.TWD97_Lat,
-          longitude: entry.TWD97_Lon,
-        },
-        value: parseFloat(entry[paramKey]),
-        date: {
-          utc: DateTime.fromFormat(entry.date, 'yyyy/MM/dd HH:mm', {
-            zone: 'Asia/Taipei',
-          })
-            .toUTC()
-            .toISO({ suppressMilliseconds: true }),
-          local: DateTime.fromFormat(entry.date, 'yyyy/MM/dd HH:mm', {
-            zone: 'Asia/Taipei',
-          }).toISO({ suppressMilliseconds: true }),
-        },
-      }))
+      .map(([paramKey, paramName]) => {
+        const unit = paramName === 'pm25' || paramName === 'pm10' ? 'µg/m³' :
+                    paramName === 'o3' || paramName === 'so2' || paramName === 'no2' ? 'ppb' :
+                    paramName === 'co' ? 'ppm' : 'unknown';
+        return {
+          location: `${entry.county} - ${entry.sitename}`,
+          city: ' ',
+          parameter: paramName,
+          unit: unit,
+          averagingPeriod: { value: 1, unit: 'hours' },
+          attribution: [
+            { name: 'Taiwan Ministry of Environment', url: 'https://airtw.moenv.gov.tw/' },
+          ],
+          coordinates: {
+            latitude: entry.TWD97_Lat,
+            longitude: entry.TWD97_Lon,
+          },
+          value: parseFloat(entry[paramKey]),
+          date: {
+            utc: DateTime.fromFormat(entry.date, 'yyyy/MM/dd HH:mm', {
+              zone: 'Asia/Taipei',
+            })
+              .toUTC()
+              .toISO({ suppressMilliseconds: true }),
+            local: DateTime.fromFormat(entry.date, 'yyyy/MM/dd HH:mm', {
+              zone: 'Asia/Taipei',
+            }).toISO({ suppressMilliseconds: true }),
+          },
+        };
+      })
+      .filter(measurement => measurement.unit !== 'unknown')
   );
 }
+
 
 async function allData (baseUrl, locationIds, stationDataUrl) {
   const dateTimeOneHourAgo = DateTime.now()
