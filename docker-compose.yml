@@ -1,5 +1,0 @@
-fetch:
-  build: .
-  volumes:
-  - .:/local
-  env_file: ./local.env

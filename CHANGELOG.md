@@ -2,7 +2,21 @@
 
 Changes to adapters will be documented in this file.
 
-## 11/26/2024
+## 02/13/2024
+### Removed unused files
+- docker-compose.yml
+- index.adapter.sh
+- index.sh
+- accra.js
+- arpae-locations.js
+- arpae-parameters.js
+- arpalazio.js
+- defra-locations.js
+- israel.js
+- moscow-locations.js
+- ards-bay.js
+
+## 11/26/2023
 ### Removed eslint
 - Removed eslint from package.json
 - Removed .eslintrc
