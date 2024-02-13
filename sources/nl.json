@@ -11,6 +11,18 @@
         "contacts": [
             "info@openaq.org"
         ],
+        "active": false
+    },
+    {
+        "url": "https://api.luchtmeetnet.nl/open_api",
+        "adapter": "netherlands2",
+        "name": "Netherlands2",
+        "country": "NL",
+        "description": "",
+        "sourceURL": "https://www.luchtmeetnet.nl/",
+        "contacts": [
+            "info@openaq.org"
+        ],
         "active": true
     }
 ]
