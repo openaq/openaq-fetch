@@ -2,6 +2,11 @@
 
 Changes to adapters will be documented in this file.
 
+## 02/14/2024
+### Removed deprecated adapters
+- agaar_mn.js
+- airnow-ftp.js
+- eea.js
 ## 02/13/2024
 ### Removed unused files
 - docker-compose.yml
