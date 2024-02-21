@@ -4,114 +4,123 @@
  */
 
 import got from 'got';
-
 import { DateTime } from 'luxon';
 import log from '../lib/logger.js';
 
 export const name = 'peru';
 
-const gotExtended = got.extend({
-  retry: { limit: 3 },
-  timeout: { request: 120000 },
-});
-// Available parameters for the pollutants we are interested in.
-const pollutants = [
+const nowUTC = DateTime.utc().toISODate()
+
+const pollutants = [ // all available parameters
   'pm10',
   'pm25',
   'so2',
+  // 'h2s',
   'co',
   'no2',
+  // 'pbar',
+  // 'pp',
+  // 'temp',
+  // 'hr',
+  // 'ws',
+  // 'wd',
+  // 'rs',
 ];
 
-export async function fetchData(source, cb) {
+export async function fetchData (source, cb) {
   try {
-    let stationIds = [...Array(35).keys()].map(i => i + 1);
-    log.debug(`Fetching data for station IDs: ${stationIds.join(', ')}`);
-    
+    const stationIds = Array.from({ length: 60 }, (_, i) => i + 1);
+
     const postResponses = stationIds.map((id) =>
-      createRequests(id, source)
+      createRequest(id, source)
     );
 
     const results = await Promise.all(postResponses);
 
     let allMeasurements = [];
-    log.info('Processing results...');
-    
-    results.forEach((result, index) => {
-      if (result !== null) {
-        log.info(`Formatting data for station ID: ${stationIds[index]}`);
-        const measurements = formatData(result.lastDataObject);
+    results.forEach((result) => {
+      if (result) {
+        const measurements = formatData(result);
         allMeasurements = allMeasurements.concat(measurements);
-      } else {
-        log.warn(`No data received for station ID: ${stationIds[index]}`);
       }
     });
 
-    log.debug('All measurements compiled.', allMeasurements.length);
+    log.debug('All measurements:', allMeasurements);
     cb(null, { name: 'unused', measurements: allMeasurements });
   } catch (error) {
-    log.error('Error in fetchData:', error.message);
     cb(error);
   }
 }
 
-function formatData(data) {
+function formatData (data) {
   const measurements = [];
-  const latitude = parseFloat(data.coordinates.latitude);
-  const longitude = parseFloat(data.coordinates.longitude);
+  
+  const { coordinates, date } = data.lastDataObject;
+  const formattedDate = date.replace(' ', 'T').replace(' UTC', 'Z');
+  const dateLuxon = DateTime.fromISO(formattedDate);
 
   pollutants.forEach((pollutant) => {
-    if (data[pollutant] !== null) {
-      const measurement = {
-        date: {
-          utc: DateTime.fromISO(data.date).toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
-          local: DateTime.fromISO(data.date).setZone('America/Lima').toFormat("yyyy-MM-dd'T'HH:mm:ssZZ"),
-        },
-        location: data.station,
-        city: data.province,
-        coordinates: { latitude, longitude },
-        parameter: pollutant,
-        value: parseFloat(data[pollutant]),
-        unit: 'µg/m³',
-        averagingPeriod: { unit: 'minutes', value: 5 },
-        attribution: [
-          { name: 'OEFA', url: 'https://www.gob.pe/oefa' },
-        ],
-      };
-      measurements.push(measurement);
+    if (data.lastDataObject.hasOwnProperty(pollutant)) {
+      const value = data.lastDataObject[pollutant];
+      if (value !== null) {
+        measurements.push({
+          date: {
+            utc: dateLuxon.toUTC().toISO({ suppressMilliseconds: true}),
+            local: dateLuxon.setZone('America/Lima').toISO({ suppressMilliseconds: true}),
+          },
+          location: data.lastDataObject.station,
+          city: data.lastDataObject.district,
+          coordinates: {
+            latitude: parseFloat(coordinates.latitude),
+            longitude: parseFloat(coordinates.longitude),
+          },
+          parameter: pollutant,
+          value: parseFloat(value),
+          unit: 'µg/m³',
+          averagingPeriod: { unit: 'minutes', value: 5 },
+          attribution: [{ name: 'OEFA', url: 'https://www.gob.pe/oefa' }],
+        });
+      }
     }
   });
 
   return measurements;
 }
 
-async function createRequests(idStation, source) {
+async function createRequest(idStation, source) {
   const body = {
-    user: "OPENAQ",
-    password: "see-docs-for-password",
-    startDate: "2024-10-12",
-    endDate: "2024-10-13",
-    // idStation: idStation.toString()
-    idStation: 2
+    user: process.env.OEFA_USER,
+    password: process.env.OEFA_PASSWORD,
+    startDate: nowUTC,
+    endDate: nowUTC,
+    idStation: idStation.toString(),
   };
 
   try {
-    log.info(`Sending request for station ID: ${idStation}`);
-    const response = await gotExtended.post(source.url, {
+    const response = await got.post(source.url, {
       json: body,
       responseType: 'json',
     });
 
-    const data = response.body.data;
-    if (data && data.length > 0) {
-      log.info(`Data received for station ID: ${idStation}`);
-      return { idStation, lastDataObject: data[data.length - 1] };
-    } else {
-      log.warn(`No data found for station ID: ${idStation}`);
+    // Check if response body 'status' is not "1"; ie user or password is incorrect
+    if (response.body.status !== "1") {
+      throw new Error(`API Error for station ID ${idStation}: ${response.body.message || 'Unknown error'}`);
+    }
+
+    if (!response.body.data || response.body.data.length === 0) {
+      log.debug(`No data for station ID ${idStation}`);
       return null;
+    } else {
+      return {
+        idStation,
+        lastDataObject: response.body.data[response.body.data.length - 1],
+      };
     }
   } catch (error) {
-    log.error(`Error for station ID ${idStation}: ${error.response?.body || error.message}`);
-    return null;
+    log.error(
+      `Request failed for station ID ${idStation}:`,
+      error.response ? error.response.body : error.message
+    );
+    throw error;
   }
 }
