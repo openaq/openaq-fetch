@@ -16,7 +16,7 @@ export async function fetchData (source, cb) {
   try {
     const stationData = await getStationData(source);
     if (!stationData) throw new Error('Failed to fetch station data.');
-    const urls = createUrls(stationData, 3);
+    const urls = createUrls(stationData, 4); // overfetch by 4 hours
 
     const responses = await Promise.all(urls.map(async ({ SiteID, url }) => {
       const data = await fetchUrl(url);
