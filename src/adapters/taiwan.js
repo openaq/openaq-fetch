@@ -6,14 +6,16 @@
 import log from '../lib/logger.js';
 import got from 'got';
 import { DateTime } from 'luxon';
+import {
+  unifyMeasurementUnits,
+} from '../lib/utils.js';
 
 export const name = 'taiwan';
 
-export async function fetchData(source, cb) {
+export async function fetchData (source, cb) {
   try {
     const stationData = await getStationData(source);
     if (!stationData) throw new Error('Failed to fetch station data.');
-
     const urls = createUrls(stationData, 3);
 
     const responses = await Promise.all(urls.map(async ({ SiteID, url }) => {
@@ -28,16 +30,17 @@ export async function fetchData(source, cb) {
                                   }));
 
     const formattedData = formatData(combinedData, stationData);
+    const unifiedData = formattedData.map(unifyMeasurementUnits);
     cb(null, {
       name: 'unused',
-      measurements: formattedData,
+      measurements: unifiedData,
     });
   } catch (error) {
     cb(error, null);
   }
 }
 
-async function fetchUrl(url) {
+async function fetchUrl (url) {
   try {
     const response = await got(url, {
       headers: { 'Accept': 'application/json' },
@@ -53,7 +56,7 @@ async function fetchUrl(url) {
 }
 
 // enter the amount of hours to overfetch by
-function createDateStringsForLastHours(hours) {
+function createDateStringsForLastHours (hours) {
   const dateStrings = [];
   for (let hour = 1; hour <= hours; hour++) {
     const dateTime = DateTime.now()
@@ -159,4 +162,3 @@ function formatData(data, stationData) {
 
   return formattedData;
 }
-
