@@ -66,7 +66,7 @@ async function fetchStationData (baseURL, stationId) {
     ];
     validParameters.forEach((param) => {
       if (data[param]) {
-        measurements[param] = data[param].slice(-3);
+        measurements[param] = data[param].slice(-12);
       }
     });
 
