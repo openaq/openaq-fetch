@@ -3,154 +3,168 @@
  * and returning data for the Taiwan data sources.
  */
 
-'use strict';
-
+import log from '../lib/logger.js';
 import got from 'got';
 import { DateTime } from 'luxon';
-import log from '../lib/logger.js';
+import {
+  unifyMeasurementUnits,
+} from '../lib/utils.js';
 
 export const name = 'taiwan';
 
-const locationIds = [...Array.from(new Array(150), (x, i) => i + 1)];
-
 export async function fetchData (source, cb) {
-  const dateTimeOneHourAgo = DateTime.now()
-    .setZone('Asia/Taipei')
-    .minus({ hours: 1 });
-  const dateString = dateTimeOneHourAgo.toFormat('yyyyMMddHH');
-  const baseUrl = source.url.replace('{dateStr}', dateString);
-  const stationDataUrl =
-    source.stationURL + DateTime.now().toISODate();
-
   try {
-    const formattedMeasurements = await allData(
-      baseUrl,
-      locationIds,
-      stationDataUrl
-    );
-    const data = {
+    const stationData = await getStationData(source);
+    if (!stationData) throw new Error('Failed to fetch station data.');
+    const urls = createUrls(stationData, 4); // overfetch by 4 hours
+
+    const responses = await Promise.all(urls.map(async ({ SiteID, url }) => {
+      const data = await fetchUrl(url);
+      return { SiteID, data };
+    }));
+
+    const combinedData = responses.filter(({ data }) => data !== null)
+                                  .map(({ SiteID, data }) => ({
+                                    ...combineResponseObjects(data),
+                                    SiteID
+                                  }));
+
+    const formattedData = formatData(combinedData, stationData);
+    const unifiedData = formattedData.map(unifyMeasurementUnits);
+    const roundedData = unifiedData.map(item => ({
+      ...item,
+      value: parseFloat(item.value.toFixed(4))
+    }));
+    
+    cb(null, {
       name: 'unused',
-      measurements: formattedMeasurements,
-    };
-    log.debug(formattedMeasurements);
-    cb(null, data);
+      measurements: roundedData,
+    });
   } catch (error) {
-    log.error(error);
-    cb(error);
+    cb(error, null);
   }
-}
-function createUrls (baseUrl, locationIds, dateStr) {
-  return locationIds.map(id =>
-    baseUrl
-      .replace('{i}', id.toString())
-      .replace('{dateStr}', dateStr)
-  );
 }
 
 async function fetchUrl (url) {
   try {
-    return await got(url, {
-      headers: { Accept: 'application/json' },
+    const response = await got(url, {
+      headers: { 'Accept': 'application/json' },
     }).json();
+    return response;
   } catch (error) {
     log.debug(
       `Error fetching or parsing data from: ${url}`,
-      error.response?.body
+      error.response?.body || error.message
     );
     return null;
   }
 }
 
-function combineData (airQualityData, stationData) {
-  return Object.entries(airQualityData).reduce(
-    (combined, [key, airQualityEntry]) => {
-      const stationEntry = stationData.find(
-        (station) => station.SiteName === airQualityEntry.sitename
-      );
-      if (
-        stationEntry &&
-        stationEntry.TWD97_Lon &&
-        stationEntry.TWD97_Lat &&
-        airQualityEntry.date
-      ) {
-        combined[key] = { ...airQualityEntry, ...stationEntry };
-      }
-      return combined;
-    },
-    {}
-  );
+// enter the amount of hours to overfetch by
+function createDateStringsForLastHours (hours) {
+  const dateStrings = [];
+  for (let hour = 1; hour <= hours; hour++) {
+    const dateTime = DateTime.now()
+      .setZone('Asia/Taipei')
+      .minus({ hours: hour });
+    dateStrings.push(dateTime.toFormat('yyyyMMddHH'));
+  }
+  return dateStrings;
 }
 
-function formatData (combinedData) {
-  const parameters = {
+async function getStationData(source) {
+
+  const stationDataUrl = source.stationURL + DateTime.now().toISODate();
+  const data = await fetchUrl(stationDataUrl);
+  if (data) {
+    return data;
+  } else {
+    log.debug('Failed to fetch station data.');
+    return null;
+  }
+}
+
+function createUrls(stationData, hours) {
+  const dateStrings = createDateStringsForLastHours(hours);
+  const urlsWithSiteID = [];
+
+  stationData.forEach(station => {
+    const { SiteID } = station;
+    dateStrings.forEach(dateString => {
+      const url = `https://airtw.moenv.gov.tw/json/airlist/airlist_${SiteID}_${dateString}.json`;
+      urlsWithSiteID.push({ SiteID, url });
+    });
+  });
+
+  return urlsWithSiteID;
+}
+
+
+function combineResponseObjects(responseArray) {
+  return responseArray.reduce((accumulator, currentObject) => {
+    const key = Object.keys(currentObject)[0];
+    accumulator[key] = currentObject[key];
+    return accumulator;
+  }, {});
+}
+
+function formatData(data, stationData) {
+  const validParameters = {
     PM25_FIX: 'pm25',
     PM10_FIX: 'pm10',
     O3_FIX: 'o3',
     NO2_FIX: 'no2',
     SO2_FIX: 'so2',
+    CO_FIX: 'co',
   };
 
-  return Object.values(combinedData).flatMap((entry) =>
-    Object.entries(parameters)
-      .filter(([paramKey]) => entry[paramKey] !== undefined)
-      .filter(([paramKey]) => !Number.isNaN(parseFloat(entry[paramKey])))
-      .map(([paramKey, paramName]) => ({
-        location: `${entry.county} - ${entry.sitename}`,
-        city: ' ',
-        parameter: paramName,
-        unit: 'µg/m³',
-        averagingPeriod: { value: 1, unit: 'hours' },
-        attribution: [
-          { name: 'Taiwan Ministry of Environment', url: 'https://airtw.moenv.gov.tw/' },
-        ],
-        coordinates: {
-          latitude: entry.TWD97_Lat,
-          longitude: entry.TWD97_Lon,
-        },
-        value: parseFloat(entry[paramKey]),
-        date: {
-          utc: DateTime.fromFormat(entry.date, 'yyyy/MM/dd HH:mm', {
-            zone: 'Asia/Taipei',
-          })
-            .toUTC()
-            .toISO({ suppressMilliseconds: true }),
-          local: DateTime.fromFormat(entry.date, 'yyyy/MM/dd HH:mm', {
-            zone: 'Asia/Taipei',
-          }).toISO({ suppressMilliseconds: true }),
-        },
-      }))
-  );
-}
+  let formattedData = data.flatMap(entry => {
+    const station = stationData.find(station => station.SiteID === entry.SiteID);
+    const coordinatesValid = station && station.TWD97_Lat !== undefined && station.TWD97_Lon !== undefined;
 
-async function allData (baseUrl, locationIds, stationDataUrl) {
-  const dateTimeOneHourAgo = DateTime.now()
-    .setZone('Asia/Taipei')
-    .minus({ hours: 1 });
-  const dateString = dateTimeOneHourAgo.toFormat('yyyyMMddHH');
+    return Object.entries(validParameters).flatMap(([paramKey, paramName]) => {
+      if (entry.hasOwnProperty(paramKey) && entry[paramKey] !== undefined) {
+        const unit = paramName === 'pm25' || paramName === 'pm10' ? 'µg/m³' :
+                     paramName === 'o3' || paramName === 'so2' || paramName === 'no2' ? 'ppb' :
+                     paramName === 'co' ? 'ppm' : 'unknown';
 
-  const urls = createUrls(baseUrl, locationIds, dateString);
-  const airQualityData = (
-    await Promise.all(urls.map(fetchUrl))
-  ).reduce((acc, data, index) => {
-    if (data) {
-      const locationId = locationIds[index];
-      acc[locationId] = data.reduce(
-        (acc, obj) => ({ ...acc, ...obj }),
-        {}
-      );
-    }
-    return acc;
-  }, {});
+        if (!coordinatesValid || unit === 'unknown' || isNaN(parseFloat(entry[paramKey]))) {
+          log.debug(`Invalid data filtered out: `, {
+            parameter: paramName,
+            unit,
+            value: entry[paramKey],
+            coordinates: coordinatesValid ? { latitude: station.TWD97_Lat, longitude: station.TWD97_Lon } : undefined,
+          });
+          return [];
+        }
 
-  try {
-    const stationData = await fetchUrl(stationDataUrl);
-    const combinedData = combineData(airQualityData, stationData);
-    return formatData(combinedData);
-  } catch (error) {
-    log.debug(
-      `Error fetching station data from ${stationDataUrl}:`,
-      error
-    );
-    return [];
-  }
+        return [{
+          location: `${entry.county} - ${entry.sitename}`,
+          city: entry.county,
+          parameter: paramName,
+          unit: unit,
+          averagingPeriod: { value: 1, unit: 'hours' },
+          attribution: [
+            { name: 'Taiwan Ministry of Environment', url: 'https://airtw.moenv.gov.tw/' },
+          ],
+          coordinates: {
+            latitude: station.TWD97_Lat,
+            longitude: station.TWD97_Lon,
+          },
+          value: parseFloat(entry[paramKey]),
+          date: {
+            utc: DateTime.fromFormat(entry.date, 'yyyy/MM/dd HH:mm', {
+              zone: 'Asia/Taipei',
+            }).toUTC().toISO({ suppressMilliseconds: true }),
+            local: DateTime.fromFormat(entry.date, 'yyyy/MM/dd HH:mm', {
+              zone: 'Asia/Taipei',
+            }).toISO({ suppressMilliseconds: true }),
+          },
+        }];
+      }
+      return [];
+    });
+  });
+
+  return formattedData;
 }
