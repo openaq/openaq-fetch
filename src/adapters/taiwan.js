@@ -31,9 +31,14 @@ export async function fetchData (source, cb) {
 
     const formattedData = formatData(combinedData, stationData);
     const unifiedData = formattedData.map(unifyMeasurementUnits);
+    const roundedData = unifiedData.map(item => ({
+      ...item,
+      value: Number(item.value.toFixed(4))
+    }));
+    
     cb(null, {
       name: 'unused',
-      measurements: unifiedData,
+      measurements: roundedData,
     });
   } catch (error) {
     cb(error, null);
@@ -102,6 +107,7 @@ function combineResponseObjects(responseArray) {
     return accumulator;
   }, {});
 }
+
 function formatData(data, stationData) {
   const validParameters = {
     PM25_FIX: 'pm25',
