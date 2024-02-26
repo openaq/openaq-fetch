@@ -33,7 +33,7 @@ export async function fetchData (source, cb) {
     const unifiedData = formattedData.map(unifyMeasurementUnits);
     const roundedData = unifiedData.map(item => ({
       ...item,
-      value: Number(item.value.toFixed(4))
+      value: parseFloat(item.value.toFixed(4))
     }));
     
     cb(null, {
