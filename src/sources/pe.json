@@ -45,6 +45,9 @@
         "city": "Lima",
         "country": "PE",
         "description": "",
+				"stationCount": 60,
+				"user": "OPENAQ",
+				"password": "********",
         "sourceURL": "https://www.gob.pe/oefa",
         "contacts": [
             "info@openaq.org"

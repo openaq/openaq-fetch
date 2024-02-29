@@ -172,7 +172,7 @@ export function handleMeasurementErrors (stream, failures, source) {
           throw cause;
         } else if (cause.validation && cause.validation.errors) {
           cause.validation.errors.forEach(cause => {
-            log.debug(`Validation error in "${source && source.name}":`, cause.message, cause.instance);
+            log.warn(`Validation error in "${source && source.name}":`, cause.message, cause.instance);
             failures[cause] = (failures[cause] || 0) + 1;
           });
         } else {

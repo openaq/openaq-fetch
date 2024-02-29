@@ -25,21 +25,32 @@ const pollutants = [
 
 export async function fetchData(source, cb) {
   try {
-    let stationIds = [...Array(35).keys()].map(i => i + 1);
-    log.debug(`Fetching data for station IDs: ${stationIds.join(', ')}`);
-    
+		// because we have do not have the ability to query the api
+		// to see how many stations we have we will create them this way
+		// the station count will be stored in the source config
+		let n = source.stationCount || 1;
+    let stationIds = [...Array(n).keys()].map(i => i + 1);
+    log.debug(`Fetching data for station ids up to ${n}`);
+
+		if(!source.from) {
+				source.from = DateTime.utc().toISODate();
+		}
+		if(!source.to) {
+				source.to = DateTime.utc().toISODate();
+		}
+
     const postResponses = stationIds.map((id) =>
-      createRequests(id, source)
+				createRequests(id, source)
     );
 
     const results = await Promise.all(postResponses);
 
     let allMeasurements = [];
-    log.info('Processing results...');
-    
+    log.debug('Processing results...');
+
     results.forEach((result, index) => {
       if (result !== null) {
-        log.info(`Formatting data for station ID: ${stationIds[index]}`);
+        log.debug(`Formatting data for station ID: ${stationIds[index]}`);
         const measurements = formatData(result.lastDataObject);
         allMeasurements = allMeasurements.concat(measurements);
       } else {
@@ -87,24 +98,22 @@ function formatData(data) {
 
 async function createRequests(idStation, source) {
   const body = {
-    user: "OPENAQ",
-    password: "see-docs-for-password",
-    startDate: "2024-10-12",
-    endDate: "2024-10-13",
-    // idStation: idStation.toString()
-    idStation: 2
+    user: source.user,
+    password: source.password,
+    startDate: source.from,
+    endDate: source.to,
+    idStation: idStation.toString()
   };
 
   try {
-    log.info(`Sending request for station ID: ${idStation}`);
+    log.debug(`Sending request for station ID: ${idStation} (${source.from} - ${source.to})to ${source.url}`);
     const response = await gotExtended.post(source.url, {
       json: body,
       responseType: 'json',
     });
-
     const data = response.body.data;
     if (data && data.length > 0) {
-      log.info(`Data received for station ID: ${idStation}`);
+      log.debug(`Data received for station ID: ${idStation}`);
       return { idStation, lastDataObject: data[data.length - 1] };
     } else {
       log.warn(`No data found for station ID: ${idStation}`);
