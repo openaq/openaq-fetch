@@ -1,6 +1,9 @@
 import request from 'request';
 import log from './logger.js';
 import { promisify } from 'util';
+import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
+
+const sns = new SNSClient();
 
 /**
 * Ping openaq-api to let it know cause fetching is complete
@@ -13,6 +16,23 @@ async function sendUpdatedWebhook (apiURL, webhookKey) {
   };
   return promisify(request.post)(apiURL, { form: form });
 }
+
+async function publish(message, subject) {
+		console.log('Publishing:', subject, message);
+		if(process.env.TOPIC_ARN) {
+				const cmd = new PublishCommand({
+						TopicArn: process.env.TOPIC_ARN,
+						Subject: subject,
+						Message: JSON.stringify(message),
+				});
+				return await sns.send(cmd);
+		} else {
+				console.log('No publish topic', subject, message, process.env);
+				return {};
+		}
+}
+
+
 
 /**
  * Reports and saves fetch information.
@@ -34,13 +54,16 @@ export function reportAndRecordFetch (fetchReport, sources, argv, apiURL, webhoo
       return acc;
     }, {});
 
+
+		await publish(fetchReport.results, 'fetcher/success');
+
     if (argv.dryrun) {
       log.info(fetchReport);
       log.info('Dry run ended.');
       return 0;
     }
 
-    await sendUpdatedWebhook(apiURL, webhookKey);
+    //await sendUpdatedWebhook(apiURL, webhookKey);
     log.info('Webhook posted, have a good day!');
     return 0;
   };

@@ -49,7 +49,7 @@ async function getStreamFromAdapter (adapter, source) {
         adapter.name
       }"`
     );
-		const fetchData = promisify(adapter.fetchData)
+		const fetchData = promisify(adapter.fetchData);
 		const data = await fetchData(source)
 					.catch(err => {
             throw new AdapterError(ADAPTER_ERROR, source, err && err.message && err.message.code)
@@ -81,8 +81,22 @@ function createFetchObject (input, source, failures, dryRun) {
     duplicates: 0,
     inserted: 0,
   };
+	const datetimes = {
+			from: null,
+			to: null,
+	};
 
-  const stream = input.do(() => counts.total++);
+	const now = Date.now();
+
+  const stream = input.do((a) => {
+			if(!datetimes.from || datetimes.from < a.date.utc) {
+					datetimes.from = a.date.utc;
+			}
+			if(!datetimes.to || datetimes.to < a.date.utc) {
+					datetimes.to = a.date.utc;
+			}
+			counts.total++;
+	});
   const whenDone = stream
     .whenEnd()
     .then(() => {
@@ -92,7 +106,7 @@ function createFetchObject (input, source, failures, dryRun) {
 
   return {
     get fetchStarted () {
-      const now = Date.now();
+      //const now = Date.now();
       log.info(`Started ${source.name} - ${now}`);
       return now;
     },
@@ -105,13 +119,19 @@ function createFetchObject (input, source, failures, dryRun) {
     get failures () {
       return fetchEnded ? failures : null;
     },
+    get from () {
+      return datetimes.from;
+    },
+    get to () {
+      return datetimes.to;
+    },
     get count () {
       return fetchEnded && (!dryRun ? counts.inserted : counts.total);
     },
     get message () {
       return `${
         dryRun ? '[Dry Run] ' : ''
-      }New measurements found for ${source.name}: ${this.count}`;
+      }New measurements found for ${source.name}: ${counts.total}`;
     },
     dryRun,
     stream,
@@ -125,6 +145,8 @@ function createFetchObject (input, source, failures, dryRun) {
             failures: this.failures,
             count: this.count,
             duration: this.duration,
+						from: this.from,
+						to: this.to,
             sourceName: this.source.sourceName || this.source.name,
           }
         : null;
