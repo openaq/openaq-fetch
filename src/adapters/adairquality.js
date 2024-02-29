@@ -4,8 +4,7 @@
  */
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import got from 'got';
+import client from '../lib/requests.js';
 import { DateTime } from 'luxon';
 import { parallel } from 'async';
 import flatMap from 'lodash/flatMap.js';
@@ -204,11 +203,7 @@ const stations = [
 export function fetchData(source, cb) {
   const requests = stations.map((station) => {
     return (done) => {
-      got(`${source.url}${station.slug}`, {
-        timeout: {
-          request: REQUEST_TIMEOUT
-        },
-      })
+      client(`${source.url}${station.slug}`)
         .then((response) => {
           if (response.statusCode !== 200) {
             return done({

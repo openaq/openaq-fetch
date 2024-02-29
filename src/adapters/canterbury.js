@@ -8,9 +8,8 @@
 
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import client from '../lib/requests.js';
 import { DateTime } from 'luxon';
-import got from 'got';
 import async from 'async';
 
 export const name = 'canterbury';
@@ -33,7 +32,7 @@ export function fetchData(source, cb) {
       .replace('$date', date);
 
     return function (cb) {
-      got(url, { timeout: { request: REQUEST_TIMEOUT } })
+      client(url)
         .then((response) => {
           let body = JSON.parse(response.body);
           body = body.data.item[body.data.item.length - 1]; // get the last item in the array

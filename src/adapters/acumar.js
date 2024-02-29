@@ -1,9 +1,9 @@
 'use strict';
 
-import got from 'got';
+import client from '../lib/requests.js';
+import log from '../lib/logger.js';
 import { load } from 'cheerio';
 import { DateTime } from 'luxon';
-import log from '../lib/logger.js';
 
 const stations = [
   {
@@ -25,11 +25,11 @@ let offset;
 export const name = 'acumar';
 
 export async function fetchData (source, cb) {
-	try {
-		if (source.datetime) {
-			log.debug(`Fetching data with ${source.datetime}`);
-			const dateLuxon = source.datetime.toFormat('dd/MM/yy');
-			const hourLuxon = source.datetime.toFormat('HH');
+  try {
+    if (source.datetime) {
+      log.debug(`Fetching data with ${source.datetime}`);
+      const dateLuxon = source.datetime.toFormat('dd/MM/yy');
+      const hourLuxon = source.datetime.toFormat('HH');
 
       const results = await Promise.all(
         stations.map((station) =>
@@ -64,7 +64,7 @@ export async function fetchData (source, cb) {
   }
 }
 
-async function getPollutionData (
+async function getPollutionData(
   station,
   dateLuxon,
   hourLuxon,
@@ -83,16 +83,7 @@ async function getPollutionData (
   let results = [];
 
   try {
-    const response = await got(station.url, {
-      timeout: {
-        request: 5000,
-        connect: 1000,
-        secureConnect: 1000,
-        socket: 5000,
-        response: 5000,
-        send: 1000,
-      },
-    });
+    const response = await client(station.url);
     const $ = load(response.body);
 
     if (dateLuxon && hourLuxon) {

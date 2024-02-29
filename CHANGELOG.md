@@ -2,6 +2,30 @@
 
 Changes to adapters will be documented in this file.
 
+## 11/26/2024
+### Removed eslint
+- Removed eslint from package.json
+- Removed .eslintrc
+
+## 11/22/2023
+### Set active: false
+- south-australia-epa (needs fix, url won't resolve)
+
+## 11/01/2023
+### DELETED
+- au_sa.js (replaced by southaustralia.js)
+
+## 10/31/2023
+### Set active: true
+- Mexico Sinaica (Added to deployments)
+- Trinidad & Tobago ( needs fix )
+
+## 10/29/2023
+### Set active: false
+- Mexico Sinaica
+- Turkiye (Down)
+- Rwanda (Needs work, down?)
+  
 ## 08/23/2023
 ### Set active: false
 - all China stateair adapters (stateair.net not resolving)

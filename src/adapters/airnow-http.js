@@ -1,11 +1,8 @@
 'use strict';
 
 import log from '../lib/logger.js';
+import client from '../lib/requests.js';
 import { acceptableParameters } from '../lib/utils.js';
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { MeasurementValidationError } from '../lib/errors.js';
-
-import got from 'got';
 import { DateTime } from 'luxon';
 import sj from 'scramjet';
 
@@ -19,16 +16,12 @@ const getDate = (day, time, offset) => {
     return false;
   }
 
-  const utc = DateTime.fromFormat(
-    dateString,
-    'MM/dd/yy HH:mm',
-    { zone: 'utc' }
-  );
-  const local = DateTime.fromFormat(
-    dateString,
-    'MM/dd/yy HH:mm',
-    { zone: 'utc' }
-  ).setZone(offset);
+  const utc = DateTime.fromFormat(dateString, 'MM/dd/yy HH:mm', {
+    zone: 'utc',
+  });
+  const local = DateTime.fromFormat(dateString, 'MM/dd/yy HH:mm', {
+    zone: 'utc',
+  }).setZone(offset);
 
   return {
     utc: utc.toISO({ suppressMilliseconds: true }),
@@ -53,7 +46,9 @@ async function getLocations(url) {
     const locationsUrl = `${url}airnow/today/monitoring_site_locations.dat`;
     log.verbose(`Fetching AirNow locations from "${locationsUrl}"`);
 
-    const locationsData = await got(locationsUrl, { timeout: { request: REQUEST_TIMEOUT }, responseType: 'text' });
+    const locationsData = await client(locationsUrl, {
+      responseType: 'text',
+    });
     _locationsStream[url] = StringStream.from(locationsData.body)
       .lines('\n')
       .parse((s) => {
@@ -83,67 +78,74 @@ async function getLocations(url) {
   return _locationsStream[url];
 }
 
-export async function fetchStream (source) {
-  const locations = await getLocations(source.url);
-  log.debug(`Got ${Object.keys(locations).length} locations.`);
+export async function fetchStream(source) {
+  try {
+    const locations = await getLocations(source.url);
+    log.debug(`Got ${Object.keys(locations).length} locations.`);
 
-  const dateString = source.datetime
-    ? source.datetime.toFormat('yyyyMMddHH')
-    : DateTime.utc().minus({ hours: 1.1 }).toFormat('yyyyMMddHH');
+    const dateString = source.datetime
+      ? source.datetime.toFormat('yyyyMMddHH')
+      : DateTime.utc().minus({ hours: 1.1 }).toFormat('yyyyMMddHH');
 
-  const url = `${source.url}airnow/today/HourlyData_${dateString}.dat`;
+    const url = `${source.url}airnow/today/HourlyData_${dateString}.dat`;
 
-  log.info(`Fetching AirNow measurements from "${url}"`);
+    log.info(`Fetching AirNow measurements from "${url}"`);
 
-  const response = await got(url, { timeout: { request: REQUEST_TIMEOUT }, responseType: 'text' });
+    const response = await client(url, { responseType: 'text' });
 
-  return StringStream.from(response.body)
-    .lines('\n')
-    .parse(async (m) => {
-      m = m.split('|');
-      const parameter = m[5] && m[5].toLowerCase().replace('.', '');
-      const station = locations[m[2]];
-      const datetime = getDate(m[0], m[1], parseFloat(m[4]));
+    return StringStream.from(response.body)
+      .lines('\n')
+      .map(async (m) => {
+        try {
+          m = m.split('|');
+          const parameter =
+            m[5] && m[5].toLowerCase().replace('.', '');
+          const station = locations[m[2]];
+          const datetime = getDate(m[0], m[1], parseFloat(m[4]));
 
-      if (!datetime) {
-        throw new MeasurementValidationError(
-          source,
-          `Cannot parse date ${m[0]} ${m[1]} offset: ${m[4]}`,
-          m
-        );
-      }
+          if (!datetime) {
+            log.warn(
+              `Cannot parse date ${m[0]} ${m[1]} offset: ${m[4]}`
+            );
+            return null;
+          }
 
-      if (!parameter) {
-        throw new MeasurementValidationError(
-          source,
-          `Cannot parse parameter ${m[5]}`,
-          m
-        );
-      }
+          if (!parameter) {
+            log.warn(`Cannot parse parameter ${m[5]}`);
+            return null;
+          }
 
-      if (!station) {
-        throw new MeasurementValidationError(
-          source,
-          `Cannot find station`,
-          m
-        );
-      }
+          if (!station) {
+            log.warn(`Cannot find station`);
+            return null;
+          }
 
-      return {
-        coordinates: station.coordinates,
-        city: station.city,
-        country: station.country,
-        location: m[3].trim(),
-        date: datetime,
-        parameter: parameter === 'ozone' ? 'o3' : parameter,
-        unit: m[6].toLowerCase(),
-        value: parseFloat(m[7]),
-        attribution: [
-          { name: 'US EPA AirNow', url: 'http://www.airnow.gov/' },
-          { name: m[8].trim() },
-        ],
-        averagingPeriod: { unit: 'hours', value: 1 },
-      };
-    })
-    .filter((m) => m && acceptableParameters.includes(m.parameter));
+          return {
+            coordinates: station.coordinates,
+            city: station.city,
+            country: station.country,
+            location: m[3].trim(),
+            date: datetime,
+            parameter: parameter === 'ozone' ? 'o3' : parameter,
+            unit: m[6].toLowerCase(),
+            value: parseFloat(m[7]),
+            attribution: [
+              {
+                name: 'US EPA AirNow',
+                url: 'http://www.airnow.gov/',
+              },
+              { name: m[8].trim() },
+            ],
+            averagingPeriod: { unit: 'hours', value: 1 },
+          };
+        } catch (error) {
+          log.debug(`Error processing measurement: ${error.message}`);
+          return null;
+        }
+      })
+      .filter((m) => m && acceptableParameters.includes(m.parameter));
+  } catch (error) {
+    log.debug(`Error in fetchStream: ${error.message}`);
+    return StringStream.from([]);
+  }
 }

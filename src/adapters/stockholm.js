@@ -1,17 +1,16 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { acceptableParameters } from '../lib/utils.js';
 import log from '../lib/logger.js';
 
 import { DateTime } from 'luxon';
 import { load } from 'cheerio';
-import got from 'got';
+import client from '../lib/requests.js';
 
 export const name = 'stockholm';
 
-export function fetchData(source, cb) {
-  got(source.url, { timeout: { request: REQUEST_TIMEOUT } })
+export function fetchData (source, cb) {
+  client(source.url)
     .then(response => {
       try {
         if (response.statusCode !== 200) {
@@ -27,7 +26,7 @@ export function fetchData(source, cb) {
 
         cb(null, data);
       } catch (error) {
-        log.error(error);
+        log.debug(error);
         cb(error, { message: 'Unknown adapter error.' }, null);
       }
     });
@@ -217,7 +216,7 @@ const formatData = function (result) {
           if (!isNaN(base.value) && base.coordinates) {
             measurements.push(base);
           } else {
-            log.warn(`Unable to load data for ${base.location}`);
+            log.debug(`Unable to load data for ${base.location}`);
           }
         }
       }

@@ -3,7 +3,7 @@
 import { REQUEST_TIMEOUT } from '../lib/constants';
 import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
-import cheerio from 'cheerio';
+import { load } from 'cheerio';
 import proj4 from 'proj4';
 import epsg from 'proj4js-defs';
 import { convertUnits, acceptableParameters } from '../lib/utils';
@@ -42,7 +42,7 @@ exports.fetchData = function (source, cb) {
 
     // Since we're asking for the data asynchronously, keep checking for
     // results every few seconds.
-    const $ = cheerio.load(body, {xmlMode: true});
+    const $ = load(body, {xmlMode: true});
     let checkerId;
     checkerId = setInterval(() => {
       request($('ResultURL').text(), (err, res, body) => {
@@ -51,7 +51,7 @@ exports.fetchData = function (source, cb) {
         }
 
         // Check to see if data is ready yet
-        const $ = cheerio.load(body, {xmlMode: true});
+        const $ = load(body, {xmlMode: true});
         if ($('Code').text() !== 'BlobNotFound') {
           // Cancel the timers
           clearInterval(checkerId);
@@ -79,7 +79,7 @@ exports.fetchData = function (source, cb) {
 
 // Loop over measurements, adding station data and saving to database.
 const formatData = (body) => {
-  let $ = cheerio.load(body, {xmlMode: true});
+  let $ = load(body, {xmlMode: true});
 
   // Reproject if necessary
   // EPSG:4979 is the correct projection, but not found in EPSG definition file

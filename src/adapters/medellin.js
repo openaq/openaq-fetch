@@ -7,12 +7,12 @@
 
 'use strict';
 
-import { DateTime } from 'luxon';
-import got from 'got';
-import _ from 'lodash';
-import { convertUnits } from '../lib/utils.js';
+import client from '../lib/requests.js';
 import log from '../lib/logger.js';
+import { DateTime } from 'luxon';
+import { convertUnits } from '../lib/utils.js';
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import _ from 'lodash';
 
 export const name = 'medellin';
 
@@ -36,7 +36,7 @@ export async function fetchData (source, cb) {
       const url = `${source.url}EntregaData1/Datos_SIATA_Aire_AQ_${p}_Last.json`;
 
       try {
-        const response = await got.get(url, options);
+        const response = await client(url, options);
         return JSON.parse(response.body);
       } catch (error) {
         log.warn(error || `Unable to load data for parameter: ${p} for adapter ${source.name}`);

@@ -5,7 +5,6 @@
 
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import {
   unifyMeasurementUnits,
   removeUnwantedParameters,
@@ -14,8 +13,8 @@ import {
 import log from '../lib/logger.js';
 
 import { DateTime } from 'luxon';
-import got from 'got';
 import _ from 'lodash';
+import client from '../lib/requests.js';
 
 export const name = 'southafrica';
 
@@ -28,9 +27,7 @@ export const name = 'southafrica';
 
 export async function fetchData (source, cb) {
   try {
-    const response = await got(source.url, {
-      timeout: { request: REQUEST_TIMEOUT },
-    });
+    const response = await client(source.url);
 
     if (response.statusCode !== 200) {
       log.error('Request error:', response.statusCode); // Log the error status code

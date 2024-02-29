@@ -1,24 +1,22 @@
 'use strict';
 
-import got from 'got';
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
+import client from '../lib/requests.js';
 import { acceptableParameters, convertUnits } from '../lib/utils.js';
-import cheerio from 'cheerio';
+import { load } from 'cheerio';
 import { parallel } from 'async';
 import flattenDeep from 'lodash/flattenDeep.js';
 import { DateTime } from 'luxon';
 
-const getter = got.extend({ timeout: { request: REQUEST_TIMEOUT } });
 const timezone = 'America/Argentina/Buenos_Aires';
 
 export const name = 'buenos-aires';
 
 export function fetchData(source, callback) {
-  getter(source.url)
+  client(source.url)
     .then((response) => {
       const body = response.body;
       let tasks = [];
-      let $ = cheerio.load(body);
+      let $ = load(body);
 
       const stations = $('#estacion option')
         .filter(function (i, el) {
@@ -31,7 +29,7 @@ export function fetchData(source, callback) {
         .map(function (i, el) {
           return {
             id: $(this).attr('value'),
-            name: $(this).text()
+            name: $(this).text(),
           };
         })
         .get();
@@ -50,12 +48,12 @@ export function fetchData(source, callback) {
         .map(function (i, el) {
           return {
             id: $(this).attr('value'),
-            name: $(this).text()
+            name: $(this).text(),
           };
         })
         .get();
 
-      const today = DateTime.local().setZone(timezone).startOf('day');
+      const today = DateTime.now().setZone(timezone).startOf('day');
       stations.forEach((station) => {
         parameters.forEach((parameter) => {
           const url = makeStationQuery(
@@ -77,10 +75,9 @@ export function fetchData(source, callback) {
 
         results = flattenDeep(results);
         results = convertUnits(results);
-
         return callback(null, {
           name: 'unused',
-          measurements: results
+          measurements: results,
         });
       });
     })
@@ -103,7 +100,7 @@ const makeStationQuery = (sourceUrl, station, parameter, date) => {
 
 const handleStation = (url, station, parameter, today) => {
   return (done) => {
-    getter(url)
+    client(url)
       .then((response) => {
         const body = response.body;
         const results = formatData(body, station, parameter, today);
@@ -116,7 +113,7 @@ const handleStation = (url, station, parameter, today) => {
 };
 
 const formatData = (body, station, parameter, today) => {
-  const $ = cheerio.load(body);
+  const $ = load(body);
   let measurements = [];
 
   const averagingPeriod = getAveragingPeriod(parameter);
@@ -153,7 +150,11 @@ const formatData = (body, station, parameter, today) => {
 
 const getDate = (today, hours) => {
   let date = DateTime.fromISO(today, { zone: timezone });
+  // If hours are from 13 to 23, the date should be set to the day before yesterday
   if (hours >= 13 && hours <= 23) {
+    date = date.minus({ days: 2 });
+  } else if (hours >= 0 && hours <= 12) {
+    // If hours are from 00 to 12, the date should be set to yesterday
     date = date.minus({ days: 1 });
   }
   date = date.set({ hour: hours });
@@ -168,17 +169,17 @@ const getCoordinates = (station) => {
     case 'CENTENARIO':
       return {
         longitude: -58.43194,
-        latitude: -34.60638
+        latitude: -34.60638,
       };
     case 'CORDOBA':
       return {
         longitude: -58.39165,
-        latitude: -34.60441667
+        latitude: -34.60441667,
       };
     case 'LA BOCA':
       return {
         longitude: -58.36555,
-        latitude: -34.62527
+        latitude: -34.62527,
       };
     default:
       break;

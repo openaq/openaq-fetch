@@ -54,7 +54,7 @@
             "info@openaq.org"
         ],
         "license": "Creative Commons Attribution 4.0 License. © Copyright 2023",
-        "active": true
+        "active": false
     },
     {
         "url": "https://www.data.act.gov.au/api/id/94a5-zqnn.json",

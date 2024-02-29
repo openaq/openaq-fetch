@@ -1,6 +1,5 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import {
   convertUnits,
   unifyMeasurementUnits,
@@ -11,13 +10,13 @@ import { DateTime } from 'luxon';
 import flattenDeep from 'lodash/flattenDeep.js';
 import { parallel } from 'async';
 import log from '../lib/logger.js';
-import got from 'got';
+import client from '../lib/requests.js';
 
 export const name = 'tuzlanski';
 
 export function fetchData(source, cb) {
   // Load initial page to get active stations
-  got(source.url, { timeout: { request: REQUEST_TIMEOUT } })
+  client(source.url)
     .then(response => {
       const body = response.body;
       const $ = load(body);
@@ -48,7 +47,7 @@ export function fetchData(source, cb) {
 const handleStation = function (stationUrl) {
   return function (done) {
     log.debug(`Fetching data for ${stationUrl}`);
-    got(stationUrl, { timeout: { request: REQUEST_TIMEOUT } })
+    client(stationUrl)
       .then(response => {
         const body = response.body;
         formatData(body, (measurements) => {

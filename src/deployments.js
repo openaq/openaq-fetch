@@ -26,11 +26,22 @@ const deploymentsArray = [
     name: 'acumar',
     adapter: 'acumar',
     offset: 72
+  },
+  // Japan is slow and needs to be alone
+  {
+    name: 'japan',
+    source: 'japan-soramame',
+  },
+  {
+    name: 'mexico',
+    source: 'Sinaica Mexico'
+  },
+  {
+  // Fill gaps in Hanoi data
+    name: 'hanoi',
+    source: 'hanoi-aqmn',
+    offset: 12
   }
-//   }
-//     name: 'japan',
-//     source: 'japan-soramame'
-//   }
 ];
 
 export { deploymentsArray };

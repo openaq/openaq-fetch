@@ -6,11 +6,11 @@
 'use strict';
 
 import { acceptableParameters } from '../lib/utils.js';
-import log from '../lib/logger.js';
 import { DateTime } from 'luxon';
 import { parse } from 'csv-parse';
 import Bottleneck from 'bottleneck';
-import got from 'got';
+import client from '../lib/requests.js';
+import log from '../lib/logger.js';
 
 const limiter = new Bottleneck({
   minTime: 50, // Minimum time between requests (ms)
@@ -50,7 +50,7 @@ export async function fetchData (source, cb) {
 
 async function fetchStations (stationsCsvUrl) {
   try {
-    const response = await got(stationsCsvUrl);
+    const response = await client(stationsCsvUrl);
     return new Promise((resolve, reject) => {
       parse(
         response.body,
@@ -85,7 +85,7 @@ async function fetchStationData (latestDataUrl, stationId, unixTimeStamp) {
   url.pathname += `${stationId}/today.csv`;
   url.searchParams.append('_', unixTimeStamp);
 
-  const response = await got(url.href);
+  const response = await client(url.href);
   return new Promise((resolve, reject) => {
     parse(response.body, { columns: true }, (err, records) => {
       err ? reject(err) : resolve(records);
@@ -100,7 +100,7 @@ async function getAirQualityData (jpDataUrl) {
   const unixTimeStamp = now.toMillis();
 
   const bottleneckedStationRequests = stationData
-    // slice -HERE- to debug
+    // .slice(0, 10)// slice -HERE- to debug
     .map(async (station) => {
       const stationId = station.id;
       try {
@@ -109,8 +109,20 @@ async function getAirQualityData (jpDataUrl) {
         );
 
         const result = data.flatMap((row) => {
-          const dateTimeStr = `${row['年']}-${row['月']}-${row['日']}T${row['時']}:00:00`;
-          const jstTime = DateTime.fromISO(dateTimeStr, { zone: 'Asia/Tokyo' });
+          let hour = parseInt(row['時']);
+          let dateTimeStr;
+          let jstTime;
+          let nextDay;
+          // Check if hour is '24', and handle it as the start of the next day.
+          if (hour === 24) {
+            nextDay = DateTime.fromISO(`${row['年']}-${row['月']}-${row['日']}`).plus({ days: 1 });
+            dateTimeStr = `${nextDay.toFormat('yyyy-MM-dd')}T00:00:00`;
+            jstTime = DateTime.fromISO(dateTimeStr, { zone: 'Asia/Tokyo' });
+          } else {
+            hour -= 1; // Adjust hour from 1-24 to 0-23 format
+            dateTimeStr = `${row['年']}-${row['月']}-${row['日']}T${String(hour).padStart(2, '0')}:59:00`;
+            jstTime = DateTime.fromISO(dateTimeStr, { zone: 'Asia/Tokyo' }).plus({ minutes: 1 });
+          }
 
           return Object.entries(units)
             .filter(

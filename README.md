@@ -72,6 +72,25 @@ For a more detailed description of the command line options available, use: `nod
 ## Deployment
 Deployment is is being built from the lambda-deployment branch. Any development for openaq-fetch should be branched/merged from/to the lambda-deployment branch until further notice.
 
+Deployments rely on a json object that contains the different deployments. The schedular is then used to loop through that object and post a message that will trigger a lambda to run that deployment. A deployment consists of a set of arguments that are passed to the fetch script to limit the sources that are run.
+
+You can test the deployments with the following
+
+Show all deployments but dont submit and dont run the fetcher
+`
+node index.js --dryrun --deployments all --nofetch
+`
+Only the japan deployment but dont run the fetcher
+`
+node index.js --dryrun --deployments japan --nofetch
+`
+
+Only the japan deployment, dont submit a file but run the fetcher
+`
+node index.js --dryrun --deployments japan
+`
+
+
 ## Data Source Criteria
 
 This section lists the key criteria for air quality data aggregated
@@ -83,7 +102,7 @@ this section.
 
 1. Data must be of one of these pollutant types: PM10, PM2.5, sulfur dioxide (SO2), carbon monoxide (CO), nitrogen dioxide (NO2), ozone (O3), and black carbon (BC).
 
-2. Data must be from an official-level outdoor air quality source, as defined as data produced by a government entity or international organization. We do not, at this stage, include data from low-cost, temporary, and/or indoor sensors. 
+2. Data must be from an official-level outdoor air quality source, as defined as data produced by a government entity or international organization. We do not, at this stage, include data from low-cost, temporary, and/or indoor sensors.
 
 3. Data must be ‘raw’ and reported in physical concentrations on their originating site. Data cannot be shared in an 'Air Quality Index' or equivalent (e.g. AQI, PSI, API) format.
 
