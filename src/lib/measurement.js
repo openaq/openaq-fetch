@@ -52,7 +52,7 @@ async function getStreamFromAdapter (adapter, source) {
 		const fetchData = promisify(adapter.fetchData)
 		const data = await fetchData(source)
 					.catch(err => {
-            throw new AdapterError(ADAPTER_ERROR, source, err && err.message && err.message.code)
+           throw new AdapterError(ADAPTER_ERROR, source, err && err.message && err.message.code)
 					});
 		const out = DataStream.from(data.measurements);
 		out.name = data.name;
@@ -291,7 +291,6 @@ export function fetchCorrectedMeasurementsFromSourceStream (stream, env) {
       if (error) throw error;
       else error = true;
     } catch (cause) {
-      log.error(cause)
       await input.raise(
         cause instanceof AdapterError
           ? cause

@@ -11,6 +11,7 @@ import {
   FetchError,
   AUTHENTICATION_ERROR,
   DATA_PARSE_ERROR,
+	FETCHER_ERROR,
 } from '../lib/errors.js';
 
 export const name = 'peru';
@@ -106,25 +107,24 @@ function formatData (data) {
 
 async function createRequest(idStation, source) {
 		const body = {
-				user: source.user,
-				password: source.password,
+				user: source.credentials.user,
+				password: source.credentials.password,
 				startDate: source.from,
 				endDate: source.to,
 				idStation: idStation.toString()
 		};
 
 		try {
-				log.debug(`Sending request for station ID: ${idStation} (${source.from} - ${source.to}) to ${source.url}`);
+				//log.debug(`Sending request for station ID: ${idStation} (${source.from} - ${source.to}) to ${source.url}`);
 				const response = await got.post(source.url, {
 						json: body,
 						responseType: 'json',
 				});
 
-				//console.log(response)
-				// Check if response body 'status' is not "1"; ie user or password is incorrect
-				if (response.body.status !== "1") {
+				if (response.body.status === "3") {
 						throw new FetchError(AUTHENTICATION_ERROR, source, response.body.message);
-						//throw new Error(`API Error for station ID ${idStation}: ${response.body.message || 'Unknown error'}`);
+				} else if(response.body.status !== "1") {
+						throw new FetchError(FETCHER_ERROR, source, response.body.message);
 				}
 
 				if (!response.body.data || response.body.data.length === 0) {
@@ -137,10 +137,10 @@ async function createRequest(idStation, source) {
 						};
 				}
 		} catch (error) {
-				log.error(
-						`Request failed for station ID ${idStation}:`,
-						error.response ? error.response.body : error.message
-				);
-				throw error;
+				if (error instanceof FetchError) {
+						throw error;
+				} else {
+						throw new FetchError(FETCHER_ERROR, source, error.message);
+				}
 		}
 }
