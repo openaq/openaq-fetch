@@ -58,7 +58,7 @@ export function handler (event, context) {
   // sure that we dont overwrite another process
   let suffix = env.suffix || '_na';
   if (event && event.Records && event.Records.length) {
-		log.debug(`Getting sources from event data - ${event.Records && event.Records.length} records`)
+		log.debug(`Getting sources from event data - ${event.Records && event.Records.length} records`);
     const messageId = event.Records[0].messageId;
     if (event.Records.length === 1) {
       const body = JSON.parse(event.Records[0].body);
@@ -76,35 +76,35 @@ export function handler (event, context) {
     }
     suffix = `_${suffix}${messageId}`;
   } else if (event && event.sources) {
-		log.debug(`Getting sources from event sources - ${event.sources && event.sources.length} sources`)
+		log.debug(`Getting sources from event sources - ${event.sources && event.sources.length} sources`);
     const messageId = 'event';
     currentSources = event.sources;
     offset = event.offset;
     datetime = event.datetime;
     suffix = `_${event.suffix || suffix}${messageId}`;
   } else if (event && event.source) {
-    log.debug(`Getting source from event source`)
+    log.debug(`Getting source from event source`);
     currentSources = sourcesArray.filter(
       (d) => d.name === event.source
     );
 
   } else if (event && event.adapter) {
-    log.debug(`Getting sources from event adapter ${event.adapter}`)
+    log.debug(`Getting sources from event adapter ${event.adapter}`);
     currentSources = sourcesArray.filter(
       (d) => d.adapter === event.adapter
     );
   } else if (env.adapter) {
-    log.debug(`Getting sources from env variable adapter ${env.adapter}`)
+    log.debug(`Getting sources from env variable adapter ${env.adapter}`);
     currentSources = sourcesArray.filter(
       (d) => d.adapter === env.adapter
     );
   } else if (env.source) {
-    log.debug(`Getting source from env variable source ${env.source}`)
+    log.debug(`Getting source from env variable source ${env.source}`);
     currentSources = sourcesArray.filter(
-      (d) => d.name === env.source
+				(d) => d.name === env.source
     );
   } else {
-    log.debug(`Getting sources from active sources array`)
+    log.debug(`Getting sources from active sources array`);
     currentSources = sourcesArray.filter(s => s.active);
   }
   // and the final file name
@@ -119,7 +119,7 @@ export function handler (event, context) {
   }
 
   if (env.nofetch) {
-	  log.info(`Skipping fetch for ${currentSources.length} sources and saving to ${env.key}`)
+	  log.info(`Skipping fetch for ${currentSources.length} sources and saving to ${env.key}`);
 	  return true;
   }
 
