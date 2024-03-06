@@ -142,7 +142,7 @@ function formatData (stations, startTime, endTime) {
                   value: value,
                   unit: pollutant.toLowerCase() === 'rh' ? '%' : 'µg/m³',
                   attribution: [
-                    { name: 'Delhi NCT', url: 'http://www.dpccairdata.com/dpccairdata/display/index.php' },
+                    { name: 'Delhi Pollution Control Committee', url: 'http://www.dpccairdata.com/dpccairdata/display/index.php' },
                   ],
                   averagingPeriod: {
                     unit: 'hours',

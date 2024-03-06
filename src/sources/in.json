@@ -109,12 +109,12 @@
         "name": "delhi-nct",
         "city": "Delhi",
         "country": "IN",
-        "description": "",
+        "description": "Data from the National Capital Territory (NCT) of Delhi",
         "resolution": "15 min",
         "sourceURL": "http://www.dpccairdata.com/dpccairdata/display/index.php",
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     }
 ]
