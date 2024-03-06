@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import { DateTime } from 'luxon';
+import log from '../lib/logger.js';
 
 const now = DateTime.now();
 const start = now.minus({ hours: 4 });
@@ -12,28 +13,36 @@ const metParams = ['PM25', 'RH'];
 export const name = 'delhi';
 
 export async function fetchData(source, cb) {
-    const browser = await puppeteer.launch({ headless: true });
+    let browser;
     try {
-      const stations = await getStations(browser);
-      console.dir(stations, { depth: null });
-      const allData = [];
-      for (const station of stations) {
-        const concUrl = `${source.url}AallAdvanceSearchCconc.php?stName=${station.stName}`;
-        const metUrl = `${source.url}AallAdvanceSearchMet.php?stName=${station.stName}`;
-        const [conc, met] = await Promise.all([
-          fetchHighchartsData(browser, concUrl, concParams, startTime, endTime),
-          fetchHighchartsData(browser, metUrl, metParams, startTime, endTime),
-        ]);
-        allData.push({ ...station, conc, met });
-      }
-      const formattedData = formatData(allData, startTime, endTime);
-      console.dir(formattedData, { depth: null });
-      cb(null, { name: 'unused', measurements: formattedData });
+        browser = await puppeteer.launch({ headless: true });
+        const stations = await getStations(browser);
+        log.debug(stations, { depth: null });
+        
+        const allData = [];
+        for (const station of stations) {
+            const concUrl = `${source.url}AallAdvanceSearchCconc.php?stName=${station.stName}`;
+            const metUrl = `${source.url}AallAdvanceSearchMet.php?stName=${station.stName}`;
+            const [conc, met] = await Promise.all([
+                fetchHighchartsData(browser, concUrl, concParams, startTime, endTime),
+                fetchHighchartsData(browser, metUrl, metParams, startTime, endTime),
+            ]);
+            allData.push({ ...station, conc, met });
+        }
+        
+        const formattedData = formatData(allData, startTime, endTime);
+        log.debug(formattedData, { depth: null });
+        cb(null, { name: 'unused', measurements: formattedData });
+    } catch (error) {
+        log.error('Error fetching data:', error);
+        cb(error, null);
     } finally {
-      await browser.close();
+        if (browser) {
+            await browser.close();
+        }
     }
-  }
-  
+}
+
 async function fetchParameterData (browser, url, parameterValue, startTime, endTime) {
   let page;
   try {
@@ -49,7 +58,6 @@ async function fetchParameterData (browser, url, parameterValue, startTime, endT
     });
 
     await page.goto(url, { waitUntil: 'domcontentloaded' });
-    // await page.goto(url, { waitUntil: 'networkidle0' });
     await page.select('select[name="parameters"]', parameterValue);
     await page.evaluate((startTime, endTime) => {
       document.querySelector('input[name="fDate"]').value = startTime;
@@ -122,7 +130,6 @@ function formatData (stations, startTime, endTime) {
                 const measurementTime = startDateTime.plus({ hours: index });
                 const measurement = {
                   location: station.name,
-                //   parameter: measurementSeries.name,
                   parameter: pollutant.toLowerCase() === 'rh' ? 'relativehumidity' : pollutant.toLowerCase(),
                   date: {
                     utc: measurementTime.toUTC().toISO({suppressMilliseconds: true}),
