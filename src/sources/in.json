@@ -104,9 +104,9 @@
         "active": false
     },
     {
-        "url": "http://www.dpccairdata.com/dpccairdata/display/pbView15MinData.php",
-        "adapter": "india",
-        "name": "Punjabi Bagh",
+        "url": "https://www.dpccairdata.com/dpccairdata/display/",
+        "adapter": "delhi",
+        "name": "delhi-nct",
         "city": "Delhi",
         "country": "IN",
         "description": "",
@@ -115,48 +115,6 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": false
-    },
-    {
-        "url": "http://www.dpccairdata.com/dpccairdata/display/mmView15MinData.php",
-        "adapter": "india",
-        "name": "Mandir Marg",
-        "city": "Delhi",
-        "country": "IN",
-        "description": "",
-        "resolution": "15 min",
-        "sourceURL": "http://www.dpccairdata.com/dpccairdata/display/index.php",
-        "contacts": [
-            "info@openaq.org"
-        ],
-        "active": false
-    },
-    {
-        "url": "http://www.dpccairdata.com/dpccairdata/display/rkPuramView15MinData.php",
-        "adapter": "india",
-        "name": "RK Puram",
-        "city": "Delhi",
-        "country": "IN",
-        "description": "",
-        "resolution": "15 min",
-        "sourceURL": "http://www.dpccairdata.com/dpccairdata/display/index.php",
-        "contacts": [
-            "info@openaq.org"
-        ],
-        "active": false
-    },
-    {
-        "url": "http://www.dpccairdata.com/dpccairdata/display/avView15MinData.php",
-        "adapter": "india",
-        "name": "Anand Vihar",
-        "city": "Delhi",
-        "country": "IN",
-        "description": "",
-        "resolution": "15 min",
-        "sourceURL": "http://www.dpccairdata.com/dpccairdata/display/index.php",
-        "contacts": [
-            "info@openaq.org"
-        ],
-        "active": false
+        "active": true
     }
 ]
