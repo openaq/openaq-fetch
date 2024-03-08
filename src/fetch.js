@@ -144,6 +144,10 @@ export function handler (event, context) {
         timeEnded: NaN,
       };
 
+        log.info(
+          `--- Running with ${maxParallelAdapters} parallel adapters ---`
+        );
+
       // create a DataStream from sources
       return (
         DataStream.fromArray(Object.values(currentSources))
