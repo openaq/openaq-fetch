@@ -1,47 +1,75 @@
-'use strict';
+/**
+ * This code is responsible for implementing all methods related to fetching
+ * and returning data for the Rwanda REMA data source.
+ */
 
-import _ from 'lodash';
+import { DateTime } from 'luxon';
+import client from '../lib/requests.js';
 import log from '../lib/logger.js';
-import { promisePostRequest, unifyMeasurementUnits } from '../lib/utils.js';
 
-export const name = 'rwanda';
+export const name = 'rwanda-rema';
 
-export async function fetchData (source, cb) {
-  try {
-    // Create post requests for all parameters
-    const params = ['PM25', 'PM10', 'O3', 'NO2', 'SO2', 'CO', 'PB'];
-    const paramRequests = params.map(p =>
-      promisePostRequest(source.url, { parameter: p })
-      // Handle request errors gracefully
-        .catch(error => { log.warn(error || 'Unable to load data for parameter'); return null; }));
-    // Run post requests in parallel and wait for all to resolve
-    let allData = await Promise.all(paramRequests);
-
-    allData = allData.map(d => JSON.parse(d)).filter(d => (d));
-    let measurements = allData.map(data => {
-      // Create base object
-      const base = {
-        location: data.location,
-        coordinates: data.coordinates,
-        city: data.city,
-        attribution: data.attribution,
-        parameter: data.parameter,
-        averagingPeriod: data.averagingPeriod
-      };
-      // Loop through array of values and dates
-      const paramMeasurements = data.data.map(d => {
-        const m = {
-          date: { local: d.date_local, utc: d.date_utc },
-          value: Number(d.value),
-          unit: data.unit
-        };
-        unifyMeasurementUnits(m);
-        return { ...base, ...m };
-      });
-      return paramMeasurements;
+export function fetchData(source, cb) {
+  client(source.url)
+    .then(response => {
+      const data = JSON.parse(response.body);
+      const formattedData = formatData(data.features);
+      log.debug(formattedData);
+      if (!formattedData) {
+        throw new Error('Failure to parse data.');
+      }
+      cb(null, formattedData);
+    })
+    .catch(error => {
+      cb(error);
     });
-    cb(null, { name: 'unused', measurements: _.flatten(measurements) });
-  } catch (e) {
-    cb(e);
-  }
 }
+
+const formatData = function(features) {
+  let measurements = [];
+
+  features.forEach(feature => {
+    const { geometry, properties } = feature;
+    const { coordinates } = geometry;
+    const longitude = coordinates[0];
+    const latitude = coordinates[1];
+
+    properties.data.forEach(dataItem => {
+      Object.entries(dataItem).forEach(([key, value]) => {
+        if (['CO', 'NO2', 'O3', 'PM10', 'PM25', 'SO2'].includes(key)) {
+          const utcTime = DateTime.fromISO(dataItem.time, { zone: 'utc' });
+          const localTime = utcTime.setZone('Africa/Kigali');
+
+          measurements.push({
+            location: properties.title,
+            city: ' ',
+            parameter: key.toLowerCase(),
+            value: value,
+            unit: (key === 'PM10' || key === 'PM2.5') ? 'µg/m³' : 'ppm',
+            date: {
+              utc: utcTime.toISO({ suppressMilliseconds: true }),
+              local: localTime.toISO({ suppressMilliseconds: true }),
+            },
+            coordinates: {
+              latitude,
+              longitude,
+            },
+            attribution: [
+                {
+                  name: 'Rwanda Environment Management Authority',
+                  url: "https://aq.rema.gov.rw/",
+                },
+              ],
+              averagingPeriod: {
+                unit: 'hours',
+                value: 1,
+              },
+          });
+        }
+      });
+    });
+  });
+
+  const filteredMeasurements = measurements.filter(m => m.value !== 0 && m.value !== null);
+  return { measurements: filteredMeasurements };
+};
