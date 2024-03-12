@@ -1,0 +1,15 @@
+[
+    {
+        "url": "https://www.airkorea.or.kr/web/mRealAirInfoAjax",
+        "adapter": "southkorea",
+        "name": "korea-air",
+        "city": " ",
+        "country": "KR",
+        "description": "Air quality data from Korea Air",
+        "sourceURL": "https://www.airkorea.or.kr/eng",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
+    }
+]
