@@ -30,13 +30,11 @@ export async function fetchData(source, cb) {
       try {
         const response = await client(url, { responseType: 'text' });
         const $ = load(response.body);
-        // const measurementValue = $('.st_2 .lv2.L0').first().text().trim().split('\n')[0];
         const concentrationText = $('tr.al2').filter(function() {
           return $(this).find('th').text().trim() === 'concentration';
         }).find('td').text().trim();
       
-      // Assuming the format is "0.0060ppm (1H), ppm (24H)" and you want the first concentration value
-      const measurementValue = parseFloat(concentrationText.split(' ')[0]); // This will be "0.0060ppm"
+      const measurementValue = parseFloat(concentrationText.split(' ')[0]);
       
         return { ...station, measurementValue };
       } catch (error) {
@@ -87,8 +85,6 @@ async function fetchStationList(source, itemCode) {
 
 function formatData (stations, itemCode) {
   return stations.map(station => {
-    const measurementValueMatch = station.measurementValue.match(/[\d.]+/);
-    const measurementValue = measurementValueMatch ? parseFloat(measurementValueMatch[0]) : null;
     const dateTime = DateTime.fromFormat(station.ENG_DATA_TIME, 'yyyy-MM-dd : HH', { zone: 'UTC' });
 
     return {
@@ -103,7 +99,7 @@ function formatData (stations, itemCode) {
         utc: dateTime.toISO(), 
         local: dateTime.setZone('Asia/Seoul').toISO() 
       },
-      value: measurementValue,
+      value: station.measurementValue,
       unit: paramsUnits[itemCode].unit,
       attribution: [{
         name: 'Korea Air Quality Data',
@@ -116,7 +112,3 @@ function formatData (stations, itemCode) {
     };
   });
 }
-
-// fetchData()
-//   .then(allMeasurements => console.log(allMeasurements))
-//   .catch(error => console.error(error));
