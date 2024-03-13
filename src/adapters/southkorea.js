@@ -60,7 +60,6 @@ export async function fetchData(source, cb) {
 }
 
 async function fetchStationList(source, itemCode) {
-  const url = "https://www.airkorea.or.kr/web/mRealAirInfoAjax"
   const options = {
     headers: {
       accept: "application/json, text/javascript, */*; q=0.01",
@@ -75,7 +74,7 @@ async function fetchStationList(source, itemCode) {
   };
 
   try {
-    const response = await client(url, options);
+    const response = await client(source.url, options);
     return response.body.list.map(station => ({
       ...station,
       ...paramsUnits[itemCode]
