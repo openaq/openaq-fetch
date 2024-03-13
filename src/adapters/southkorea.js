@@ -1,8 +1,11 @@
-import got from 'got';
+import client from '../lib/requests.js';
 import { DateTime } from 'luxon';
 import { load } from 'cheerio';
 import Bottleneck from 'bottleneck';
-import log from './logger.js';
+
+import log from '../lib/logger.js';
+
+export const name = 'southkorea';
 
 const paramsUnits = {
   10008: { name: "PM2.5", unit: "µg/m³" },
@@ -12,8 +15,6 @@ const paramsUnits = {
   10002: { name: "CO", unit: "ppm" },
   10001: { name: "SO2", unit: "ppm" }
 };
-
-export const name = 'southkorea';
 
 export async function fetchData(source, cb) {
   const limiter = new Bottleneck({
@@ -25,10 +26,18 @@ export async function fetchData(source, cb) {
     const stations = await fetchStationList(itemCode);
     const fetchDetails = limiter.wrap(async (station) => {
       const url = `${source.url}/vicinityStation?item_code=${itemCode}&station_code=${station.STATION_CODE}`;
+      log.debug(url)
       try {
-        const response = await got(url, { responseType: 'text' });
+        const response = await client(url, { responseType: 'text' });
         const $ = load(response.body);
-        const measurementValue = $('.st_2 .lv2.L0').first().text().trim().split('\n')[0];
+        // const measurementValue = $('.st_2 .lv2.L0').first().text().trim().split('\n')[0];
+        const concentrationText = $('tr.al2').filter(function() {
+          return $(this).find('th').text().trim() === 'concentration';
+        }).find('td').text().trim();
+      
+      // Assuming the format is "0.0060ppm (1H), ppm (24H)" and you want the first concentration value
+      const measurementValue = parseFloat(concentrationText.split(' ')[0]); // This will be "0.0060ppm"
+      
         return { ...station, measurementValue };
       } catch (error) {
         log.error(`Error fetching details for station ${station.STATION_CODE}:`, error.message);
@@ -51,6 +60,7 @@ export async function fetchData(source, cb) {
 }
 
 async function fetchStationList(source, itemCode) {
+  const url = "https://www.airkorea.or.kr/web/mRealAirInfoAjax"
   const options = {
     headers: {
       accept: "application/json, text/javascript, */*; q=0.01",
@@ -65,7 +75,7 @@ async function fetchStationList(source, itemCode) {
   };
 
   try {
-    const response = await got(source.url, options);
+    const response = await client(url, options);
     return response.body.list.map(station => ({
       ...station,
       ...paramsUnits[itemCode]
