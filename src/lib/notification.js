@@ -18,7 +18,8 @@ async function sendUpdatedWebhook (apiURL, webhookKey) {
 }
 
 async function publish(message, subject) {
-		console.log('Publishing:', subject, message);
+		// the following just looks better in the log
+		console.debug(subject, JSON.stringify(message, null, 2));
 		if(process.env.TOPIC_ARN) {
 				const cmd = new PublishCommand({
 						TopicArn: process.env.TOPIC_ARN,
