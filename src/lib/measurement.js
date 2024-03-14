@@ -50,10 +50,7 @@ async function getStreamFromAdapter (adapter, source) {
       }"`
     );
 		const fetchData = promisify(adapter.fetchData);
-		const data = await fetchData(source)
-					.catch(err => {
-            throw new AdapterError(ADAPTER_ERROR, source, err && err.message && err.message.code)
-					});
+		const data = await fetchData(source);
 		const out = DataStream.from(data.measurements);
 		out.name = data.name;
 		return out;
@@ -85,6 +82,7 @@ function createFetchObject (input, source, failures, dryRun) {
 			from: null,
 			to: null,
 	};
+	const parameters = {};
 
 	const now = Date.now();
 
@@ -94,6 +92,23 @@ function createFetchObject (input, source, failures, dryRun) {
 			}
 			if(!datetimes.to || datetimes.to < a.date.utc) {
 					datetimes.to = a.date.utc;
+			}
+			const param = a.parameter;
+			if(!Object.keys(parameters).includes(param)) {
+					parameters[param] = { min: 0, max: 0, nulls: 0, errors: 0, count: 0 };
+			}
+			// only go through this effort when developing
+			if(dryRun) {
+					parameters[param].count++;
+					if(a.value == null) {
+							parameters[param].nulls++;
+					} else if(a.value <= -999) {
+							parameters[param].errors++;
+					} else if(a.value < parameters[param].min) {
+							parameters[param].min = a.value;
+					} else if(a.value > parameters[param].max) {
+							parameters[param].max = a.value;
+					}
 			}
 			counts.total++;
 	});
@@ -125,6 +140,9 @@ function createFetchObject (input, source, failures, dryRun) {
     get to () {
       return datetimes.to;
     },
+    get parameters () {
+				return dryRun ? parameters : Object.keys(parameters);
+    },
     get count () {
       return fetchEnded && (!dryRun ? counts.inserted : counts.total);
     },
@@ -147,6 +165,7 @@ function createFetchObject (input, source, failures, dryRun) {
             duration: this.duration,
 						from: this.from,
 						to: this.to,
+						parameters: this.parameters,
             sourceName: this.source.sourceName || this.source.name,
           }
         : null;

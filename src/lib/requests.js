@@ -18,7 +18,7 @@ const headers = {
 };
 
 export default (source, cb, method = 'GET', params='', responseType='json') => {
-  let url, timeout, retries;
+  let url, timeout, retries, body;
   if(typeof(source) === 'object' && source.url) {
     log.debug('Adapter passed along a source object');
     url = source.url;
@@ -32,13 +32,19 @@ export default (source, cb, method = 'GET', params='', responseType='json') => {
     throw new AdapterError(DATA_URL_ERROR, null, 'No url was passed');
   }
 
-  if(typeof(params) === 'object') {
+  if(typeof(params) === 'object' && params != null) {
       // convert to string
+			const q = new URLSearchParams(params);
+			if(method == 'GET') {
+					url = `${url}?${q.toString()}`;
+			} else if(method == 'POST') {
+					body = `${q.toString()}`;
+			}
   }
 
   const options = {
       method,
-      body: params,
+      body,
       responseType,
       timeout: {
           request: timeout,
