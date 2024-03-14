@@ -28,19 +28,19 @@ const paramsUnits = {
 
 // Write a docstring here
 export async function fetchData(source, cb) {
-		try {
-				const results = await Promise.allSettled(Object.keys(paramsUnits).map((code) => fetchDataForCode(code)));
-				const successfulResults = results
-							.filter(result => result.status === 'fulfilled')
-							.flatMap(result => result.value);
-				cb(null, successfulResults);
-		} catch (error) {
-				// All catastrophic errors should bubble up to here and then we pass them back
-				// and here we can create a new error and pass it back
-				// and we can rely on the error catcher further up the line to log it out
-				// log.error('Error in fetchData:', error.message);
-				cb(error, null);
-		}
+    try {
+        const results = await Promise.allSettled(Object.keys(paramsUnits).map((code) => fetchDataForCode(code)));
+        const successfulResults = results
+              .filter(result => result.status === 'fulfilled')
+              .flatMap(result => result.value);
+        cb(null, successfulResults);
+    } catch (error) {
+        // All catastrophic errors should bubble up to here and then we pass them back
+        // and here we can create a new error and pass it back
+        // and we can rely on the error catcher further up the line to log it out
+        // log.error('Error in fetchData:', error.message);
+        cb(error, null);
+    }
 }
 
 // Write a docstring here
@@ -48,13 +48,13 @@ export async function fetchData(source, cb) {
 // for example, if you call it `fetchDataByCode` make the argument `code`, not `itemCode`
 // or if `itemCode` make the function `fetchDataByItemCode`
 async function fetchDataForCode(itemCode) {
-		const limiter = new Bottleneck({
-				maxConcurrent: 32,
-				minTime: 100
-		});
-		// first we get a list of stations
+    const limiter = new Bottleneck({
+        maxConcurrent: 32,
+        minTime: 100
+    });
+    // first we get a list of stations
     const stations = await fetchStationList(itemCode);
-		// then we pull details for each station
+    // then we pull details for each station
     const details = await Promise.all(stations.map(station => fetchDetails(itemCode, station)));
     //const detailsPromises = stations.map(station => limiter.wrap(() => fetchDetails(source, itemCode, station)));
     //const stationsWithDetails = (await Promise.all(detailsPromises)).filter(Boolean);
@@ -63,17 +63,17 @@ async function fetchDataForCode(itemCode) {
 
 // Write a docstring here
 async function fetchStationList(itemCode) {
-	const params = `itemCode=${itemCode}`;
+  const params = `itemCode=${itemCode}`;
   try {
     const response = await client(url, null, 'POST', params);
-		// Add something here to check the response before using it
-		//log.debug(response.body)
+    // Add something here to check the response before using it
+    //log.debug(response.body)
     return response.body.list.map(station => ({
       ...station,
       ...paramsUnits[itemCode]
     }));
   } catch (error) {
-			// Why are we catching an error here and then just throwing it again?
+      // Why are we catching an error here and then just throwing it again?
     console.error('Error:', error);
     throw error;
   }
@@ -97,9 +97,9 @@ async function fetchDetails (itemCode, station) {
 
         return { ...station, measurementValue };
     } catch (error) {
-				// only catch and rethrow if you are going to change the message or do something
-				// otherwise just catch it somewhere else
-				throw new Error(`fetchDetailsError: ${error.message}`);
+        // only catch and rethrow if you are going to change the message or do something
+        // otherwise just catch it somewhere else
+        throw new Error(`fetchDetailsError: ${error.message}`);
     }
 };
 
