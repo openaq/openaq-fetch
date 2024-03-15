@@ -9,80 +9,79 @@ import log from '../lib/logger.js';
 
 export const name = 'rwanda-rema';
 export const parameters = {
-    // keyed by their name and the name/units refect our values
-    'CO': { name: "co", unit: "ppm" },
-    'NO2': { name: "no2", unit: "ppm" },
-    'O3': { name: "o3", unit: "ppm" },
-    'PM10': { name: "pm10", unit: "µg/m³" },
-    'PM25': { name: "pm25", unit: "µg/m³" },
-    'SO2': { name: "so2", unit: "ppm" }
+  CO: { name: 'co', unit: 'ppm' },
+  NO2: { name: 'no2', unit: 'ppm' },
+  O3: { name: 'o3', unit: 'ppm' },
+  PM10: { name: 'pm10', unit: 'µg/m³' },
+  PM25: { name: 'pm25', unit: 'µg/m³' },
+  SO2: { name: 'so2', unit: 'ppm' },
 };
 
 export function fetchData(source, cb) {
-		client(source.url)
-				.then(response => {
-						const data = JSON.parse(response.body);
-						const formattedData = formatData(data.features);
-						// lets not log the entire thing out, even in debug
-						//log.debug('First row of formatted:', formattedData.measurements.length && formattedData.measurements[0]);
-						if (!formattedData) {
-								throw new Error('Failure to parse data.');
-						}
-						cb(null, formattedData);
-				})
-				.catch(error => {
-						cb(error);
-				});
+  client(source.url)
+    .then((response) => {
+      const data = JSON.parse(response.body);
+      const formattedData = formatData(data.features);
+
+      log.debug('First row of formatted:', formattedData.measurements.length && formattedData.measurements[0]);
+      
+	  if (!formattedData) {
+        throw new Error('Failure to parse data.');
+      }
+      cb(null, formattedData);
+    })
+    .catch((error) => {
+      cb(error);
+    });
 }
 
-const formatData = function(features) {
-		let measurements = [];
+const formatData = function (features) {
+  let measurements = [];
 
-		features.forEach(feature => {
-				const { geometry, properties } = feature;
-				const { coordinates } = geometry;
-				const longitude = coordinates[0];
-				const latitude = coordinates[1];
+  features.forEach((feature) => {
+    const { geometry, properties } = feature;
+    const { coordinates } = geometry;
+    const longitude = coordinates[0];
+    const latitude = coordinates[1];
 
-				properties.data.forEach(dataItem => {
-						Object.entries(dataItem).forEach(([key, value]) => {
-								if (Object.keys(parameters).includes(key)) {
-										const utcTime = DateTime.fromISO(dataItem.time, { zone: 'utc' });
-										const localTime = utcTime.setZone('Africa/Kigali');
-										const parameter = parameters[key];
+    properties.data.forEach((dataItem) => {
+      Object.entries(dataItem).forEach(([key, value]) => {
+        if (value !== null && Object.keys(parameters).includes(key)) {
+          const utcTime = DateTime.fromISO(dataItem.time, {
+            zone: 'utc',
+          });
+          const localTime = utcTime.setZone('Africa/Kigali');
+          const parameter = parameters[key];
 
-										measurements.push({
-												location: properties.title,
-												city: ' ',
-												parameter: parameter.name,
-												value: value,
-												unit: parameter.unit,
-												date: {
-														utc: utcTime.toISO({ suppressMilliseconds: true }),
-														local: localTime.toISO({ suppressMilliseconds: true }),
-												},
-												coordinates: {
-														latitude,
-														longitude,
-												},
-												attribution: [
-														{
-																name: 'Rwanda Environment Management Authority',
-																url: "https://aq.rema.gov.rw/",
-														},
-												],
-												averagingPeriod: {
-														unit: 'hours',
-														value: 1,
-												},
-										});
-								}
-						});
-				});
-		});
+          measurements.push({
+            location: properties.title,
+            city: ' ',
+            parameter: parameter.name,
+            value: value,
+            unit: parameter.unit,
+            date: {
+              utc: utcTime.toISO({ suppressMilliseconds: true }),
+              local: localTime.toISO({ suppressMilliseconds: true }),
+            },
+            coordinates: {
+              latitude,
+              longitude,
+            },
+            attribution: [
+              {
+                name: 'Rwanda Environment Management Authority',
+                url: 'https://aq.rema.gov.rw/',
+              },
+            ],
+            averagingPeriod: {
+              unit: 'hours',
+              value: 1,
+            },
+          });
+        }
+      });
+    });
+  });
 
-		// why are we filtering out zeros?
-		// and why not check if its null before we append it to the measurements?
-		const filteredMeasurements = measurements.filter(m => m.value !== 0 && m.value !== null);
-		return { measurements: filteredMeasurements };
+  return { measurements: measurements };
 };
