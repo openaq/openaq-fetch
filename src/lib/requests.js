@@ -61,12 +61,18 @@ export default ({
 				timeout: {
 						request: timeout,
 				},
-				retry: {
-						limit: retries,
-						errorCodes: [
-								'ETIMEDOUT'
-						],
-				},
+        retry: {
+          limit: retries,
+          errorCodes: [
+              'ECONNRESET',
+              'EADDRINUSE',
+              'ECONNREFUSED',
+              'EPIPE',
+              'ENOTFOUND',
+              'ENETUNREACH',
+              'EAI_AGAIN'
+          ],
+      },
 				headers,
 				hooks: {
 						beforeRetry: [
