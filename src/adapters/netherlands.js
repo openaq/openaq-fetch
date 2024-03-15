@@ -16,10 +16,9 @@ export const name = 'netherlands';
 
 export function fetchData(source, cb) {
   const finalURL = source.url;
-  client(finalURL)
-    .then((response) => {
-      const body = response.body;
-
+  client({ url: finalURL, responseType: 'text' })
+    .then((body) => {
+			console.log('here is the body', body)
       // Fetch list with available files from server
       let fileList = listApachetree(body, finalURL);
 
@@ -34,10 +33,8 @@ export function fetchData(source, cb) {
       _.forEach(recentFiles, function (f) {
         let task = function (cb) {
           // download the xml
-          client(f.url)
-            .then((response) => {
-              const body = response.body;
-
+          client({ url: f.url, responseType: 'text'})
+            .then((body) => {
               // pass the data to formatData
               let mData = formatData(f.name, body);
               cb(null, mData);

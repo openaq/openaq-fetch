@@ -127,14 +127,12 @@ export async function fetchData(source, cb) {
 }
 
 const getStations = async (url) => {
-  const response = await client(url);
-  const data = JSON.parse(response.body);
+  const data = await client({ url });
   return data;
 };
 
 const getMeasurements = async () => {
-  const response = await client(ALL_DATA);
-  const data = JSON.parse(response.body);
+  const data = await client({ url: ALL_DATA });
   const items = data.items;
 
   items.map((measurement) => {

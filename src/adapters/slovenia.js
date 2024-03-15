@@ -7,14 +7,11 @@ import client from '../lib/requests.js';
 export const name = 'slovenia';
 
 export function fetchData (source, cb) {
-  client(source.url)
+  client({ url: source.url, responseType: 'text' })
     .then((response) => {
-      if (response.statusCode !== 200) {
-        throw new Error('Failure to load data url.');
-      }
 
       // Format the data
-      const data = formatData(response.body, source);
+      const data = formatData(response, source);
 
       // Make sure the data is valid
       if (data === undefined) {

@@ -7,9 +7,9 @@ import client from '../lib/requests.js';
 export const name = 'defra';
 
 export function fetchData(source, cb) {
-  client(source, cb).then((response) => {
+  client({ url: source.url, responseType: 'text'}).then((body) => {
     try {
-      const data = formatData(source, response.body);
+      const data = formatData(source, body);
       if (data === undefined) {
         return cb({ message: 'Failure to parse data.' });
       }

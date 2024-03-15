@@ -19,8 +19,8 @@ export async function fetchData(source, cb) {
   // Generic fetch function
   const getData = async (url, done) => {
     try {
-      const response = await client(url);
-      return done(null, response.body);
+      const body = await client({ url, responseType: 'text' });
+      return done(null, body);
     } catch (error) {
       if (error.response && error.response.statusCode === 404) {
         return done(null, '');

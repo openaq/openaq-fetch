@@ -17,13 +17,9 @@ const timeZone = 'Asia/Hong_Kong';
 
 export const fetchData = async (source, cb) => {
   try {
-    const response = await client(`${source.url}/24pc_Eng.xml`);
-    if (response.statusCode !== 200) {
-      log.debug('bad request');
-      return;
-    }
+    const response = await client({ url: `${source.url}/24pc_Eng.xml` , responseType: 'text' });
 
-    const data = formatData(response.body);
+    const data = formatData(response);
 
     if (data.length === 0) {
       return cb({ message: 'Failure to parse data.' });

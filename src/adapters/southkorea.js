@@ -81,9 +81,9 @@ async function fetchMeasurments(paramCode, station) {
     //const url = `${baseUrl}?${params.toString()}`;
 
     try {
-        const response = await client(baseUrl, null, 'GET', params, 'text');
+        const body = await client({ url: baseUrl, params, responseType: 'text' });
 
-        const $ = load(response.body);
+        const $ = load(body);
         const concentrationText = $('tr.al2')
               .filter(function () {
                   return $(this).find('th').text().trim() === 'concentration';
@@ -105,24 +105,20 @@ async function fetchMeasurments(paramCode, station) {
  * @returns {Promise<Array>} - A promise that resolves to an array of objects, each representing a station and its details.
  */
 async function fetchStations(paramCode) {
-    const options = {
-        headers: {
-            accept: 'application/json, text/javascript, */*; q=0.01',
-            'accept-language': 'en-US,en;q=0.9',
-            'cache-control': 'no-cache',
-            'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            pragma: 'no-cache',
-        },
-        body: `itemCode=${paramCode}`,
-        responseType: 'json',
+    const headers = {
+        accept: 'application/json, text/javascript, */*; q=0.01',
+        'accept-language': 'en-US,en;q=0.9',
+        'cache-control': 'no-cache',
+        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        pragma: 'no-cache',
     };
 
     try {
         //const body = `itemCode=${paramCode}`;
-        const body = { itemCode: paramCode };
-        const response = await client(stationsUrl, null, 'POST', body);
+        const params = { itemCode: paramCode };
+        const data = await client({ url: stationsUrl, headers, method: 'POST', params });
         // const response = await got.post(stationsUrl, options);
-        return response.body.list.map((station) => ({
+        return data.list.map((station) => ({
             ...station,
             ...paramCodes[paramCode],
         }));

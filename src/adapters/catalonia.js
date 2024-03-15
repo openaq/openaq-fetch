@@ -15,12 +15,7 @@ export async function fetchData(source, cb) {
   const fetchURL = source.url;
 
   try {
-    const response = await client(fetchURL);
-    const body = response.body;
-
-    if (response.statusCode !== 200) {
-      return cb({ message: 'Failure to load data url.' });
-    }
+    const body = await client({ url: fetchURL });
 
     const data = formatData(body);
     if (data === undefined) {
@@ -35,11 +30,6 @@ export async function fetchData(source, cb) {
 }
 
 function formatData(data) {
-  try {
-    data = JSON.parse(data);
-  } catch (e) {
-    return undefined;
-  }
 
   const aqRepack = (item) => {
     let aq = [];
