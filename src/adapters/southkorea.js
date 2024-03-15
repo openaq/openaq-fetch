@@ -1,7 +1,6 @@
+import Bottleneck from 'bottleneck';
 import { DateTime } from 'luxon';
 import { load } from 'cheerio';
-import Bottleneck from 'bottleneck';
-import got from 'got';
 
 import { FetchError, DATA_URL_ERROR } from '../lib/errors.js';
 import client from '../lib/requests.js';
@@ -55,7 +54,9 @@ async function fetchDataByCode(paramCode) {
     const stations = await fetchStations(paramCode);
     const wrappedfetchMeasurments = limiter.wrap(fetchMeasurments.bind(null, paramCode));
     const formattedStations = await Promise.all(
-        stations.slice(0,2).map(async (station) => {
+        stations
+        // .slice(0,2) // for testing
+        .map(async (station) => { 
             const detailedStation = await wrappedfetchMeasurments(station);
             return formatData(detailedStation, paramCode);
         })
@@ -78,7 +79,6 @@ async function fetchMeasurments(paramCode, station) {
         station_code: station.STATION_CODE
     };
 
-    //const url = `${baseUrl}?${params.toString()}`;
 
     try {
         const body = await client({ url: baseUrl, params, responseType: 'text' });
@@ -114,10 +114,8 @@ async function fetchStations(paramCode) {
     };
 
     try {
-        //const body = `itemCode=${paramCode}`;
         const params = { itemCode: paramCode };
         const data = await client({ url: stationsUrl, headers, method: 'POST', params });
-        // const response = await got.post(stationsUrl, options);
         return data.list.map((station) => ({
             ...station,
             ...paramCodes[paramCode],
