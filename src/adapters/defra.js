@@ -12,8 +12,9 @@ export function fetchData(source, cb) {
       const data = formatData(source, body);
       if (data === undefined) {
         return cb({ message: 'Failure to parse data.' });
-      }
-      cb(null, data);
+      } else {
+				return cb(null, data);
+			}
     } catch (e) {
       return cb({ message: 'Unknown adapter error.' });
     }

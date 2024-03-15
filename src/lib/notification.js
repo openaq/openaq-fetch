@@ -28,12 +28,10 @@ async function publish(message, subject) {
 				});
 				return await sns.send(cmd);
 		} else {
-				console.log('No publish topic', subject, message, process.env);
+				console.log('No publish topic', subject, message);
 				return {};
 		}
 }
-
-
 
 /**
  * Reports and saves fetch information.

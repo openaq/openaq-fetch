@@ -4,6 +4,7 @@ import {
   MeasurementValidationError,
   handleMeasurementErrors,
   AdapterError,
+	FetchError,
   forwardErrors,
 } from './errors.js';
 import { getAdapterForSource } from './adapters.js';
@@ -49,6 +50,7 @@ async function getStreamFromAdapter (adapter, source) {
         adapter.name
       }"`
     );
+		source.started = Date.now();
 		const fetchData = promisify(adapter.fetchData);
 		const data = await fetchData(source);
 		const out = DataStream.from(data.measurements);
@@ -56,11 +58,6 @@ async function getStreamFromAdapter (adapter, source) {
 		return out;
   }
 
-  log.debug(
-    `Fetching stream for "${source && source.name}" from adapter "${
-      adapter.name
-    }"`
-  );
   const out = DataStream.from(adapter.fetchStream, source);
   out.name = out.name || source.adapter;
   return out;
@@ -76,15 +73,12 @@ function createFetchObject (input, source, failures, dryRun) {
   const counts = {
     total: 0,
     duplicates: 0,
-    inserted: 0,
   };
 	const datetimes = {
 			from: null,
 			to: null,
 	};
 	const parameters = {};
-
-	const now = Date.now();
 
   const stream = input.do((a) => {
 			if(!datetimes.from || datetimes.from < a.date.utc) {
@@ -112,6 +106,7 @@ function createFetchObject (input, source, failures, dryRun) {
 			}
 			counts.total++;
 	});
+
   const whenDone = stream
     .whenEnd()
     .then(() => {
@@ -121,9 +116,8 @@ function createFetchObject (input, source, failures, dryRun) {
 
   return {
     get fetchStarted () {
-      //const now = Date.now();
-      log.info(`Started ${source.name} - ${now}`);
-      return now;
+      log.debug(`Started ${source.name} - ${source.started}`);
+      return source.started;
     },
     get fetchEnded () {
       return fetchEnded;
@@ -144,7 +138,7 @@ function createFetchObject (input, source, failures, dryRun) {
 				return dryRun ? parameters : Object.keys(parameters);
     },
     get count () {
-      return fetchEnded && (!dryRun ? counts.inserted : counts.total);
+      return fetchEnded && counts.total;
     },
     get message () {
       return `${

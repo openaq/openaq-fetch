@@ -1,4 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import {
   aws_events as events,
   aws_events_targets as eventTargets,
@@ -77,6 +78,16 @@ export class RealtimeFetcherStack extends cdk.Stack {
         environment: env,
       }
     );
+
+    if(env.TOPIC_ARN) {
+        fetcher.addToRolePolicy(
+            new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['sns:Publish'],
+                resources: [env.TOPIC_ARN],
+            })
+        );
+    }
 
     bucket.grantReadWrite(fetcher);
     queue.grantSendMessages(scheduler);
