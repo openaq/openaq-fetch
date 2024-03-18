@@ -18,7 +18,6 @@ export function fetchData(source, cb) {
   const finalURL = source.url;
   client({ url: finalURL, responseType: 'text' })
     .then((body) => {
-			console.log('here is the body', body)
       // Fetch list with available files from server
       let fileList = listApachetree(body, finalURL);
 

@@ -178,7 +178,7 @@ export default () => {
   const bucketName = _env.AWS_BUCKET_NAME || '';
   const doSaveToS3 = _env.SAVE_TO_S3 === 'true' || +_env.SAVE_TO_S3;
   const strict = _strict || _env.STRICT === 'true' || +_env.STRICT;
-  const maxParallelAdapters = +_env.MAX_PARALLEL_ADAPTERS || 1024;
+  const maxParallelAdapters = +_env.MAX_PARALLEL_ADAPTERS || 4;
   const s3ChunkSize = +_env.S3_CHUNK_SIZE || 1048576;
 
   const psqlHost = _env.PSQL_HOST || '127.0.0.1';
