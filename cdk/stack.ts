@@ -1,4 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import {
   aws_events as events,
   aws_events_targets as eventTargets,
@@ -58,7 +59,7 @@ export class RealtimeFetcherStack extends cdk.Stack {
         code: lambda.Code.fromAsset('../src'),
         handler: 'scheduler.handler',
         memorySize: 128,
-        runtime: lambda.Runtime.NODEJS_14_X,
+        runtime: lambda.Runtime.NODEJS_18_X,
         timeout: cdk.Duration.seconds(30),
         environment: env,
       }
@@ -72,11 +73,21 @@ export class RealtimeFetcherStack extends cdk.Stack {
         code: lambda.Code.fromAsset('../src'),
         handler: 'fetch.handler',
         memorySize: 1024,
-        runtime: lambda.Runtime.NODEJS_14_X,
+        runtime: lambda.Runtime.NODEJS_18_X,
         timeout: cdk.Duration.seconds(900),
         environment: env,
       }
     );
+
+    if(env.TOPIC_ARN) {
+        fetcher.addToRolePolicy(
+            new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['sns:Publish'],
+                resources: [env.TOPIC_ARN],
+            })
+        );
+    }
 
     bucket.grantReadWrite(fetcher);
     queue.grantSendMessages(scheduler);

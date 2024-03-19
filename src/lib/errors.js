@@ -37,7 +37,7 @@ export class AdapterError extends Error {
   constructor (symbol, source, cause, exitCode = 100) {
     const _typeName = typeName(symbol);
 
-    let msg = _typeName + (source ? ` (source: ${source.name})` : '');
+    let msg = _typeName + (source ? ` (${source.file}/${source.adapter}/'${source.name}')` : '');
     if (cause && cause.message) {
       msg += ': ' + cause.message;
     }
@@ -146,15 +146,14 @@ export class MeasurementValidationError extends FetchError {
  * @param {DataStream} parent parent stream
  * @param {OpenAQEnv} env
  */
-export function forwardErrors (stream, parent, sourceObject, failures, {strict}) {
+export function forwardErrors (stream, parentStream, sourceObject, failures, strict) {
   return stream.catch(async (error) => {
     if (strict) {
-      try { await parent.raise(error); } finally {}
+      try { await parentStream.raise(error); } finally {}
     } else {
-      log.verbose(`Ignoring error in "${sourceObject.name}": ${error.message}`);
+      log.warn(`Ignoring error in "${sourceObject.name}": ${error.message}`);
       failures[error.message] = (failures[error.message] || 0) + 1;
     }
-
     return DataStream.filter;
   });
 }

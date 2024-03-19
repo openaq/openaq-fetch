@@ -16,8 +16,7 @@ export async function fetchData (source, cb) {
  * @param {function} cb A callback of the form cb(err, data)
  */
   try {
-    const response = await client(source.url);
-    const data = JSON.parse(response.body);
+    const data = await client({ url: source.url });
     const formattedData = formatData(data);
     cb(null, { name: 'unused', measurements: formattedData });
   } catch (error) {

@@ -25,16 +25,15 @@ export const name = 'senamhi';
 
 export async function fetchData (source, cb) {
   try {
-    const response = await client(source.url, {
-      https: {
-        certificateAuthority: rootCas,
-      },
-    });
+			const https = {
+					certificateAuthority: rootCas,
+      };
+			const body = await client({ url: source.url, https, responseType: 'text' });
 
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-      const data = formatData(response.body);
+      const data = formatData(body);
       if (data === undefined) {
         return cb({ message: 'Failure to parse data.' });
       }

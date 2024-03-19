@@ -20,16 +20,12 @@ export const name = 'serbia';
 
 export async function fetchData (source, cb) {
   try {
-    const response = await client(source.url);
-
-    if (response.statusCode !== 200) {
-      return cb({ message: 'Failure to load data url.' });
-    }
+    const body = await client({ url: source.url });
 
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-      const data = formatData(response.body);
+      const data = formatData(body);
       // Make sure the data is valid
       if (data === undefined) {
         return cb({ message: 'Failure to parse data.' });
@@ -50,13 +46,7 @@ export async function fetchData (source, cb) {
  */
 
 const formatData = function (data) {
-  // Wrap the JSON.parse() in a try/catch in case it fails
-  try {
-    data = JSON.parse(data);
-  } catch (e) {
-    // Return undefined to be caught elsewhere
-    return undefined;
-  }
+
 
   /**
    * A method that takes input of a location and returns which city it is from
