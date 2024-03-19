@@ -39,33 +39,32 @@ async function publish(message, subject) {
  * @param {String} webhookKey
  */
 export function reportAndRecordFetch (fetchReport, sources, env, apiURL, webhookKey) {
-  return async (results) => {
-    fetchReport.results = results;
-    fetchReport.timeEnded = Date.now();
-    fetchReport.errors = results.reduce((acc, {failures}) => {
-      Object.entries(failures).forEach(([key, count]) => {
-        acc[key] = (acc[key] || 0) + count;
-      });
-      return acc;
-    }, {});
+    return async (results) => {
+        fetchReport.results = results;
+        fetchReport.timeEnded = Date.now();
+        fetchReport.errors = results.reduce((acc, {failures}) => {
+            Object.entries(failures).forEach(([key, count]) => {
+                acc[key] = (acc[key] || 0) + count;
+            });
+            return acc;
+        }, {});
 
 
-    if (env.dryrun) {
         const failures = fetchReport.results
               .filter(r => !r.count);
+
         const successes = fetchReport.results
               .filter(r => r.count > 0);
+
         failures.map(r => {
-            console.log(r);
+            log.debug(r);
         });
         log.info(`Dry run finished with ${successes.length} successes and ${failures.length} failures in ${(fetchReport.timeEnded - fetchReport.timeStarted)/1000} seconds`);
-      return 0;
-    } else {
-		    await publish(fetchReport.results, 'fetcher/success');
-    }
 
-    //await sendUpdatedWebhook(apiURL, webhookKey);
-    log.info('Webhook posted, have a good day!');
-    return 0;
-  };
+        if (!env.dryrun) {
+		        await publish(fetchReport.results, 'fetcher/success');
+        }
+
+        return 0;
+    };
 }

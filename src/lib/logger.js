@@ -4,21 +4,26 @@
  */
 'use strict';
 
-import winston from 'winston';
-
+import { createLogger, format, transports } from 'winston';
 import * as os from 'os';
+
+const { combine, prettyPrint, simple, splat, colorize } = format;
 
 import _env from './env.js';
 const { verbose, logLevel, logColor } = _env();
 
-const logger = winston.createLogger({
-  transports: [
-    new winston.transports.Console({
-      timestamp: true,
-      colorize: logColor,
-      level: verbose ? 'verbose' : logLevel
-    })
-  ]
+const logger = createLogger({
+    format: combine(
+        colorize(),
+        simple(),
+    ),
+    transports: [
+        new transports.Console({
+            timestamp: true,
+            colorize: logColor,
+            level: verbose ? 'verbose' : logLevel
+        })
+    ]
 });
 
 export default logger;
