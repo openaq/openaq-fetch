@@ -9,23 +9,20 @@ import client from '../lib/requests.js';
 
 export const name = 'stockholm';
 
-export function fetchData (source, cb) {
-  client({ url: source.url, responseType: 'text' })
-    .then(body => {
-      try {
+export async function fetchData (source, cb) {
+    try {
+        const body = await client({ url: source.url, responseType: 'text' });
         // Format the data
         const data = formatData(body);
         // Make sure the data is valid
         if (data === undefined) {
-          throw new Error('Failure to parse data.');
+            throw new Error('Failure to parse data.');
         }
 
         cb(null, data);
-      } catch (error) {
-        log.debug(error);
-        cb(error, { message: 'Unknown adapter error.' }, null);
-      }
-    });
+    } catch (error) {
+        cb({ message: `fetchData error: ${error.message}` }, null);
+    }
 }
 
 const formatData = function (result) {

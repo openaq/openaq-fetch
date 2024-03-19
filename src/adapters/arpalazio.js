@@ -17,6 +17,7 @@ import { DateTime } from 'luxon';
 const { StringStream, MultiStream } = sj;
 
 const getter = got.extend({ timeout: { request: REQUEST_TIMEOUT } });
+import client from '../lib/requests.js';
 
 const timezone = 'Europe/Rome';
 
@@ -34,18 +35,25 @@ const hourlyParameters = difference(
 
 export const name = 'arpalazio';
 
-export async function fetchStream(source) {
-  const response = await getter.get(source.url, {
-    responseType: 'text',
-  });
 
-  if (response.statusCode !== 200) {
-    throw new FetchError(DATA_URL_ERROR, source, null);
+export async function fetchData (source, cb) {
+  try {
+    const stream = await fetchStream(source, cb);
+    const measurements = await stream.toArray();
+    cb(null, { name: stream.name, measurements });
+  } catch (e) {
+    cb({ message: `fetchData error: ${e.message}` });
   }
+}
+
+
+async function fetchStream(source, cb) {
+
+  const body = await client({ url: source.url, responseType: 'text' });
 
   let $;
   try {
-    $ = cheerio.load(response.body);
+    $ = cheerio.load(body);
   } catch (e) {
     throw new FetchError(DATA_PARSE_ERROR, source, e);
   }
@@ -72,14 +80,14 @@ export async function fetchStream(source) {
         source
       )
     );
-    out.add(
-      await handleProvince(
-        province.name,
-        provinceDailyURL,
-        dailyAvgPeriod,
-        source
-      )
-    );
+    //out.add(
+    //  await handleProvince(
+    //    province.name,
+    //    provinceDailyURL,
+    //    dailyAvgPeriod,
+    //    source
+    //  )
+    //);
   });
 
   return out.mux();
@@ -91,24 +99,22 @@ const handleProvince = async function (
   averagingPeriod,
   source
 ) {
-  const response = await getter.get(url, { responseType: 'text' });
 
-  if (response.statusCode !== 200) {
-    throw new FetchError(DATA_PARSE_ERROR, source, null);
-  }
-  log.verbose(`Loading province information from ${url}`);
+  const body = await client({ url, responseType: 'text' });
 
-  const $ = cheerio.load(response.body);
-  const pollutantURLs = $('a')
-    .map(function () {
-      const pollutant = $(this).text().toLowerCase().replace('.', '');
-      const currentParameters = getParameters(averagingPeriod);
-      if (currentParameters.indexOf(pollutant) >= 0) {
-        const href = $(this).attr('href');
-        return `${baseUrl}${href}`;
-      }
-    })
-    .get();
+  const $ = cheerio.load(body);
+		const pollutantURLs = $('a')
+					.map(function () {
+							const pollutant = $(this).text().toLowerCase().replace('.', '');
+							const currentParameters = getParameters(averagingPeriod);
+							if (currentParameters.indexOf(pollutant) >= 0) {
+									const href = $(this).attr('href');
+									return `${baseUrl}${href}`;
+							} else {
+									return null;
+							}
+					})
+					.get();
 
   const arrayOfPromises = pollutantURLs.map((dataUrl) =>
     getStream(name, dataUrl, averagingPeriod, source, url)

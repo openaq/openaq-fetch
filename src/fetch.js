@@ -61,7 +61,9 @@ export function handler (event, context) {
 		log.info(`Getting sources from event data - ${event.Records && event.Records.length} records`);
     const messageId = event.Records[0].messageId;
     if (event.Records.length === 1) {
-      const body = JSON.parse(event.Records[0].body);
+      const body = typeof(event.Records[0].body) === 'string'
+						? JSON.parse(event.Records[0].body)
+						: event.Records[0].body;
       currentSources = body.sources || body;
       suffix = body.suffix || suffix;
       offset = body.offset;
@@ -117,6 +119,8 @@ export function handler (event, context) {
   if (datetime) {
     env.datetime = datetime;
   }
+
+	currentSources.map(s => console.log(`-- ${s.adapter}/${s.name}`));
 
   if (env.nofetch) {
 	  log.info(`Skipping fetch for ${currentSources.length} sources and saving to ${env.key}`);

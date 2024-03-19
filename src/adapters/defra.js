@@ -6,19 +6,18 @@ import log from '../lib/logger.js';
 import client from '../lib/requests.js';
 export const name = 'defra';
 
-export function fetchData(source, cb) {
-  client({ url: source.url, responseType: 'text'}).then((body) => {
+export async function fetchData(source, cb) {
     try {
-      const data = formatData(source, body);
-      if (data === undefined) {
-        return cb({ message: 'Failure to parse data.' });
-      } else {
-				return cb(null, data);
-			}
+				const body = await client({ url: source.url, responseType: 'text'});
+				const data = formatData(source, body);
+				if (data === undefined) {
+						return cb({ message: 'Failure to parse data.' });
+				} else {
+						return cb(null, data);
+				}
     } catch (e) {
-      return cb({ message: 'Unknown adapter error.' });
+				return cb({ message: e.message });
     }
-  });
 }
 
 let formatData = function (source, data) {

@@ -8,28 +8,21 @@ import cloneDeep from 'lodash/cloneDeep.js';
 // note: this is the 'synchronous' version (lost hours to this!)
 import { parse } from 'csv-parse/sync';
 import { DateTime } from 'luxon';
-import got from 'got';
+import client from '../lib/requests.js';
 
 export const name = 'tasmania';
 
-export function fetchData(source, cb) {
-  got(source.url, { timeout: { request: REQUEST_TIMEOUT } }).then(
-    (response) => {
-      try {
-        if (response.statusCode !== 200) {
-          throw new Error('Failure to load data url.');
-        }
-
-        const data = formatData(response.body, source);
-        if (data === undefined) {
-          throw new Error('Failure to parse data.');
-        }
-        cb(null, data);
-      } catch (error) {
-        cb(error, { message: 'Unknown adapter error.' }, null);
-      }
-    }
-  );
+export async function fetchData(source, cb) {
+		try {
+				const body = await client({ url: source.url });
+				const data = formatData(body, source);
+				if (data === undefined) {
+						throw new Error('Failure to parse data.');
+				}
+				return cb(null, data);
+		} catch (error) {
+				return cb(error, { message: error.message });
+		}
 }
 
 const formatData = function (data, source) {

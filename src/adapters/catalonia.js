@@ -24,8 +24,7 @@ export async function fetchData(source, cb) {
 
     cb(null, data);
   } catch (error) {
-    console.error('Error fetching data:', error);
-    return cb({ message: 'Unknown adapter error.' });
+    cb({ message: `fetchData error: ${error.message}` });
   }
 }
 

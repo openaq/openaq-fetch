@@ -26,8 +26,7 @@ export const fetchData = async (source, cb) => {
     }
     return cb(null, data);
   } catch (err) {
-    log.debug('Request error:', err);
-    return cb({ message: 'Unknown adapter error.' });
+    return cb({ message: `${err.message}` });
   }
 };
 

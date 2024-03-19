@@ -103,7 +103,5 @@ export default ({
 						} else {
 								throw new Error(`Failure to load data url (${res.statusCode}).`);
 						}
-				}).catch( err => {
-						throw new Error(`Request Error: ${err.message}`);
 				});
 };

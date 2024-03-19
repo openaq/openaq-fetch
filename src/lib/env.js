@@ -174,7 +174,7 @@ export default () => {
 
   const apiURL = _env.API_URL || 'http://localhost:3004/v1/webhooks'; // The url to ping on completion
   const webhookKey = _env.WEBHOOK_KEY || '123'; // Secret key to auth with API
-  const processTimeout = _env.PROCESS_TIMEOUT || 9.5 * 60 * 1000; // Kill the process after a certain time in case it hangs
+  const processTimeout = _env.PROCESS_TIMEOUT || 14 * 60 * 1000; // Kill the process after a certain time in case it hangs
   const bucketName = _env.AWS_BUCKET_NAME || '';
   const doSaveToS3 = _env.SAVE_TO_S3 === 'true' || +_env.SAVE_TO_S3;
   const strict = _strict || _env.STRICT === 'true' || +_env.STRICT;

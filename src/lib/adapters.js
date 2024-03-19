@@ -169,7 +169,7 @@ export function prepareCompleteResultsMessage (stream, fetchReport, {dryrun}) {
         fetchReport.itemsInserted += result.count;
       }
 
-      log.info(`New measurements found for "${result.sourceName}": ${result.count} in ${result.duration}s`);
+      log.info(`${result.count} new measurements found for "${result.sourceName}" in ${result.duration}s`);
 
       for (let [error, count] of Object.entries(result.failures || {})) {
         log.info(`${measurements.source.name} - ${count} occurrences of ${error}`);
