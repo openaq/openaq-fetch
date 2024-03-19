@@ -18,13 +18,13 @@ export const parameters = {
 };
 
 export function fetchData(source, cb) {
-  client(source.url)
-    .then((response) => {
-      const data = JSON.parse(response.body);
+  client({ url: source.url })
+    .then((data) => {
+
       const formattedData = formatData(data.features);
 
       log.debug('First row of formatted:', formattedData.measurements.length && formattedData.measurements[0]);
-      
+
 	  if (!formattedData) {
         throw new Error('Failure to parse data.');
       }
