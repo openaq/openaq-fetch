@@ -4,27 +4,25 @@ import got from 'got';
 import { DateTime } from 'luxon';
 import sj from 'scramjet';
 const { MultiStream, DataStream, StringStream } = sj;
+import { REQUEST_TIMEOUT } from '../lib/constants.js';
 
 export const name = 'eea-direct';
 
-export function fetchStream (source) {
-  const out = new DataStream();
-  out.name = 'unused';
+const client = got.extend({
+		headers: {
+				'User-Agent': 'OpenAQ'
+		},
+		timeout: {
+				request: REQUEST_TIMEOUT
+		}
+});
 
-  log.debug(`Fetch stream called: ${source.name}`);
 
-  const stream = fetchPollutants(source);
-  stream.pipe(out).catch((error) => {
-    log.error(`Error fetching stream: ${error.message}`);
-    out.end();
-  });
 
-  return out;
-}
-
+//this should never get called so why does it exist?
 export async function fetchData (source, cb) {
   try {
-    const stream = await fetchStream(source);
+    const stream = await fetchStream(source, cb);
     const measurements = await stream.toArray();
     cb(null, { name: stream.name, measurements });
   } catch (e) {
@@ -32,7 +30,20 @@ export async function fetchData (source, cb) {
   }
 }
 
-function fetchPollutants (source) {
+function fetchStream (source, cb) {
+  const out = new DataStream();
+  out.name = source.name;//'unused';
+  const stream = fetchPollutants(source, cb);
+  stream.pipe(out)
+				.catch((error) => {
+						out.end();
+						cb({ message: `fetchPollutants error: ${error.message}`});
+				});
+  return out;
+}
+
+
+function fetchPollutants (source, cb) {
   const pollutants = acceptableParameters.map((pollutant) =>
     pollutant === 'pm25' ? 'PM2.5' : pollutant.toUpperCase()
   );
@@ -41,6 +52,7 @@ function fetchPollutants (source) {
     ? DateTime.fromISO(source.datetime)
     : DateTime.utc().minus({ hours: source.offset || 2 });
 
+
   return new MultiStream(
     pollutants.map((pollutant) => {
       const url = source.url + source.country + '_' + pollutant + '.csv';
@@ -48,12 +60,12 @@ function fetchPollutants (source) {
 
       return new StringStream()
         .use((stream) => {
-          const resp = got.stream(url).on('error', (error) => {
-            stream.end();
-            log.debug(error);
-          });
+          const resp = client.stream(url)
+								.on('error', (error) => {
+										stream.end();
+										cb({ message: `StringStream error: ${error.message}`});
+								});
           resp.pipe(stream);
-
           return stream;
         })
         .CSVParse({
@@ -117,7 +129,5 @@ function fetchPollutants (source) {
         })
         .filter(record => record !== null)
     })
-  ).mux().catch((error) => {
-    log.debug("Error in MultiStream:", error);
-  });
+  ).mux();
 }

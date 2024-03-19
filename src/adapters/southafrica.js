@@ -27,15 +27,12 @@ export const name = 'southafrica';
 
 export async function fetchData (source, cb) {
   try {
-    const response = await client(source.url);
+		// source has a redirect that goes to an html page which causes issues
+    const body = await client({ url: source.url });
 
-    if (response.statusCode !== 200) {
-      log.error('Request error:', response.statusCode); // Log the error status code
-      return cb({ message: 'Failure to load data url.' });
-    }
     // Wrap everything in a try/catch in case something goes wrong
     // Format the data
-    const data = formatData(response.body);
+    const data = formatData(body);
     // Make sure the data is valid
     if (data === undefined) {
       return cb({ message: 'Failure to parse data.' });
@@ -54,13 +51,6 @@ export async function fetchData (source, cb) {
  */
 
 const formatData = function (data) {
-  // Wrap the JSON.parse() in a try/catch in case it fails
-  try {
-    data = JSON.parse(data);
-  } catch (e) {
-    // Return undefined to be caught elsewhere
-    return undefined;
-  }
   /**
    * Given a measurement object, convert to system appropriate times.
    * @param {object} m A source measurement object

@@ -15,12 +15,7 @@ export async function fetchData(source, cb) {
   const fetchURL = source.url;
 
   try {
-    const response = await client(fetchURL);
-    const body = response.body;
-
-    if (response.statusCode !== 200) {
-      return cb({ message: 'Failure to load data url.' });
-    }
+    const body = await client({ url: fetchURL });
 
     const data = formatData(body);
     if (data === undefined) {
@@ -29,17 +24,11 @@ export async function fetchData(source, cb) {
 
     cb(null, data);
   } catch (error) {
-    console.error('Error fetching data:', error);
-    return cb({ message: 'Unknown adapter error.' });
+    cb({ message: `fetchData error: ${error.message}` });
   }
 }
 
 function formatData(data) {
-  try {
-    data = JSON.parse(data);
-  } catch (e) {
-    return undefined;
-  }
 
   const aqRepack = (item) => {
     let aq = [];

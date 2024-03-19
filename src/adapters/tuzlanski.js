@@ -16,9 +16,8 @@ export const name = 'tuzlanski';
 
 export function fetchData(source, cb) {
   // Load initial page to get active stations
-  client(source.url)
-    .then(response => {
-      const body = response.body;
+  client({ url: source.url, responseType: 'text' })
+    .then(body => {
       const $ = load(body);
       let tasks = [];
       const stations = getActiveStations($, source.url);
@@ -47,9 +46,8 @@ export function fetchData(source, cb) {
 const handleStation = function (stationUrl) {
   return function (done) {
     log.debug(`Fetching data for ${stationUrl}`);
-    client(stationUrl)
-      .then(response => {
-        const body = response.body;
+    client({ url: stationUrl, responseType: 'text' })
+      .then(body => {
         formatData(body, (measurements) => {
           return done(null, measurements);
         });

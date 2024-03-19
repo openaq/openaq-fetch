@@ -18,12 +18,12 @@ const { year, month, day } = dt.toObject({
 
 export const name = 'hungary';
 
+/**
+ * Fetches the data for a given source and returns an appropriate object
+ * @param {object} source A valid source object
+ * @param {function} cb A callback of the form cb(err, data)
+ */
 export async function fetchData(source, cb) {
-  /**
-   * Fetches the data for a given source and returns an appropriate object
-   * @param {object} source A valid source object
-   * @param {function} cb A callback of the form cb(err, data)
-   */
   try {
     let stations = await fetchStations(source.url);
     // Map through station objects and create data request for each one
@@ -31,8 +31,7 @@ export async function fetchData(source, cb) {
       if (station.hasOwnProperty('stationId')) {
         const stationId = station.stationId;
         const url = `${source.url}${stationId}`;
-        return client (url)
-          .then((response) => JSON.parse(response.body))
+        return client({ url })
           .then((data) => {
             // create dateTime object with each station's hour
             const date = DateTime.fromISO(
@@ -66,11 +65,9 @@ export async function fetchData(source, cb) {
   }
 }
 
-async function fetchStations(stationUrl) {
+async function fetchStations(url) {
   try {
-    let response = await client(stationUrl);
-    let stations = await JSON.parse(response.body);
-    return stations;
+    return await client({ url });
   } catch (error) {
     log.debug('Failed to resolve stations URL.');
     throw error;

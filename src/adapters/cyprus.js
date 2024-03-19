@@ -16,9 +16,8 @@ export const name = 'cyprus';
  */
 
 export function fetchData(source, cb) {
-  client(source.url)
-    .then((response) => {
-      const data = JSON.parse(response.body);
+  client({ url: source.url })
+    .then((data) => {
       const formattedData = formatData(data);
 
       if (formattedData === undefined) {

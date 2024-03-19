@@ -203,14 +203,9 @@ const stations = [
 export function fetchData(source, cb) {
   const requests = stations.map((station) => {
     return (done) => {
-      client(`${source.url}${station.slug}`)
-        .then((response) => {
-          if (response.statusCode !== 200) {
-            return done({
-              message: `Failure to load data url (${source.url}${station.slug})`,
-            });
-          }
-          let data = Object.assign(station, { body: response.body });
+      client({ url: `${source.url}${station.slug}` })
+        .then((body) => {
+          let data = Object.assign(station, { body });
           return done(null, data);
         })
         .catch((err) => {
