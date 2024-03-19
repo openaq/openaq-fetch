@@ -11,11 +11,9 @@ export const name = 'ust-ist';
 
 export async function fetchData (source, cb) {
   try {
-    const allDataResponse = await client(source.url);
-    const allData = JSON.parse(allDataResponse.body);
+    const allData = await client({ url: source.url });
 
-    const allMetaResponse = await client('https://api.ust.is/aq/a/getStations');
-    const allMeta = JSON.parse(allMetaResponse.body);
+    const allMeta = await client({ url: 'https://api.ust.is/aq/a/getStations' });
 
     // Generate an array of station IDs there is data for.
     const stations = Object.keys(allData);

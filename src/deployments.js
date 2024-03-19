@@ -37,6 +37,10 @@ const deploymentsArray = [
     source: 'Sinaica Mexico'
   },
   {
+    name: 'southkorea',
+    source: 'korea-air'
+  },
+  {
   // Fill gaps in Hanoi data
     name: 'hanoi',
     source: 'hanoi-aqmn',

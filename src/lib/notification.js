@@ -6,34 +6,27 @@ import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 const sns = new SNSClient();
 
 /**
-* Ping openaq-api to let it know cause fetching is complete
-* @param {function} cb A function of form func(cause) called on completion
-*/
+ * Ping openaq-api to let it know cause fetching is complete
+ * @param {function} cb A function of form func(cause) called on completion
+ */
 async function sendUpdatedWebhook (apiURL, webhookKey) {
-  var form = {
-    key: webhookKey,
-    action: 'DATABASE_UPDATED'
-  };
-  return promisify(request.post)(apiURL, { form: form });
+    var form = {
+        key: webhookKey,
+        action: 'DATABASE_UPDATED'
+    };
+    return promisify(request.post)(apiURL, { form: form });
 }
 
 async function publish(message, subject) {
-		// the following just looks better in the log
-		console.debug(subject, JSON.stringify(message, null, 2));
-		if(process.env.TOPIC_ARN) {
-				const cmd = new PublishCommand({
-						TopicArn: process.env.TOPIC_ARN,
-						Subject: subject,
-						Message: JSON.stringify(message),
-				});
-				return await sns.send(cmd);
-		} else {
-				console.log('No publish topic', subject, message, process.env);
-				return {};
-		}
+    if(process.env.TOPIC_ARN) {
+        const cmd = new PublishCommand({
+            TopicArn: process.env.TOPIC_ARN,
+            Subject: subject,
+            Message: JSON.stringify(message),
+        });
+        await sns.send(cmd);
+    }
 }
-
-
 
 /**
  * Reports and saves fetch information.
@@ -44,28 +37,32 @@ async function publish(message, subject) {
  * @param {URL} apiURL
  * @param {String} webhookKey
  */
-export function reportAndRecordFetch (fetchReport, sources, argv, apiURL, webhookKey) {
-  return async (results) => {
-    fetchReport.results = results;
-    fetchReport.timeEnded = Date.now();
-    fetchReport.errors = results.reduce((acc, {failures}) => {
-      Object.entries(failures).forEach(([key, count]) => {
-        acc[key] = (acc[key] || 0) + count;
-      });
-      return acc;
-    }, {});
+export function reportAndRecordFetch (fetchReport, sources, env, apiURL, webhookKey) {
+    return async (results) => {
+        fetchReport.results = results;
+        fetchReport.timeEnded = Date.now();
+        fetchReport.errors = results.reduce((acc, {failures}) => {
+            Object.entries(failures).forEach(([key, count]) => {
+                acc[key] = (acc[key] || 0) + count;
+            });
+            return acc;
+        }, {});
 
+        const failures = fetchReport.results
+              .filter(r => !r.count);
 
-		await publish(fetchReport.results, 'fetcher/success');
+        const successes = fetchReport.results
+              .filter(r => r.count > 0);
 
-    if (argv.dryrun) {
-      log.info(fetchReport);
-      log.info('Dry run ended.');
-      return 0;
-    }
+        failures.map(r => {
+            log.debug(r);
+        });
+        log.info(`Dry run finished with ${successes.length} successes and ${failures.length} failures in ${(fetchReport.timeEnded - fetchReport.timeStarted)/1000} seconds`);
 
-    //await sendUpdatedWebhook(apiURL, webhookKey);
-    log.info('Webhook posted, have a good day!');
-    return 0;
-  };
+        if (!env.dryrun) {
+            await publish(fetchReport.results, 'fetcher/success');
+        }
+
+        return 0;
+    };
 }

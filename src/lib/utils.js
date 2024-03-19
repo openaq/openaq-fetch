@@ -6,6 +6,9 @@ import { dirname } from 'path';
 
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
+// The platform supported parameters
+export const acceptableParameters = ['pm25', 'pm10', 'co', 'so2', 'no2', 'bc', 'o3', 'no', 'pm1', 'nox'];
+
 export const notEmpty = x => x;
 export const ignore = () => 0;
 
@@ -131,6 +134,3 @@ export async function promisePostRequest (url, formParams) {
     });
   });
 }
-
-// The platform supported parameters
-export const acceptableParameters = ['pm25', 'pm10', 'co', 'so2', 'no2', 'bc', 'o3', 'no', 'pm1', 'nox'];

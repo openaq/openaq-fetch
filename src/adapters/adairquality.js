@@ -8,6 +8,7 @@ import client from '../lib/requests.js';
 import { DateTime } from 'luxon';
 import { parallel } from 'async';
 import flatMap from 'lodash/flatMap.js';
+import log from '../lib/logger.js';
 
 export const name = 'adairquality-ae';
 
@@ -203,14 +204,9 @@ const stations = [
 export function fetchData(source, cb) {
   const requests = stations.map((station) => {
     return (done) => {
-      client(`${source.url}${station.slug}`)
-        .then((response) => {
-          if (response.statusCode !== 200) {
-            return done({
-              message: `Failure to load data url (${source.url}${station.slug})`,
-            });
-          }
-          let data = Object.assign(station, { body: response.body });
+      client({ url: `${source.url}${station.slug}` })
+        .then((body) => {
+          let data = Object.assign(station, { body });
           return done(null, data);
         })
         .catch((err) => {
@@ -280,7 +276,9 @@ function parseDate(dateString) {
 function formatData(locations) {
   let out = [];
   for (const location of locations) {
-    const body = JSON.parse(location.body);
+    // body no longer needs to be parsed
+    const body = location.body;
+    // but the JSONDataResult does
     const measurements = JSON.parse(body.JSONDataResult).map((o) => {
       const date = parseDate(o.DateTime);
       o.DateTime = date;

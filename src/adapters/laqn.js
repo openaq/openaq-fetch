@@ -30,25 +30,25 @@ export async function fetchData(source, cb) {
     const startDate = dateNow.toFormat('dd LLL yyyy');
     const endDate = dateNow.plus({ days: 1 }).toFormat('dd LLL yyyy');
 
-    const siteCodesResponse = await client(
-      `${source.url}/AirQuality/Information/MonitoringSites/GroupName=All/Json`
-    );
-    let allSites = JSON.parse(siteCodesResponse.body).Sites.Site;
+    const siteCodes = await client({
+      url: `${source.url}/AirQuality/Information/MonitoringSites/GroupName=All/Json`
+    });
+    let allSites = siteCodes.Sites.Site;
     allSites = allSites.filter((s) => !s['@DateClosed']);
     const siteLookup = _.keyBy(allSites, '@SiteCode');
     const dataPromises = allSites.map((site) =>
-      client(
-        `${source.url}/AirQuality/Data/Site/SiteCode=${site['@SiteCode']}/StartDate=${startDate}/EndDate=${endDate}/Json`
-      )
+				client({
+						url: `${source.url}/AirQuality/Data/Site/SiteCode=${site['@SiteCode']}/StartDate=${startDate}/EndDate=${endDate}/Json`
+				})
         .catch((error) => {
           log.warn(
-            `Unable to load data for site: ${site['@SiteCode']} - HTTP status: ${error.response.statusCode}`
+            `Unable to load data for site: ${site['@SiteCode']} - HTTP status: ${error}`
           );
           return null;
         })
         .then((data) => {
           if (data) {
-            return formatData(data.body, siteLookup);
+            return formatData(data, siteLookup);
           } else {
             return null;
           }
@@ -64,9 +64,9 @@ export async function fetchData(source, cb) {
 }
 
 // Convert data to standard format
-function formatData(data, siteLookup) {
-  if (!data) return null;
-  const dataObject = JSON.parse(data);
+function formatData(dataObject, siteLookup) {
+  if (!dataObject) return null;
+  //const dataObject = JSON.parse(data);
   if (!_.isArray(dataObject.AirQualityData.Data)) return null;
   const site = siteLookup[dataObject.AirQualityData['@SiteCode']];
   const measurements = dataObject.AirQualityData.Data.map(
