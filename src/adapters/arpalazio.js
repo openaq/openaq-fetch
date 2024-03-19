@@ -80,14 +80,14 @@ async function fetchStream(source, cb) {
         source
       )
     );
-    //out.add(
-    //  await handleProvince(
-    //    province.name,
-    //    provinceDailyURL,
-    //    dailyAvgPeriod,
-    //    source
-    //  )
-    //);
+    out.add(
+     await handleProvince(
+       province.name,
+       provinceDailyURL,
+       dailyAvgPeriod,
+       source
+     )
+    );
   });
 
   return out.mux();

@@ -14,7 +14,7 @@ export const name = 'tasmania';
 
 export async function fetchData(source, cb) {
 		try {
-				const body = await client({ url: source.url });
+				const body = await client({ url: source.url, responseType: 'text'});
 				const data = formatData(body, source);
 				if (data === undefined) {
 						throw new Error('Failure to parse data.');
