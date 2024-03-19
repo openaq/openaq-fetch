@@ -8,6 +8,7 @@ import client from '../lib/requests.js';
 import { DateTime } from 'luxon';
 import { parallel } from 'async';
 import flatMap from 'lodash/flatMap.js';
+import log from '../lib/logger.js';
 
 export const name = 'adairquality-ae';
 
@@ -275,7 +276,9 @@ function parseDate(dateString) {
 function formatData(locations) {
   let out = [];
   for (const location of locations) {
-    const body = JSON.parse(location.body);
+    // body no longer needs to be parsed
+    const body = location.body;
+    // but the JSONDataResult does
     const measurements = JSON.parse(body.JSONDataResult).map((o) => {
       const date = parseDate(o.DateTime);
       o.DateTime = date;
