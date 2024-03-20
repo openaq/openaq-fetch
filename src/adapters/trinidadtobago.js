@@ -20,13 +20,13 @@ export const parameters = {
     'Carbon Monoxide': { name: 'co', unit: 'mg/m3', id: '3' },
     'Nitrogen Dioxide Concentrations [µg_m³]': { name: 'no2', unit: 'ug/m3', id: '1465' },
     'Ozone Concentrations [µg/m³]': { name: 'o3', unit: 'ug/m3', id: '2130' },
-    // 'Particulate Matter < 10µ': { name: 'pm10', unit: 'ug/m3', id: '18' }, // pm10 data available but not collected
-    'Particulate Matter < 2.5µ': { name: 'pm25', unit: 'ug/m3', id: '20' }, 
+    'Particulate Matter < 10µ': { name: 'pm10', unit: 'ug/m3', id: '18' },
+    'Particulate Matter < 2.5µ': { name: 'pm25', unit: 'ug/m3', id: '20' },
     'Sulfur Dioxide Concentrations [µg_m³]': { name: 'so2', unit: 'ug/m3', id: '23' }
 };
 
 const timestamp = DateTime.now().toMillis();
-// stations and IDs are referred to here but coordinates must be added manually 
+// stations and IDs are referred to here but coordinates must be added manually
 // "https://ei.weblakes.com/RTTPublic/SelectCode/ThemeGridData?aThemeName=AMBIENTSITE&aParentKey=-1&aBriefGrid=True&aSelectedKeysProviderId=&aNavView=&anEntity=50&gridId=SelectCode_AMBIENTSITE&Context_Bootstrap_Flag=true&_search=false&nd=1710968481872&rows=20&page=1&sidx=&sord=asc&ssSearchField=__ANY_COLUMN&ssSearchOper=cn&ssSearchString=&_=1710968480622"
 const stations = [
   {
@@ -92,11 +92,8 @@ const stations = [
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
  */
-
 export async function fetchData(source, cb) {
-  // Fetch both the measurements and meta-data about the locations
-  // List of keys for parameters used in url [3: 'CO', 1465: 'NO2', 2130: 'O3', 18: 'PM-10', 20: 'PM-2.5', 23: 'SO2']
-
+    // Fetch both the measurements and meta-data about the locations
     // Loops through all the stations, and then loops through all parameters IDS
     // and adds the requests to the tasks
     const tasks = [];
@@ -124,7 +121,7 @@ export async function fetchData(source, cb) {
   try {
     const results = await Promise.all(tasks.map((task) => task()));
     const data = formatData(results);
-    log.debug('data:', data[0]);
+    log.debug('first row of data', data[0]);
     return cb(null, data);
   } catch (e) {
     return cb({ message: `Unknown adapter error - ${e.message}` });
