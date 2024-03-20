@@ -17,7 +17,12 @@ export const parameters = {
   SO2: { name: 'so2', unit: 'ppm' },
 };
 
+/**
+ * @param {Object} source - The data source, including the URL to fetch from.
+ * @param {Function} cb - Callback function to handle the response or error.
+ */
 export function fetchData(source, cb) {
+  // Potential error if data.features is undefined or not an array
   client({ url: source.url })
     .then((data) => {
 
@@ -35,6 +40,10 @@ export function fetchData(source, cb) {
     });
 }
 
+/**
+ * @param {Array} features - Array of features from the raw data response.
+ * @returns {Object} An object containing formatted air quality measurements.
+ */
 const formatData = function (features) {
   let measurements = [];
 
