@@ -16,182 +16,21 @@ import log from '../lib/logger.js';
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
-import got from 'got';
+//import got from 'got';
+import client from '../lib/requests.js';
 import tough from 'tough-cookie';
 
 export const name = 'trinidadtobago';
-
-const timestamp = DateTime.now().toMillis();
-
-/**
- * Fetches the data for a given source and returns an appropriate object
- * @param {object} source A valid source object
- * @param {function} cb A callback of the form cb(err, data)
- */
-
-export async function fetchData(source, cb) {
-  // Fetch both the measurements and meta-data about the locations
-  // List of keys for parameters used in url [3: 'CO', 1465: 'NO2', 2130: 'O3', 18: 'PM-10', 20: 'PM-2.5', 23: 'SO2']
-  const parameterIDs = ['3', '1465', '2130', '18', '20', '23'];
-  const tasks = [];
-
-  // Loops through all the stations, and then loops through all parameters IDS, and adds the requests to the tasks
-  _.forEach(stations, function (e) {
-    for (let i in parameterIDs) {
-      const sourceURL =
-        source.url
-          .replace('$station', e.key)
-          .replace('$parameter', parameterIDs[i]) + timestamp;
-      const task = async function () {
-        try {
-          const { body } = await got(sourceURL, {
-            cookieJar: new tough.CookieJar(),
-            timeout: { request: REQUEST_TIMEOUT },
-          });
-          return { meta: e, values: body };
-        } catch (err) {
-          throw new Error(err.response.body);
-        }
-      };
-      tasks.push(task);
-    }
-  });
-
-  try {
-    const results = await Promise.all(tasks.map((task) => task()));
-    // Format the data
-    const data = formatData(results);
-    if (data === undefined) {
-      return cb({ message: 'Failure to parse data.' });
-    }
-    cb(null, data);
-  } catch (e) {
-    return cb({ message: 'Unknown adapter error.' });
-  }
-}
-
-/**
- * Given fetched data, turn it into a format our system can use.
- * @param {array} results Fetched source data and other metadata
- * @return {object} Parsed and standarized data our system can use
- */
-
-const formatData = function (results) {
-  let measurements = [];
-  /**
-   * Formats the string result of values into JSON, or undefined if values are empty or something fails
-   * @param {array} data Object of a combination of metadata and values
-   * @return {object} Parsed values into JSON or unddefines if values are empty or something fails
-   */
-  const parseToJSON = (data) => {
-    try {
-      data.values = JSON.parse(data.values);
-      if (Object.keys(data.values).length === 0) {
-        data = undefined;
-      }
-    } catch (e) {
-      data = undefined;
-    }
-    return data;
-  };
-  const validParameters = ['CO', 'NO2', 'O3', 'PM-10', 'PM-2.5', 'SO2'];
-
-  results.forEach((item) => {
-    item = parseToJSON(item);
-
-    if (item !== undefined) {
-      let parameter = validParameters.find((p) =>
-        item.values.hasOwnProperty(p)
-      );
-
-      if (
-        !parameter ||
-        item.values[parameter].length !== item.values.xlabels.length
-      ) {
-        log.info(
-          'Parameter mismatch or length mismatch between readings and labels.',
-          item
-        );
-        return;
-      }
-
-      const template = {
-        city: item.meta.city,
-        location: item.meta.location,
-        parameter: parameter.toLowerCase(),
-        coordinates: {
-          latitude: parseFloat(item.meta.latitude),
-          longitude: parseFloat(item.meta.longitude),
-        },
-        attribution: [
-          {
-            name: 'Trinidad and Tobago Environmental Management Authority',
-            url: 'https://ei.weblakes.com/RTTPublic/DshBrdAQI',
-          },
-        ],
-        averagingPeriod: { unit: 'hours', value: 1 },
-        unit: parameter === 'CO' ? 'mg/m3' : 'ug/m3',
-      };
-
-      item.values[parameter].forEach((value, i) => {
-        if (value !== null) {
-          let m = Object.assign({ value: value }, template);
-
-          const dateMoment = DateTime.fromFormat(
-            item.values.xlabels[i],
-            'yyyy-MM-dd HH',
-            { zone: 'America/Port_of_spain' }
-          );
-          m.date = {
-            utc: dateMoment
-              .toUTC()
-              .toISO({ suppressMilliseconds: true }),
-            local: dateMoment.toISO({ suppressMilliseconds: true }),
-          };
-
-          m = unifyParameters(m);
-          m = unifyMeasurementUnits(m);
-          measurements.push(m);
-        }
-      });
-    }
-  });
-
-  measurements = correctMeasurementParameter(measurements);
-  measurements = getLatestMeasurements(measurements);
-  return {
-    name: 'unused',
-    measurements: measurements,
-  };
+export const parameters = {
+    'Carbon Monoxide': { name: 'co', unit: 'mg/m3', id: '3' },
+    'Nitrogen Dioxide Concentrations [µg_m³]': { name: 'no2', unit: 'ug/m3', id: '1465' },
+    'Ozone Concentrations [µg/m³]': { name: 'o3', unit: 'ug/m3', id: '2130' },
+    'Particulate Matter < 10µ': { name: 'pm10', unit: 'ug/m3', id: '18' },
+    'Particulate Matter < 2.5µ': { name: 'pm25', unit: 'ug/m3', id: '20' },
+    'Sulfur Dioxide Concentrations [µg_m³]': { name: 'so2', unit: 'ug/m3', id: '23' }
 };
 
-function correctMeasurementParameter(measurements) {
-  measurements.forEach((measurement) => {
-    if (measurement.parameter === 'pm-10') {
-      measurement.parameter = 'pm10';
-    } else if (measurement.parameter === 'pm-25') {
-      measurement.parameter = 'pm25';
-    }
-  });
-  return measurements;
-}
-
-function getLatestMeasurements(measurements) {
-  const latestMeasurements = {};
-
-  measurements.forEach((measurement) => {
-    const key = measurement.parameter + measurement.location;
-    if (
-      !latestMeasurements[key] ||
-      measurement.date.local > latestMeasurements[key].date.local
-    ) {
-      latestMeasurements[key] = measurement;
-    }
-  });
-
-  return Object.values(latestMeasurements);
-}
-
+const timestamp = DateTime.now().toMillis();
 const stations = [
   {
     key: '16',
@@ -229,3 +68,150 @@ const stations = [
     longitude: -61.2844,
   },
 ];
+
+
+
+/**
+ * Fetches the data for a given source and returns an appropriate object
+ * @param {object} source A valid source object
+ * @param {function} cb A callback of the form cb(err, data)
+ */
+
+export async function fetchData(source, cb) {
+  // Fetch both the measurements and meta-data about the locations
+  // List of keys for parameters used in url [3: 'CO', 1465: 'NO2', 2130: 'O3', 18: 'PM-10', 20: 'PM-2.5', 23: 'SO2']
+
+    // Loops through all the stations, and then loops through all parameters IDS
+    //, and adds the requests to the tasks
+    const tasks = [];
+    stations.map( meta => {
+        Object.values(parameters).map( parameter => {
+            const sourceURL =
+                  source.url
+                  .replace('$station', meta.key)
+                  .replace('$parameter', parameter.id) + timestamp;
+
+            const task = async () => {
+                try {
+                    const values = await client({
+                        url: sourceURL,
+                        cookieJar: new tough.CookieJar(),
+                    });
+
+                    return { meta, values, parameter };
+                } catch (err) {
+                    throw new Error(`fetchData error: ${err.message}`);
+                }
+            };
+            tasks.push(task);
+        });
+    });
+
+  try {
+
+    const results = await Promise.all(tasks.map((task) => task()));
+    // Format the data
+    const data = formatData(results, cb);
+    return cb(null, data);
+  } catch (e) {
+    return cb({ message: `Unknown adapter error - ${e.message}` });
+  }
+}
+
+
+/**
+ * Given fetched data, turn it into a format our system can use.
+ * @param {array} results Fetched source data and other metadata
+ * @return {object} Parsed and standarized data our system can use
+ */
+
+const formatData = function (results, cb) {
+  let measurements = [];
+
+    // each item is a measurement from one station
+    // so if one part of that measurment is bad the whole item is bad
+    results.forEach((item) => {
+        try {
+            // find a match in the data to one of our parameters
+            let parameter = Object.keys(parameters).find((p) =>
+                item.values.hasOwnProperty(p)
+            );
+
+            if (!parameter) {
+                throw new Error(
+                    `Could not find a valid parameter in [${Object.keys(item.values)}]. It is possible that the source names have changed.`
+                );
+            } else if (item.values[parameter].length !== item.values.xlabels.length) {
+                throw new Error(`Source data for ${parameter} does not seem to have matching labels`);
+            }
+
+            const template = {
+                city: item.meta.city,
+                location: item.meta.location,
+                parameter: parameters[parameter].name,
+                coordinates: {
+                    latitude: parseFloat(item.meta.latitude),
+                    longitude: parseFloat(item.meta.longitude),
+                },
+                attribution: [
+                    {
+                        name: 'Trinidad and Tobago Environmental Management Authority',
+                        url: 'https://ei.weblakes.com/RTTPublic/DshBrdAQI',
+                    },
+                ],
+                averagingPeriod: { unit: 'hours', value: 1 },
+                unit: parameters[parameter].unit
+            };
+
+            item.values[parameter].forEach((value, i) => {
+                if (value !== null) {
+                    let m = Object.assign({ value: value }, template);
+
+                    const dateMoment = DateTime.fromFormat(
+                        item.values.xlabels[i],
+                        'yyyy-MM-dd HH',
+                        { zone: 'America/Port_of_spain' }
+                    );
+                    m.date = {
+                        utc: dateMoment
+                            .toUTC()
+                            .toISO({ suppressMilliseconds: true }),
+                        local: dateMoment.toISO({ suppressMilliseconds: true }),
+                    };
+
+                    m = unifyParameters(m);
+                    m = unifyMeasurementUnits(m);
+                    measurements.push(m);
+                }
+            });
+        } catch (err) {
+            // log the error but dont throw
+            log.warn(`Formatting error: ${err.message}`);
+        }
+    });
+
+ // measurements = getLatestMeasurements(measurements);
+
+  return {
+    name: 'unused',
+    measurements: measurements,
+  };
+};
+
+
+// Could we remove this? Or if its limiting to a specific period could we do it better?
+function getLatestMeasurements(measurements) {
+  const latestMeasurements = {};
+
+  measurements.forEach((measurement) => {
+    const key = measurement.parameter + measurement.location;
+    if (
+      !latestMeasurements[key] ||
+      measurement.date.local > latestMeasurements[key].date.local
+    ) {
+      latestMeasurements[key] = measurement;
+    }
+  });
+
+  return Object.values(latestMeasurements);
+}
