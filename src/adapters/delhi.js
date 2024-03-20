@@ -26,11 +26,11 @@ export const name = 'delhi';
 export async function fetchData(source, cb) {
     const browser = await puppeteer.launch({ headless: 'shell' });
     const stations = await fetchStations(browser);
-  
+
     const results = await Promise.all(stations.map(async (station) => {
       const concUrl = `${baseUrl}AallAdvanceSearchCconc.php?stName=${station.stName}`;
       const metUrl = `${baseUrl}AallAdvanceSearchMet.php?stName=${station.stName}`;
-  
+
       try {
         const [concData, metData] = await Promise.all([
           fetchAllParametersData(browser, concUrl, concParams, timeRange),
@@ -43,10 +43,10 @@ export async function fetchData(source, cb) {
     }));
     const formattedData = formatData(results, timeRange.startTime);
     log.debug('Delhi data:', formattedData[0]);
-    cb(null, { name: 'unused', measurements: formattedData }); 
+    cb(null, { name: 'unused', measurements: formattedData });
     await browser.close();
   }
-  
+
 /**
  * Configures a Puppeteer page by setting up request interception to block unnecessary resources
  * such as images, stylesheets, and fonts to improve page loading performance.
@@ -72,7 +72,7 @@ async function configurePage(page) {
  * @returns {Object} An object containing the parameter name and the fetched data.
  */
 async function fetchParameterData(browser, url, parameter, { startTime, endTime }) {
-  log.debug("Fetching parameter data:", parameter);
+  log.debug(`Fetching parameter data: ${parameter}`);
   const page = await browser.newPage();
   try {
     await configurePage(page);
@@ -150,7 +150,7 @@ async function fetchStations(browser) {
 }
 
 /**
- * Formats the fetched station and measurement data 
+ * Formats the fetched station and measurement data
  * @param {Array} stations - An array of station objects with fetched data.
  * @param {string} startTime - The start time for the data fetch, in 'yyyy-MM-dd HH:mm' format.
  * @param {string} endTime - The end time for the data fetch, in 'yyyy-MM-dd HH:mm' format.
@@ -159,7 +159,7 @@ async function fetchStations(browser) {
 function formatData(stations, startTime) {
     const measurements = [];
     const startDateTime = DateTime.fromFormat(startTime, 'yyyy-MM-dd HH:mm',  { zone: 'Asia/Kolkata' });
-  
+
     stations.forEach(station => {
       ['concData', 'metData'].forEach(paramType => {
         if (station[paramType]) {
@@ -199,7 +199,6 @@ function formatData(stations, startTime) {
         }
       });
     });
-  
+
     return measurements;
   }
-  
