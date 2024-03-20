@@ -25,19 +25,17 @@ const options = {
   https: {
     rejectUnauthorized: false
   },
-  timeout: { request: REQUEST_TIMEOUT }
+  //timeout: { request: REQUEST_TIMEOUT }
 };
 
 export async function fetchData (source, cb) {
-  try {
-    const pollutants = ['co', 'no2', 'ozono', 'pm10', 'pm25', 'so2'];
-
-    const allParams = pollutants.map(async (p) => {
-      const url = `${source.url}EntregaData1/Datos_SIATA_Aire_AQ_${p}_Last.json`;
+		try {
+				const pollutants = ['co', 'no2', 'ozono', 'pm10', 'pm25', 'so2'];
+				const allParams = pollutants.map(async (p) => {
+						const url = `${source.url}EntregaData1/Datos_SIATA_Aire_AQ_${p}_Last.json`;
 
       try {
-        const response = await client(url, options);
-        return JSON.parse(response.body);
+        return await client({ url, ...options });
       } catch (error) {
         log.warn(error || `Unable to load data for parameter: ${p} for adapter ${source.name}`);
         return null;

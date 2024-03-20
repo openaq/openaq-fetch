@@ -26,8 +26,7 @@ export async function fetchData(source, cb) {
   for (let i = 1; i < 20; i++) {
     let task = async function () {
       try {
-        const response = await client(source.url + i);
-        return response.body;
+        return await client({ url: source.url + i });
       } catch (error) {
         log.debug(`Error fetching data from URL: ${source.url + i}. Giving up after retries.`, error.message);
         return null;

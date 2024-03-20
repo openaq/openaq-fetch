@@ -1,7 +1,21 @@
 import request from 'request';
 import log from './logger.js';
 import { promisify } from 'util';
+import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 
+const sns = new SNSClient();
+
+async function publish(message, subject) {
+		// the following just looks better in the log
+		if(process.env.TOPIC_ARN) {
+				const cmd = new PublishCommand({
+						TopicArn: process.env.TOPIC_ARN,
+						Subject: subject,
+						Message: JSON.stringify(message),
+				});
+				await sns.send(cmd);
+		}
+}
 
 /**
  * Reports and saves fetch information.

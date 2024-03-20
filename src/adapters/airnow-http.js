@@ -46,10 +46,9 @@ async function getLocations(url) {
     const locationsUrl = `${url}airnow/today/monitoring_site_locations.dat`;
     log.verbose(`Fetching AirNow locations from "${locationsUrl}"`);
 
-    const locationsData = await client(locationsUrl, {
-      responseType: 'text',
-    });
-    _locationsStream[url] = StringStream.from(locationsData.body)
+			const locationsData = await client({ url: locationsUrl, responseType: 'text' });
+
+			_locationsStream[url] = StringStream.from(locationsData)
       .lines('\n')
       .parse((s) => {
         s = s.split('|');
@@ -91,9 +90,9 @@ export async function fetchStream(source) {
 
     log.info(`Fetching AirNow measurements from "${url}"`);
 
-    const response = await client(url, { responseType: 'text' });
+    const body = await client({ url, responseType: 'text' });
 
-    return StringStream.from(response.body)
+    return StringStream.from(body)
       .lines('\n')
       .map(async (m) => {
         try {

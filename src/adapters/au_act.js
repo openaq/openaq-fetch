@@ -14,16 +14,15 @@ export function fetchData(source, cb) {
     .minus({ days: 1 })
     .toFormat("yyyy-LL-dd'T'HH:mm:ss");
 
-  client(source.url, {
-    searchParams: {
-      $query: `select *, :id where (\`datetime\` > '${timeAgo}') order by \`datetime\` desc limit 1000`,
-    },
-  })
-    .then((res) => {
-      const body = res.body;
 
+		const params = {
+				$query: `select *, :id where (\`datetime\` > '${timeAgo}') order by \`datetime\` desc limit 1000`,
+    };
+
+		client({ url: source.url, params })
+    .then((body) => {
       try {
-        const data = formatData(JSON.parse(body), source);
+        const data = formatData(body, source);
         if (data === undefined) {
           return cb({ message: 'Failure to parse data.' });
         }

@@ -9,10 +9,10 @@ import client from '../lib/requests.js';
 export const name = 'queensland';
 
 export function fetchData (source, cb) {
-  client(source.url)
-    .then((response) => {
+  client({ url: source.url, responseType: 'text'})
+    .then((body) => {
       try {
-        const data = formatData(response.body, source);
+        const data = formatData(body, source);
         const result = {
           name: 'unused',
           measurements: _.flatten(data),

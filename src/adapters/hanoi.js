@@ -28,8 +28,7 @@ export async function fetchData (source, cb) {
 
 async function fetchStations (source) {
   try {
-    const response = await client(source.url);
-    const stations = JSON.parse(response.body);
+    const stations = await client({ url: source.url });
 
     const stationDataPromises = stations.map((station) =>
       fetchStationData(source.sourceURL, station.id)
@@ -50,10 +49,9 @@ async function fetchStations (source) {
 
 async function fetchStationData (baseURL, stationId) {
   try {
-    const response = await client(
-      baseURL + `public/dailystat/${stationId}`
-    );
-    const data = JSON.parse(response.body);
+    const data = await client({
+      url: baseURL + `public/dailystat/${stationId}`
+    });
 
     const measurements = {};
     const validParameters = [
@@ -66,7 +64,7 @@ async function fetchStationData (baseURL, stationId) {
     ];
     validParameters.forEach((param) => {
       if (data[param]) {
-        measurements[param] = data[param].slice(-3);
+        measurements[param] = data[param].slice(-12);
       }
     });
 

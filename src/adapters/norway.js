@@ -18,16 +18,12 @@ export const name = 'norway';
 
 export async function fetchData(source, cb) {
   try {
-    const response = await client(source.url);
-
-    if (response.statusCode !== 200) {
-      return cb({ message: 'Failure to load data url.' });
-    }
+    const body = await client({ url: source.url });
 
     // Wrap everything in a try/catch in case something goes wrong
     try {
       // Format the data
-      const data = formatData(response.body);
+      const data = formatData(body);
 
       // Make sure the data is valid
       if (data === undefined) {
@@ -48,13 +44,6 @@ export async function fetchData(source, cb) {
  * @return {object} Parsed and standarized data our system can use
  */
 const formatData = function (data) {
-  // Wrap the JSON.parse() in a try/catch in case it fails
-  try {
-    data = JSON.parse(data);
-  } catch (e) {
-    // Return undefined to be caught elsewhere
-    return undefined;
-  }
 
   /**
    * Given a json object, convert to aq openaq format

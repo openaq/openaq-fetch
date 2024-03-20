@@ -32,9 +32,8 @@ export function fetchData(source, cb) {
       .replace('$date', date);
 
     return function (cb) {
-      client(url)
-        .then((response) => {
-          let body = JSON.parse(response.body);
+      client({ url })
+        .then((body) => {
           body = body.data.item[body.data.item.length - 1]; // get the last item in the array
           cb(null, [body, stations[key]]);
         })

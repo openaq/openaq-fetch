@@ -50,10 +50,11 @@ export async function fetchData (source, cb) {
 
 async function fetchStations (stationsCsvUrl) {
   try {
-    const response = await client(stationsCsvUrl);
+    const body = await client({ url: stationsCsvUrl, responseType: 'text' });
+
     return new Promise((resolve, reject) => {
       parse(
-        response.body,
+        body,
         {
           columns: (header) => header.map((col) => translation[col]),
         },
@@ -85,9 +86,9 @@ async function fetchStationData (latestDataUrl, stationId, unixTimeStamp) {
   url.pathname += `${stationId}/today.csv`;
   url.searchParams.append('_', unixTimeStamp);
 
-  const response = await client(url.href);
+  const body = await client({ url: url.href, responseType: 'text' });
   return new Promise((resolve, reject) => {
-    parse(response.body, { columns: true }, (err, records) => {
+    parse(body, { columns: true }, (err, records) => {
       err ? reject(err) : resolve(records);
     });
   });

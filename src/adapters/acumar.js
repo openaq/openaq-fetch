@@ -83,8 +83,9 @@ async function getPollutionData(
   let results = [];
 
   try {
-    const response = await client(station.url);
-    const $ = load(response.body);
+    const response = await client({ url: station.url, responseType: 'text'});
+
+    const $ = load(response);
 
     if (dateLuxon && hourLuxon) {
       const firstDataRowIndex = $('table')

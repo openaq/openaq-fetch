@@ -32,20 +32,17 @@ export function fetchData (source, cb) {
   var sources = [source.url, 'http://sinca.mma.gob.cl/index.php/json/listado'];
   var tasks = [];
 
-  _.forEach(sources, function (e) {
+  _.forEach(sources, function (url) {
     var task = function (cb) {
-      client(e)
-        .then((response) => {
-          if (response.statusCode !== 200) {
-            return cb(response);
-          }
-          cb(null, response.body);
+      client({ url })
+        .then((body) => {
+          cb(null, body);
         })
         .catch((error) => {
           cb(error);
         });
     };
-  
+
     tasks.push(task);
   });
 
@@ -75,8 +72,8 @@ export function fetchData (source, cb) {
  */
 const formatData = function (results) {
   try {
-    var data = JSON.parse(results[0]);
-    var meta = JSON.parse(results[1]);
+    var data = results[0];
+    var meta = results[1];
   } catch (e) {
     return undefined;
   }

@@ -12,9 +12,8 @@ const timezone = 'America/Argentina/Buenos_Aires';
 export const name = 'buenos-aires';
 
 export function fetchData(source, callback) {
-  client(source.url)
-    .then((response) => {
-      const body = response.body;
+  client({ url: source.url, responseType: 'text' })
+    .then((body) => {
       let tasks = [];
       let $ = load(body);
 
@@ -100,9 +99,8 @@ const makeStationQuery = (sourceUrl, station, parameter, date) => {
 
 const handleStation = (url, station, parameter, today) => {
   return (done) => {
-    client(url)
-      .then((response) => {
-        const body = response.body;
+    client({ url, responseType: 'text'})
+      .then((body) => {
         const results = formatData(body, station, parameter, today);
         return done(null, results);
       })

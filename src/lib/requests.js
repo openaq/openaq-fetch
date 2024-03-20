@@ -2,58 +2,106 @@
 
 import log from './logger.js';
 import { REQUEST_TIMEOUT, REQUEST_RETRIES } from './constants.js';
-import got from 'got'
-import { AdapterError, DATA_URL_ERROR } from './errors.js';
+import got from 'got';
+import { FetchError, AdapterError, DATA_URL_ERROR } from './errors.js';
 
-const headers = { 'User-Agent': 'OpenAQ' }
-
-export default (source, cb) => {
-  let url, timeout, retries;
-  if(typeof(source) === 'object' && source.url) {
-    log.debug('Adapter passed along a source object')
-    url = source.url
-    retries = source.retries || REQUEST_RETRIES
-    timeout = source.timeout || REQUEST_TIMEOUT
-  } else if (typeof(source) === 'string') { // assume source is the url
-    log.debug('Adapter passed along a url')
-    url = source
-    retries = REQUEST_RETRIES
-    timeout = REQUEST_TIMEOUT
-  } else {
-    throw new AdapterError(DATA_URL_ERROR, null, 'No url was passed')
-  }
-  // setup the options
-  const requestClient = got.extend({
-	  timeout: {
-      request: timeout,
-    },
-	  retry: {
-      limit: retries,
-      errorCodes: [
-        'ETIMEDOUT'
-      ],
-    },
-    headers: headers,
-    hooks: {
-      beforeRetry: [
-        data => {
-          log.warn(`Retrying request to ${url}`)
-        }
-      ],
+const DEFAULT_HEADERS = {
+    get: { 'User-Agent': 'OpenAQ' },
+    get: {
+        'User-Agent': 'OpenAQ',
+        accept: "application/json, text/javascript, */*; q=0.01",
+        "accept-language": "en-US,en;q=0.9",
+        "cache-control": "no-cache",
+        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+        pragma: "no-cache",
     }
-	});
-  log.debug(`Requesting response from ${url}`)
-  // make the request
-  return requestClient(url)
-    .then( res => {
-      // could do some checking here
-      return res
-    })
-    .catch( err => {
-      if (cb) {
-        return cb({ message: err })
-      } else {
-        log.error(`Error caught in got client - ${err.status_code}`)
-      }
-    })
+};
+
+export default ({
+		url,
+		params,
+		headers,
+		timeout = REQUEST_TIMEOUT,
+		retries = REQUEST_RETRIES,
+		method = 'GET',
+		responseType = 'json',
+		https = {},
+}) => {
+
+		let body, requestClient;
+		if (!url) throw new Error('No url passed to request client');
+
+
+		if(params && typeof(params) === 'object') {
+				// convert to string
+				const q = new URLSearchParams(params);
+				if(method == 'GET') {
+						url = `${url}?${q.toString()}`;
+				} else if(method == 'POST') {
+						body = `${q.toString()}`;
+				}
+		} else if(params) {
+				throw new Error(`Parameters must be passed as an object and not as ${typeof(params)}`);
+		}
+
+		// if we have not passed any headers than use the default
+		if(!headers) {
+				headers = DEFAULT_HEADERS[method.toLowerCase()];
+		} else {
+				// otherwise make sure we are passing a user agent
+				headers['User-Agent'] = 'OpenAQ';
+		}
+
+		https = {};
+		const options = {
+				method,
+				body,
+				https,
+				responseType,
+				timeout: {
+						request: timeout,
+				},
+        retry: {
+          limit: retries,
+          errorCodes: [
+              'ECONNRESET',
+              'EADDRINUSE',
+              'ECONNREFUSED',
+              'EPIPE',
+              'ENOTFOUND',
+              'ENETUNREACH',
+              'EAI_AGAIN'
+          ],
+      },
+				headers,
+				hooks: {
+						beforeRetry: [
+								data => {
+										log.warn(`Retrying request to ${url}`);
+								}
+						],
+				}
+		};
+
+		try {
+				requestClient = got.extend(options);
+		} catch(err) {
+				throw new Error(`Could not extend request client: ${err.message}`);
+		}
+		log.debug(`Requesting response from ${method}: ${url}`);
+		// make the request
+		return requestClient(url)
+				.then( res => {
+						// could do some checking here
+						if (res.statusCode == 200) {
+								if(!res.body) {
+										throw new Error('Request was successful but did not contain a body.');
+								}
+								return res.body;
+						} else if (res.statusCode == 403) {
+								throw new Error('Server responsed with forbidden (403).');
+						} else {
+								throw new Error(`Failure to load data url (${res.statusCode}).`);
+						}
+				});
 };

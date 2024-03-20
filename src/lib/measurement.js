@@ -4,6 +4,7 @@ import {
   MeasurementValidationError,
   handleMeasurementErrors,
   AdapterError,
+	FetchError,
   forwardErrors,
 } from './errors.js';
 import { getAdapterForSource } from './adapters.js';
@@ -39,34 +40,30 @@ const measurementSchema = JSON.parse(
 );
 
 async function getStreamFromAdapter (adapter, source) {
-  log.debug(
-    `Getting stream for "${source.name}" from "${adapter.name}"`
-  );
-
-  if (!adapter.fetchStream) {
     log.debug(
-      `Getting data for "${source && source.name}" from adapter "${
+        `Getting stream for "${source.name}" from "${adapter.name}"`
+    );
+
+    if (!adapter.fetchStream) {
+        log.debug(
+            `Getting data for "${source && source.name}" from adapter "${
         adapter.name
       }"`
-    );
-		const fetchData = promisify(adapter.fetchData)
-		const data = await fetchData(source)
-					.catch(err => {
-            throw new AdapterError(ADAPTER_ERROR, source, err && err.message && err.message.code)
-					});
-		const out = DataStream.from(data.measurements);
-		out.name = data.name;
-		return out;
-  }
-
-  log.debug(
-    `Fetching stream for "${source && source.name}" from adapter "${
-      adapter.name
-    }"`
-  );
-  const out = DataStream.from(adapter.fetchStream, source);
-  out.name = out.name || source.adapter;
-  return out;
+        );
+		    source.started = Date.now();
+		    const fetchData = promisify(adapter.fetchData);
+		    const data = await fetchData(source);
+			  //.catch(err => {
+			  //		throw new Error(`fetchData error - ${err.message}`);
+			  //});
+		    const out = DataStream.from(data.measurements);
+		    out.name = data.name;
+		    return out;
+    } else {
+			  const out = DataStream.from(adapter.fetchStream, source);
+			  out.name = out.name || source.adapter;
+			  return out;
+	  }
 }
 
 /**
@@ -79,10 +76,40 @@ function createFetchObject (input, source, failures, dryRun) {
   const counts = {
     total: 0,
     duplicates: 0,
-    inserted: 0,
   };
+	const datetimes = {
+			from: null,
+			to: null,
+	};
+	const parameters = {};
 
-  const stream = input.do(() => counts.total++);
+  const stream = input.do((a) => {
+			if(!datetimes.from || datetimes.from < a.date.utc) {
+					datetimes.from = a.date.utc;
+			}
+			if(!datetimes.to || datetimes.to < a.date.utc) {
+					datetimes.to = a.date.utc;
+			}
+			const param = a.parameter;
+			if(!Object.keys(parameters).includes(param)) {
+					parameters[param] = { min: 0, max: 0, nulls: 0, errors: 0, count: 0 };
+			}
+			// only go through this effort when developing
+			if(dryRun) {
+					parameters[param].count++;
+					if(a.value == null) {
+							parameters[param].nulls++;
+					} else if(a.value <= -999) {
+							parameters[param].errors++;
+					} else if(a.value < parameters[param].min) {
+							parameters[param].min = a.value;
+					} else if(a.value > parameters[param].max) {
+							parameters[param].max = a.value;
+					}
+			}
+			counts.total++;
+	});
+
   const whenDone = stream
     .whenEnd()
     .then(() => {
@@ -90,11 +117,11 @@ function createFetchObject (input, source, failures, dryRun) {
     })
     .catch(ignore);
 
+
   return {
     get fetchStarted () {
-      const now = Date.now();
-      log.info(`Started ${source.name} - ${now}`);
-      return now;
+      log.debug(`Started ${source.name} - ${source.started}`);
+      return source.started;
     },
     get fetchEnded () {
       return fetchEnded;
@@ -105,13 +132,26 @@ function createFetchObject (input, source, failures, dryRun) {
     get failures () {
       return fetchEnded ? failures : null;
     },
+    get from () {
+      return datetimes.from;
+    },
+    get to () {
+      return datetimes.to;
+    },
+    get parameters () {
+				return dryRun ? parameters : Object.keys(parameters);
+    },
     get count () {
-      return fetchEnded && (!dryRun ? counts.inserted : counts.total);
+      return fetchEnded && counts.total;
     },
     get message () {
-      return `${
-        dryRun ? '[Dry Run] ' : ''
-      }New measurements found for ${source.name}: ${this.count}`;
+			const status = dryRun
+						? '[Dry Run]'
+						: '';
+			const preface = counts.total > 0
+						? 'New'
+						: 'No new';
+      return `${status} ${preface} measurements found ${source.name}: ${counts.total}`;
     },
     dryRun,
     stream,
@@ -125,6 +165,9 @@ function createFetchObject (input, source, failures, dryRun) {
             failures: this.failures,
             count: this.count,
             duration: this.duration,
+						from: this.from,
+						to: this.to,
+						parameters: this.parameters,
             sourceName: this.source.sourceName || this.source.name,
           }
         : null;
@@ -263,7 +306,7 @@ export function fetchCorrectedMeasurementsFromSourceStream (stream, env) {
       .use(validateMeasurements, source)
       .use(removeUnwantedParameters)
       .use(handleMeasurementErrors, failures, source)
-      .use(forwardErrors, stream, source, failures, env);
+      .use(forwardErrors, stream, source, failures, env.strict);
 
     if (env.datetime) {
       source.datetime = DateTime.fromISO(env.datetime, { zone: 'utc' });
@@ -287,11 +330,12 @@ export function fetchCorrectedMeasurementsFromSourceStream (stream, env) {
       const adapter = await getAdapterForSource(source);
 
       (await getStreamFromAdapter(adapter, source)).pipe(input);
+      //console.log('finished stream')
 
       if (error) throw error;
       else error = true;
+
     } catch (cause) {
-      log.error(cause)
       await input.raise(
         cause instanceof AdapterError
           ? cause
@@ -301,7 +345,7 @@ export function fetchCorrectedMeasurementsFromSourceStream (stream, env) {
     }
 
     await out.whenWrote(
-      createFetchObject(output, source, failures, env.dryrun)
+        createFetchObject(output, source, failures, env.dryrun)
     );
   }, new DataStream());
 }
