@@ -3,6 +3,8 @@ import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { default as baseRequest } from 'request';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { DateTime } from 'luxon';
+import proj4 from 'proj4';
 
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
@@ -65,6 +67,52 @@ export function unifyMeasurementUnits (m) {
 export function __dirname () {
 
 }
+
+export function parseCoordinates(latitude, longitude, proj) {
+    // arg checks
+    if(!latitude) {
+        throw new Error(`Missing latitude`);
+    }
+    if(!longitude) {
+        throw new Error(`Missing longitude`);
+    }
+    // fix strings
+    if(typeof(latitude) === 'string') {
+        latitude = parseFloat(latitude);
+    }
+    if(typeof(longitude) === 'string') {
+        longitude = parseFloat(longitude);
+    }
+
+    if(proj && proj !== 'EPSG:4326') {
+        const coords = proj4(proj, 'EPSG:4326', [longitude, latitude]);
+        latitude = coords[1];
+        longitude = coords[0];
+    }
+
+    return {
+        latitude,
+        longitude
+    };
+}
+
+// we do not need local time
+export function parseTimestamp(str, format, zone='utc') {
+    const opts = { zone };
+    const output_format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    const dt = DateTime.fromFormat(str, format);
+    if(!dt.isValid) {
+        // if this doesnt work it will throw an error and we can
+        // catch it and skip this one
+        throw new Error(`Could not parse '${str}' using '${format}'`);
+    }
+    if(zone.toLowerCase() === 'utc') {
+        return { utc: dt.toFormat(output_format) };
+    } else {
+        return { utc: dt.toUTC().toFormat(output_format) };
+    }
+}
+
 
 export function unifyParameters (m) {
   if (m && typeof m.parameter === 'string') {

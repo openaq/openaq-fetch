@@ -1,9 +1,13 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
-    "required": ["location", "country", "city", "parameter", "unit", "value", "date", "sourceName", "sourceType", "mobile"],
+    "required": ["location", "parameter", "unit", "value", "date", "sourceName", "sourceType", "mobile"],
     "properties": {
         "location": {
+            "type": "string",
+            "minLength": 1
+        },
+        "locationType": {
             "type": "string",
             "minLength": 1
         },
@@ -13,7 +17,7 @@
         },
         "unit": {
             "type": "string",
-            "enum": ["µg/m³", "ppm"]
+            "enum": ["µg/m³", "ppm" , "ppb"]
         },
         "averagingPeriod": {
             "type": "object",
@@ -70,7 +74,7 @@
         "date": {
           "type": "object",
           "additionalProperties": true,
-          "required": ["utc", "local"],
+          "required": ["utc"],
             "properties": {
                 "utc": {
                     "type": "string",
