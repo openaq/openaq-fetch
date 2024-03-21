@@ -4,8 +4,11 @@ import log from '../lib/logger.js';
 import client from '../lib/requests.js';
 import { parseTimestamp, parseCoordinates } from '../lib/utils.js';
 
+// EPSG:3857 is the Coordinate Reference System (Web Mercator Projection)
+const crs = 'EPSG:3857';
 
 export const name = 'eea-utdviewer';
+
 export const parameters = {
     'CO': { name: 'co', unit: 'mg/m3' },
     'NO2': { name: 'no2', unit: 'ug/m3' },
@@ -15,13 +18,26 @@ export const parameters = {
     'SO2': { name: 'so2', unit: 'ug/m3' }
 };
 
-
+/**
+ * Constructs a URL for fetching air quality data from the EEA UTD Viewer API.
+ * 
+ * @param {string} parameter - The air quality parameter to query.
+ * @param {string} timestamp - The timestamp for the data request in a specific format.
+ * @return {string} The constructed URL for the API request.
+ */
 function buildUrl(parameter, timestamp) {
     // make sure paramter is all caps
     // fix format of the timestamp
     return `https://discomap.eea.europa.eu/Map/UTDViewer/dataService/Hourly?polu=${parameter.toUpperCase()}&dt=${timestamp}`;
 };
 
+/**
+ * Fetches air quality data for all defined pollutants at a specific datetime and formats it
+ * 
+ * @param {string} source - The data source identifier (unused in the current implementation).
+ * @param {Function} cb - Callback function to return the data or an error.
+ * @return {Promise<void>} A promise that resolves when data fetching and processing is complete.
+ */
 export async function fetchData(source, cb) {
     const measurements = [];
     const datetime = '20240320130000';
@@ -40,7 +56,9 @@ export async function fetchData(source, cb) {
 
 
     // now we can loop through each record format it, and add it to the measurements
-    data.splice(0,10).map( d => {
+    data
+    .splice(0,10) // for testing
+    .map( d => {
         try {
             measurements.push(formatData(d));
         } catch (err) {
@@ -53,18 +71,31 @@ export async function fetchData(source, cb) {
     return cb(null, { measurements });
 }
 
+/**
+ * Fetches and returns air quality data for a specific parameter and timestamp.
+ * 
+ * @param {string} param - The pollutant parameter to fetch.
+ * @param {string} timestamp - The timestamp for which to fetch the data.
+ * @return {Promise<Object[]>} A promise that resolves to an array of data points.
+ */
 async function fetchParameter(param, timestamp) {
     const url = buildUrl(param, timestamp);
     return await client({ url, as: 'csv' });
 }
 
-
+/**
+ * Formats a single data record from the air quality data service into a structured object.
+ * 
+ * @param {Object} d - The data record to format.
+ * @return {Object} A formatted data object including location, value, parameter, and other relevant information.
+ * @throws {Error} If the data cannot be correctly parsed or is missing required fields.
+ */
 function formatData(d) {
     const location = d.STATIONNAME;
     const sourceId = d.STATIONCODE;
     const param = d.PROPERTY;
     const value = parseFloat(d.VALUE_NUMERIC);
-    const coordinates = parseCoordinates(d.LATITUDE, d.LONGITUDE, 'EPSG:3857');
+    const coordinates = parseCoordinates(d.LATITUDE, d.LONGITUDE, crs);
     const date = parseTimestamp(d.DATETIME_END, 'yyyyMMddHHmmss', 'utc');
 
     // check the date

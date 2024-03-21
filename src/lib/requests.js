@@ -17,6 +17,26 @@ const DEFAULT_HEADERS = {
     pragma: "no-cache",
 };
 
+/**
+ * Executes HTTP requests with support for different response types and data processing methods.
+ * 
+ * @param {Object} options - The configuration options for the request.
+ * @param {string} options.url - The URL to request.
+ * @param {Object} [options.params] - URL parameters for GET requests or data for POST requests.
+ * @param {Object} [options.headers] - HTTP request headers.
+ * @param {number} [options.timeout=REQUEST_TIMEOUT] - Request timeout in milliseconds.
+ * @param {number} [options.retries=REQUEST_RETRIES] - Number of retries on request failure.
+ * @param {string} [options.method='GET'] - HTTP request method (GET, POST, etc.).
+ * @param {string} [options.responseType='json'] - Expected response type from the server.
+ * @param {string} [options.as] - Desired format for the response data (overrides responseType).
+ * @param {Object} [options.https] - HTTPS request options.
+ * @param {Object} [options.csvOptions] - Options for parsing CSV responses.
+ * @param {Object} [options.xmlOptions] - Options for parsing XML responses.
+ * @param {Object} [options.htmlOptions] - Options for parsing HTML responses.
+ * @param {Object} [options.cookieJar] - Cookie jar for maintaining session cookies.
+ * @returns {Promise<*>} A promise that resolves with the processed response data.
+ * @throws {Error} Throws an error if the URL is not provided or if an unsupported parameters type is given.
+ */
 export default ({
     url,
     params,
@@ -139,20 +159,42 @@ export default ({
         });
 };
 
+
 function toSame(body) {
     return body;
 }
 
+/**
+ * Parses a CSV formatted response body using the provided options.
+ * 
+ * @param {string} body - The CSV string to parse.
+ * @param {Object} options - The options for CSV parsing.
+ * @returns {Object[]} An array of objects representing the parsed CSV data.
+ */
 function toCSV(body, options) {
     return parse(body, options);
 }
 
+/**
+ * Parses an XML formatted response body into a cheerio object for easy manipulation and querying.
+ * 
+ * @param {string} body - The XML string to parse.
+ * @param {Object} options - The options for XML parsing, with xmlMode set to true by default.
+ * @returns {Object} A cheerio object representing the parsed XML document.
+ */
 function toXML(body, options) {
     // force xmlMode
     options.xmlMode = true;
     return load(body, options);
 }
 
+/**
+ * Parses an HTML formatted response body into a cheerio object for easy manipulation and querying.
+ * 
+ * @param {string} body - The HTML string to parse.
+ * @param {Object} options - The options for HTML parsing.
+ * @returns {Object} A cheerio object representing the parsed HTML document.
+ */
 function toHTML(body, options) {
     return load(body, options);
 }
