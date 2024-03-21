@@ -49,7 +49,6 @@ export function reportAndRecordFetch (fetchReport, sources, env, apiURL, webhook
             return acc;
         }, {});
 
-
         const failures = fetchReport.results
               .filter(r => !r.count);
 
@@ -63,6 +62,8 @@ export function reportAndRecordFetch (fetchReport, sources, env, apiURL, webhook
 
         if (!env.dryrun) {
 		        await publish(fetchReport.results, 'fetcher/success');
+        } else {
+            fetchReport.results.map( r => log.debug(`Parameters for ${r.sourceName}`, r.parameters));
         }
 
         return 0;
