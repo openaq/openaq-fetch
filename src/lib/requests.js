@@ -95,17 +95,17 @@ export default ({
 						request: timeout,
 				},
         retry: {
-          limit: retries,
-          errorCodes: [
-              'ECONNRESET',
-              'EADDRINUSE',
-              'ECONNREFUSED',
-              'EPIPE',
-              'ENOTFOUND',
-              'ENETUNREACH',
-              'EAI_AGAIN'
-          ],
-      },
+            limit: retries,
+            errorCodes: [
+                'ECONNRESET',
+                'EADDRINUSE',
+                'ECONNREFUSED',
+                'EPIPE',
+                'ENOTFOUND',
+                'ENETUNREACH',
+                'EAI_AGAIN'
+            ],
+        },
 				headers,
 				hooks: {
 						beforeRetry: [
