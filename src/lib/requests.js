@@ -18,23 +18,23 @@ const DEFAULT_HEADERS = {
 };
 
 export default ({
-		url,
-		params,
-		headers,
-		timeout = REQUEST_TIMEOUT,
-		retries = REQUEST_RETRIES,
-		method = 'GET',
-		responseType = 'json',
+    url,
+    params,
+    headers,
+    timeout = REQUEST_TIMEOUT,
+    retries = REQUEST_RETRIES,
+    method = 'GET',
+    responseType = 'json',
     as,  // new argument that will replace responseType, eventually defaulted to json
-		https = {},
+    https = {},
     csvOptions = { trim: true, comment: '#', skip_empty_lines: true, columns: true },
     xmlOptions = { xmlMode: true },
     htmlOptions = { },
     cookieJar,
 }) => {
 
-		let body, requestClient, toData = toSame;
-		if (!url) throw new Error('No url passed to request client');
+    let body, requestClient, toData = toSame;
+    if (!url) throw new Error('No url passed to request client');
 
     // How would we like the data returned?
     // each method should also include an options arg above
@@ -64,36 +64,36 @@ export default ({
         }
     }
 
-		if(params && typeof(params) === 'object') {
-				// convert to string
-				const q = new URLSearchParams(params);
-				if(method == 'GET') {
-						url = `${url}?${q.toString()}`;
-				} else if(method == 'POST') {
-						body = `${q.toString()}`;
-				}
-		} else if(params) {
-				throw new Error(`Parameters must be passed as an object and not as ${typeof(params)}`);
-		}
+    if(params && typeof(params) === 'object') {
+        // convert to string
+        const q = new URLSearchParams(params);
+        if(method == 'GET') {
+            url = `${url}?${q.toString()}`;
+        } else if(method == 'POST') {
+            body = `${q.toString()}`;
+        }
+    } else if(params) {
+        throw new Error(`Parameters must be passed as an object and not as ${typeof(params)}`);
+    }
 
-		// if we have not passed any headers than use the default
+    // if we have not passed any headers than use the default
     // reverting to using the same default headers for all methods
-		if(!headers) {
-				headers = DEFAULT_HEADERS;
-		} else {
-				// otherwise make sure we are passing a user agent
-				headers['User-Agent'] = 'OpenAQ';
-		}
+    if(!headers) {
+        headers = DEFAULT_HEADERS;
+    } else {
+        // otherwise make sure we are passing a user agent
+        headers['User-Agent'] = 'OpenAQ';
+    }
 
-		const options = {
-				method,
-				body,
-				https,
+    const options = {
+        method,
+        body,
+        https,
         cookieJar,
-				responseType,
-				timeout: {
-						request: timeout,
-				},
+        responseType,
+        timeout: {
+            request: timeout,
+        },
         retry: {
             limit: retries,
             errorCodes: [
@@ -106,37 +106,37 @@ export default ({
                 'EAI_AGAIN'
             ],
         },
-				headers,
-				hooks: {
-						beforeRetry: [
-								data => {
-										log.warn(`Retrying request to ${url}`);
-								}
-						],
-				}
-		};
+        headers,
+        hooks: {
+            beforeRetry: [
+                data => {
+                    log.warn(`Retrying request to ${url}`);
+                }
+            ],
+        }
+    };
 
-		try {
-				requestClient = got.extend(options);
-		} catch(err) {
-				throw new Error(`Could not extend request client: ${err.message}`);
-		}
-		log.debug(`Requesting response from ${method}: ${url}`);
-		// make the request
-		return requestClient(url)
-				.then( res => {
-						// could do some checking here
-						if (res.statusCode == 200) {
-								if(!res.body) {
-										throw new Error('Request was successful but did not contain a body.');
-								}
-								return toData(res.body);
-						} else if (res.statusCode == 403) {
-								throw new Error('Server responsed with forbidden (403).');
-						} else {
-								throw new Error(`Failure to load data url (${res.statusCode}).`);
-						}
-				});
+    try {
+        requestClient = got.extend(options);
+    } catch(err) {
+        throw new Error(`Could not extend request client: ${err.message}`);
+    }
+    log.debug(`Requesting response from ${method}: ${url}`);
+    // make the request
+    return requestClient(url)
+        .then( res => {
+            // could do some checking here
+            if (res.statusCode == 200) {
+                if(!res.body) {
+                    throw new Error('Request was successful but did not contain a body.');
+                }
+                return toData(res.body);
+            } else if (res.statusCode == 403) {
+                throw new Error('Server responsed with forbidden (403).');
+            } else {
+                throw new Error(`Failure to load data url (${res.statusCode}).`);
+            }
+        });
 };
 
 function toSame(body) {
