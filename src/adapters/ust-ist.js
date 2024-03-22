@@ -6,48 +6,67 @@
 
 import { acceptableParameters } from '../lib/utils.js';
 import { DateTime } from 'luxon';
+
 import client from '../lib/requests.js';
+import log from '../lib/logger.js';
+
 export const name = 'ust-ist';
 
-export async function fetchData (source, cb) {
-  try {
-    const allData = await client({ url: source.url });
+// the dataUrl only works for the current date - 1 day.
+// a list of endpoints can be found at https://api.ust.is/aq/a
+// the old endpoint https://api.ust.is/aq/a/getLatest is not returning data anymore
+const currentDate = DateTime.utc().minus({ days: 1 }).toISODate(); // format "YYYY-MM-DD"
+const stationsUrl = 'https://api.ust.is/aq/a/getStations';
+const dataUrl = `https://api.ust.is/aq/a/getDate/date/${currentDate}`;
 
-    const allMeta = await client({ url: 'https://api.ust.is/aq/a/getStations' });
+log.debug(currentDate);
 
-    // Generate an array of station IDs there is data for.
-    const stations = Object.keys(allData);
-
+/**
+ * Fetches air quality data for Iceland from a specific date and compiles it into a structured format.
+ * 
+ * @param {Object} source - The source configuration object, including name and URL.
+ * @param {Function} cb - A callback function that is called with the final dataset or an error.
+ */
+export async function fetchData(source, cb) {
+    try {
+      const allData = await client({ url: dataUrl }); 
+      const allMeta = await client({ url: stationsUrl });
+      const stations = Object.keys(allData);
+  
       const measurements = stations.reduce((acc, stationId) => {
-          const stationData = allData[stationId];
-
-          const stationMeta = allMeta.find(s => s.local_id === stationData.local_id);
-          // if the line above does not find anything
-          // this line below will fail
-          // and that error will be caught outside of this loop
-          // and so we will miss all of the data because of this one error
-          const baseMeta = {
-              location: stationData.name,
-              city: stationMeta.municipality,
-              coordinates: {
-                  latitude: parseFloat(stationMeta.latitude),
-                  longitude: parseFloat(stationMeta.longitude)
-              },
-              attribution: [{
-                  name: source.name,
-                  url: source.sourceURL
-              }]
-          };
-      const latestMeasurements = parseParams(stationData.parameters);
-
-      return acc.concat(latestMeasurements.map(m => ({ ...baseMeta, ...m })));
-    }, []);
-
-    cb(null, {name: 'unused', measurements});
-  } catch (e) {
-    cb(e);
+        const stationData = allData[stationId];
+        const stationMeta = allMeta.find(s => s.local_id === stationData.local_id);
+  
+        // Skip processing this station if metadata is missing
+        if (!stationMeta) {
+          console.warn(`Metadata missing for station ID: ${stationId}. Skipping...`);
+          return acc; 
+        }
+  
+        const baseMeta = {
+          location: stationData.name,
+          city: stationMeta.municipality,
+          coordinates: {
+            latitude: parseFloat(stationMeta.latitude),
+            longitude: parseFloat(stationMeta.longitude)
+          },
+          attribution: [{
+            name: source.name,
+            url: source.sourceURL
+          }]
+        };
+  
+        const latestMeasurements = parseParams(stationData.parameters);
+  
+        return acc.concat(latestMeasurements.map(m => ({ ...baseMeta, ...m })));
+      }, []);
+      log.debug(measurements[0]);
+      cb(null, { name: 'unused', measurements });
+    } catch (e) {
+      cb(e);
+    }
   }
-}
+  
 
 /**
  * Parse object with parameters, each with a series of measurements.
@@ -73,31 +92,34 @@ export async function fetchData (source, cb) {
  * @returns [ { value: 0.154717, date: 2020-01-03 03:00:00. parameter: 'no2' }]
  *
  */
-
-function parseParams (params) {
-  // Array with the valid parameters in the object
-  const validParams = Object.keys(params).filter(p => acceptableParameters.includes(p.toLowerCase().replace('.', '')));
-
-  return validParams.map(p => {
-    // Assumes that '0' is always latest
-    const latestM = params[p]['0'];
-
-    const date = DateTime.fromFormat(latestM.endtime.trimEnd(), 'yyyy-LL-dd HH:mm:ss', { zone: 'Atlantic/Reykjavik' });
-
-    // Resolution is reported as 1h. Anything else will break.
-    const resolution = params[p].resolution === '1h'
-      ? { value: 1, unit: 'hours' }
-      : {};
-
-    return {
-      date: {
-        utc: date.toUTC().toISO({ suppressMilliseconds: true }),
-        local: date.toISO({ suppressMilliseconds: true })
-      },
-      parameter: p.toLowerCase().replace('.', ''),
-      value: parseFloat(latestM.value),
-      unit: params[p].unit,
-      averagingPeriod: resolution
-    };
-  });
-}
+function parseParams(params) {
+    // Array with the valid parameters in the object
+    const validParams = Object.keys(params).filter(p => acceptableParameters.includes(p.toLowerCase().replace('.', '')));
+  
+    return validParams.flatMap(p => {
+      const measurements = Object.keys(params[p])
+        .filter(key => !isNaN(parseInt(key))) // Filter out keys that are not indices
+        .map(index => {
+          const measurement = params[p][index];
+          const date = DateTime.fromFormat(measurement.endtime.trimEnd(), 'yyyy-LL-dd HH:mm:ss', { zone: 'Atlantic/Reykjavik' });
+  
+          const resolution = params[p].resolution === '1h'
+            ? { value: 1, unit: 'hours' }
+            : {};
+  
+          return {
+            date: {
+              utc: date.toUTC().toISO({ suppressMilliseconds: true }),
+              local: date.toISO({ suppressMilliseconds: true })
+            },
+            parameter: p.toLowerCase().replace('.', ''),
+            value: parseFloat(measurement.value),
+            unit: params[p].unit,
+            averagingPeriod: resolution
+          };
+        });
+  
+      return measurements;
+    });
+  }
+  
