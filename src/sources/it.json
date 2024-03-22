@@ -11,7 +11,7 @@
       "info@openaq.org"
     ],
     "active": true,
-    "--comment1": "// metadata generated with ../data_scripts/arpalazio.js",
+    "--comment1": "// metadata generated from https://raw.githubusercontent.com/jobonaf/calicantus/master/data/sites-info/metadata.ARPA-Lazio.csv",
     "metadata": {
       "2": { "name": "Preneste", "latitude": 41.886018, "longitude": 12.541614 },
       "3": { "name": "Francia", "latitude": 41.947447, "longitude": 12.469588 },

@@ -9,15 +9,6 @@ const yargs = _yargs(hideBin(process.argv));
  * @extends Object
  * @param {number} logLevel
  * @param {boolean} logColor
- * @param {string} psqlHost
- * @param {number} psqlPort
- * @param {string} psqlUser
- * @param {string} psqlPassword
- * @param {string} psqlDatabase
- * @param {number} psqlPoolMin
- * @param {number} psqlPoolMax
- * @param {string} apiURL
- * @param {string} webhookKey
  * @param {number} processTimeout
  * @param {string} bucketName
  * @param {number} s3ChunkSize
@@ -172,8 +163,6 @@ export default () => {
     adapter = _env.ADAPTER;
   }
 
-  const apiURL = _env.API_URL || 'http://localhost:3004/v1/webhooks'; // The url to ping on completion
-  const webhookKey = _env.WEBHOOK_KEY || '123'; // Secret key to auth with API
   const processTimeout = _env.PROCESS_TIMEOUT || 14 * 60 * 1000; // Kill the process after a certain time in case it hangs
   const bucketName = _env.AWS_BUCKET_NAME || '';
   const doSaveToS3 = _env.SAVE_TO_S3 === 'true' || +_env.SAVE_TO_S3;
@@ -181,13 +170,6 @@ export default () => {
   const maxParallelAdapters = +_env.MAX_PARALLEL_ADAPTERS || 4;
   const s3ChunkSize = +_env.S3_CHUNK_SIZE || 1048576;
 
-  const psqlHost = _env.PSQL_HOST || '127.0.0.1';
-  const psqlPort = _env.PSQL_PORT || 5432;
-  const psqlUser = _env.PSQL_USER || 'openaq';
-  const psqlPassword = _env.PSQL_PASSWORD || 'openaq-pass';
-  const psqlDatabase = _env.PSQL_DATABASE || 'openaq-local';
-  const psqlPoolMin = +_env.PSQL_POOL_MIN || 2;
-  const psqlPoolMax = +_env.PSQL_POOL_MAX || 20;
   const suffix = _env.SUFFIX || '';
 
   offset = +(offset || _env.OFFSET);
@@ -206,15 +188,6 @@ export default () => {
   return {
     logLevel,
     logColor,
-    psqlHost,
-    psqlPort,
-    psqlUser,
-    psqlPassword,
-    psqlDatabase,
-    psqlPoolMin,
-    psqlPoolMax,
-    apiURL,
-    webhookKey,
     processTimeout,
     bucketName,
     s3ChunkSize,

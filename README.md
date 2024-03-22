@@ -8,7 +8,7 @@ This is the main data ingest pipeline for the [OpenAQ](https://openaq.org) proje
 
 Starting with `index.js`, there is an ingest mechanism to gather global air quality measurements from a variety of sources. This is currently run every 10 minutes and saves all unique measurements to a database.
 
-[openaq-api](https://github.com/openaq/openaq-api) powers the API and more information on the data format can be found in [openaq-data-format](https://github.com/openaq/openaq-data-format).
+[openaq-api-v2](https://github.com/openaq/openaq-api-v2) powers the API and more information on the data format can be found in [openaq-data-format](https://github.com/openaq/openaq-data-format).
 
 For more info see the [OpenAQ-Fetch documentation index](docs/index.md).
 
@@ -24,18 +24,11 @@ Now you can get started with:
 
 `node index.js --help`
 
-For a full development quick start (with database setup etc.), please see the [dev-quick-start doc](docs/dev-quick-start.md).
-
 For production deployment, you will need to have certain environment variables set as in the table below
-
 | Name | Description | Default |
 |---|---|---|
-| SENDGRID_PASSWORD | Email service password | not set |
-| SENDGRID_USERNAME | Email service username | not set |
 | API_URL | URL of openaq-api | http://localhost:3004/v1/webhooks |
 | WEBHOOK_KEY | Secret key to interact with openaq-api | '123' |
-| AIRNOW_FTP_USER | User for AirNow FTP | not set |
-| AIRNOW_FTP_PASSWORD | Password for AirNow FTP | not set |
 | EEA_TOKEN | API token for EEA API | not set |
 | DATA_GOV_IN_TOKEN | API token for data.gov.in | not set |
 | EPA_VICTORIA_TOKEN | API token for portal.api.epa.vic.gov.au | not set |
