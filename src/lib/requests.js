@@ -38,18 +38,14 @@ const DEFAULT_HEADERS = {
  * @throws {Error} Throws an error if the URL is not provided or if an unsupported parameters type is given.
  */
 export default ({
-    url,
-    params,
-    headers,
-    timeout = REQUEST_TIMEOUT,
-    retries = REQUEST_RETRIES,
-    method = 'GET',
-    responseType = 'json',
-    as,  // new argument that will replace responseType, eventually defaulted to json
-    https = {},
-    csvOptions = { trim: true, comment: '#', skip_empty_lines: true, columns: true },
-    xmlOptions = { xmlMode: true },
-    htmlOptions = { },
+		url,
+		params,
+		headers,
+		timeout = REQUEST_TIMEOUT,
+		retries = REQUEST_RETRIES,
+		method = 'GET',
+		responseType = 'json',
+		https = {},
     cookieJar,
 }) => {
 
