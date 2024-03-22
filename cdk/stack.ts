@@ -101,7 +101,7 @@ export class RealtimeFetcherStack extends cdk.Stack {
 
     // finally we create our cron/event
     new events.Rule(this, `${id}-scheduler-cron`, {
-      schedule: events.Schedule.rate(cdk.Duration.minutes(60)),
+      schedule: events.Schedule.rate(cdk.Duration.minutes(15)),
       targets: [new eventTargets.LambdaFunction(scheduler)],
     });
   }
