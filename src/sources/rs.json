@@ -10,7 +10,7 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "http://www.amskv.sepa.gov.rs/konektori/get_json_connector_stations_map.php",

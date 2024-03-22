@@ -26,6 +26,7 @@ export default ({
 		method = 'GET',
 		responseType = 'json',
 		https = {},
+    cookieJar,
 }) => {
 
 		let body, requestClient;
@@ -52,11 +53,11 @@ export default ({
 				headers['User-Agent'] = 'OpenAQ';
 		}
 
-		https = {};
 		const options = {
 				method,
 				body,
 				https,
+        cookieJar,
 				responseType,
 				timeout: {
 						request: timeout,
