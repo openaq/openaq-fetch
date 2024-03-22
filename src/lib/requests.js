@@ -26,7 +26,7 @@ export default ({
 		method = 'GET',
 		responseType = 'json',
 		https = {},
-    cookieJar = null,
+    cookieJar,
 }) => {
 
 		let body, requestClient;
