@@ -18,22 +18,26 @@ export async function fetchData (source, cb) {
     // Generate an array of station IDs there is data for.
     const stations = Object.keys(allData);
 
-    const measurements = stations.reduce((acc, stationId) => {
-      const stationData = allData[stationId];
-      const stationMeta = allMeta.find(s => s.local_id === stationData.local_id);
+      const measurements = stations.reduce((acc, stationId) => {
+          const stationData = allData[stationId];
 
-      const baseMeta = {
-        location: stationData.name,
-        city: stationMeta.municipality,
-        coordinates: {
-          latitude: parseFloat(stationMeta.latitude),
-          longitude: parseFloat(stationMeta.longitude)
-        },
-        attribution: [{
-          name: source.name,
-          url: source.sourceURL
-        }]
-      };
+          const stationMeta = allMeta.find(s => s.local_id === stationData.local_id);
+          // if the line above does not find anything
+          // this line below will fail
+          // and that error will be caught outside of this loop
+          // and so we will miss all of the data because of this one error
+          const baseMeta = {
+              location: stationData.name,
+              city: stationMeta.municipality,
+              coordinates: {
+                  latitude: parseFloat(stationMeta.latitude),
+                  longitude: parseFloat(stationMeta.longitude)
+              },
+              attribution: [{
+                  name: source.name,
+                  url: source.sourceURL
+              }]
+          };
       const latestMeasurements = parseParams(stationData.parameters);
 
       return acc.concat(latestMeasurements.map(m => ({ ...baseMeta, ...m })));
