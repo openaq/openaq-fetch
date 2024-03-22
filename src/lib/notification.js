@@ -6,27 +6,26 @@ import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 const sns = new SNSClient();
 
 /**
-* Ping openaq-api to let it know cause fetching is complete
-* @param {function} cb A function of form func(cause) called on completion
-*/
+ * Ping openaq-api to let it know cause fetching is complete
+ * @param {function} cb A function of form func(cause) called on completion
+ */
 async function sendUpdatedWebhook (apiURL, webhookKey) {
-  var form = {
-    key: webhookKey,
-    action: 'DATABASE_UPDATED'
-  };
-  return promisify(request.post)(apiURL, { form: form });
+    var form = {
+        key: webhookKey,
+        action: 'DATABASE_UPDATED'
+    };
+    return promisify(request.post)(apiURL, { form: form });
 }
 
 async function publish(message, subject) {
-		// the following just looks better in the log
-		if(process.env.TOPIC_ARN) {
-				const cmd = new PublishCommand({
-						TopicArn: process.env.TOPIC_ARN,
-						Subject: subject,
-						Message: JSON.stringify(message),
-				});
-				await sns.send(cmd);
-		}
+    if(process.env.TOPIC_ARN) {
+        const cmd = new PublishCommand({
+            TopicArn: process.env.TOPIC_ARN,
+            Subject: subject,
+            Message: JSON.stringify(message),
+        });
+        await sns.send(cmd);
+    }
 }
 
 /**
@@ -49,7 +48,6 @@ export function reportAndRecordFetch (fetchReport, sources, env, apiURL, webhook
             return acc;
         }, {});
 
-
         const failures = fetchReport.results
               .filter(r => !r.count);
 
@@ -59,10 +57,13 @@ export function reportAndRecordFetch (fetchReport, sources, env, apiURL, webhook
         failures.map(r => {
             log.debug(r);
         });
-        log.info(`Dry run finished with ${successes.length} successes and ${failures.length} failures in ${(fetchReport.timeEnded - fetchReport.timeStarted)/1000} seconds`);
+        successes.map(r => {
+            log.debug(r);
+        });
+        log.info(`finished with ${successes.length} successes and ${failures.length} failures in ${(fetchReport.timeEnded - fetchReport.timeStarted)/1000} seconds`);
 
         if (!env.dryrun) {
-		        await publish(fetchReport.results, 'fetcher/success');
+            await publish(fetchReport.results, 'fetcher/success');
         }
 
         return 0;
