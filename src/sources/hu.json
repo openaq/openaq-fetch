@@ -10,7 +10,7 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": true
+        "active": false
     },
     {
         "url": "https://legszennyezettseg.met.hu/api/terkep/",
