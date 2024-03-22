@@ -55,38 +55,43 @@ const formatData = function (features) {
 
     properties.data.forEach((dataItem) => {
       Object.entries(dataItem).forEach(([key, value]) => {
-        if (value !== null && Object.keys(parameters).includes(key)) {
-          const utcTime = DateTime.fromISO(dataItem.time, {
-            zone: 'utc',
-          });
-          const localTime = utcTime.setZone('Africa/Kigali');
-          const parameter = parameters[key];
+        try { 
+          if (value !== null && Object.keys(parameters).includes(key)) {
+            const utcTime = DateTime.fromISO(dataItem.time, {
+              zone: 'utc',
+            });
+            const localTime = utcTime.setZone('Africa/Kigali');
+            const parameter = parameters[key];
 
-          measurements.push({
-            location: properties.title,
-            city: ' ',
-            parameter: parameter.name,
-            value: value,
-            unit: parameter.unit,
-            date: {
-              utc: utcTime.toISO({ suppressMilliseconds: true }),
-              local: localTime.toISO({ suppressMilliseconds: true }),
-            },
-            coordinates: {
-              latitude,
-              longitude,
-            },
-            attribution: [
-              {
-                name: 'Rwanda Environment Management Authority',
-                url: 'https://aq.rema.gov.rw/',
+            measurements.push({
+              location: properties.title,
+              city: ' ',
+              parameter: parameter.name,
+              value: value,
+              unit: parameter.unit,
+              date: {
+                utc: utcTime.toISO({ suppressMilliseconds: true }),
+                local: localTime.toISO({ suppressMilliseconds: true }),
               },
-            ],
-            averagingPeriod: {
-              unit: 'hours',
-              value: 1,
-            },
-          });
+              coordinates: {
+                latitude,
+                longitude,
+              },
+              attribution: [
+                {
+                  name: 'Rwanda Environment Management Authority',
+                  url: 'https://aq.rema.gov.rw/',
+                },
+              ],
+              averagingPeriod: {
+                unit: 'hours',
+                value: 1,
+              },
+            });
+          }
+        } catch (error) { 
+          log.error(`Error processing measurement for ${properties.title}: ${error}`);
+        
         }
       });
     });
