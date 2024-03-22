@@ -16,11 +16,12 @@ const deploymentsArray = [
     source: 'London Air Quality Network'
   },
   // The eea provider has a lag and so we need to use the offset
-  {
-    name: 'eea',
-    adapter: 'eea-direct',
-    offset: 24
-  },
+  // old eea adapter, data URL is walled with permission requirements
+  // {
+  //   name: 'eea',
+  //   adapter: 'eea-direct',
+  //   offset: 24
+  // },
   // one of ACUMAR's stations is always late
   {
     name: 'acumar',
