@@ -15,11 +15,11 @@ export const name = 'ust-ist';
 // the dataUrl only works for the current date - 1 day.
 // a list of endpoints can be found at https://api.ust.is/aq/a
 // the old endpoint https://api.ust.is/aq/a/getLatest is not returning data anymore
-const currentDate = DateTime.utc().minus({ days: 1 }).toISODate(); // format "YYYY-MM-DD"
+const yesterday = DateTime.utc().minus({ days: 1 }).toISODate(); // format "YYYY-MM-DD"
 const stationsUrl = 'https://api.ust.is/aq/a/getStations';
-const dataUrl = `https://api.ust.is/aq/a/getDate/date/${currentDate}`;
+const dataUrl = `https://api.ust.is/aq/a/getDate/date/${yesterday}`;
 
-log.debug(currentDate);
+log.debug(yesterday);
 
 /**
  * Fetches air quality data for Iceland from a specific date and compiles it into a structured format.
