@@ -43,7 +43,8 @@ function buildUrl(parameter, timestamp) {
 export async function fetchData(source, cb) {
     const measurements = [];
     // time ending, need to go back one hour
-    const datetime = hourUTC(-1).toFormat('yyyyMMddHHmmss');
+    const offset = -1 - (source.offset || 0);
+    const datetime = hourUTC(offset).toFormat('yyyyMMddHHmmss');
 
     // for each parameter we need to do a new call
     const data = await Promise.all(Object.keys(parameters).map( async param => {
