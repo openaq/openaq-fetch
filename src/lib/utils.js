@@ -68,7 +68,7 @@ export function __dirname () {
 
 /**
  * Transforms latitude and longitude coordinates from a specified projection system to the EPSG:4326 system.
- * 
+ *
  * @param {number|string} latitude The latitude in degrees or as a string.
  * @param {number|string} longitude The longitude in degrees or as a string.
  * @param {string} [proj='EPSG:4326'] The current projection of the coordinates.
@@ -103,10 +103,24 @@ export function parseCoordinates(latitude, longitude, proj) {
     };
 }
 
+
+/**
+ * Helper function to get the current truncated hour in UTC
+ * @param {int} hours the number of hours (+/-) to adjust the time
+ * @returns {DateTime}
+ */
+export function hourUTC(hours=0) {
+    return DateTime
+        .now()
+        .plus({ hours })
+        .set({ minute: 0, second: 0, millisecond: 0 })
+        .toUTC();
+}
+
 /**
  * Parses a timestamp string according to a specified format and timezone,
  * returning the time in UTC.
- * 
+ *
  * @param {string} str The timestamp string to parse.
  * @param {string} format The format string used to parse the timestamp.
  * @param {string} [zone='utc'] The timezone of the input timestamp.
@@ -131,7 +145,7 @@ export function parseTimestamp(str, format, zone='utc') { // we do not need loca
 
 /**
  * Normalizes air quality measurement parameters by removing dots and underscores and converting to lowercase.
- * 
+ *
  * @param {Object} m A measurement object containing the parameter to normalize.
  * @returns {Object} The measurement with the normalized parameter.
  */
@@ -145,7 +159,7 @@ export function unifyParameters (m) {
 
 /**
  * Converts a string to title case, capitalizing the first letter of each word.
- * 
+ *
  * @param {string} str The string to convert to title case.
  * @returns {string} The string in title case.
  */
@@ -175,7 +189,7 @@ export function safeParse (json) {
 
 /**
  * Delays execution for a specified amount of time, or defers it to the next event loop iteration.
- * 
+ *
  * @param {number} [timeout=0] The delay in milliseconds before resolving the promise. If 0, defers to next event loop iteration.
  * @returns {Promise<void>} A promise that resolves after the specified timeout.
  */
@@ -189,7 +203,7 @@ export async function defer (timeout = 0) {
 
 /**
  * Filters out measurements that do not match the acceptable parameters list.
- * 
+ *
  * @param {Array} measurements An array of measurement objects to filter.
  * @returns {Array} An array of measurements that have acceptable parameters.
  */
@@ -199,7 +213,7 @@ export function removeUnwantedParameters (measurements) {
 
 /**
  * Promisifies the request operation for making HTTP GET requests.
- * 
+ *
  * @param {string} url The URL to which the request is sent.
  * @param {Object} [options={}] Optional parameters and request headers.
  * @returns {Promise<*>} A promise that resolves with the response data upon successful completion of the request.
@@ -219,7 +233,7 @@ export async function promiseRequest (url, options = {}) {
 
 /**
  * Promisifies the request operation for making HTTP POST requests.
- * 
+ *
  * @param {string} url The URL to which the request is sent.
  * @param {Object} formParams Parameters to be sent in the body of the POST request.
  * @returns {Promise<*>} A promise that resolves with the response data upon successful completion of the request.

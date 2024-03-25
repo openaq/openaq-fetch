@@ -14,7 +14,7 @@
     },
     {
         "adapter": "eea-utdviewer",
-        "name": "eea-utdviewer",
+        "name": "eea",
         "description": "Estonian data from UTD service",
         "contacts": [
             "info@openaq.org"
