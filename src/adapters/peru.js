@@ -32,6 +32,12 @@ const pollutants = [ // all available parameters
   // 'rs',
 ];
 
+/**
+ * Fetches air quality data from the OEFA Peru data source for all specified stations within a given time range.
+ *
+ * @param {Object} source An object containing configuration details for the data source
+ * @param {Function} cb A callback function to pass the fetched data
+ */
 export async function fetchData (source, cb) {
   try {
 		// because we have do not have the ability to query the api
@@ -69,6 +75,13 @@ export async function fetchData (source, cb) {
   }
 }
 
+/**
+ * Transforms raw data from the OEFA Peru API response into a standardized format
+ * 
+ * @param {Object} data A single station's latest data object received from the OEFA Peru API, containing
+ * pollutant levels, station information, and a timestamp.
+ * @returns {Array} An array of objects, each representing a formatted measurement
+ */
 function formatData (data) {
   const measurements = [];
 
@@ -103,8 +116,13 @@ function formatData (data) {
   return measurements;
 }
 
-
-
+/**
+ * Asynchronously sends a request to the OEFA Peru API for air quality data
+ * 
+ * @param {Number} idStation The ID of the station for which data is being requested.
+ * @param {Object} source An object containing configuration details for the data source
+ * @returns {Promise<Object|null>} A promise that resolves to an object containing the station ID and the latest data object, or null if no data is available
+ */
 async function createRequest(idStation, source) {
 		const body = {
 				user: source.credentials.user,
@@ -115,7 +133,7 @@ async function createRequest(idStation, source) {
 		};
 
 		try {
-				//log.debug(`Sending request for station ID: ${idStation} (${source.from} - ${source.to}) to ${source.url}`);
+				log.debug(`Sending request for station ID: ${idStation} (${source.from} - ${source.to}) to ${source.url}`);
 				const response = await got.post(source.url, {
 						json: body,
 						responseType: 'json',
