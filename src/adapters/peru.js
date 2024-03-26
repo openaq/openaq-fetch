@@ -3,7 +3,6 @@
  * and returning data for the OEFA Peru data source.
  */
 
-import got from 'got';
 import { DateTime } from 'luxon';
 import log from '../lib/logger.js';
 import client from '../lib/requests.js';
@@ -135,12 +134,6 @@ async function createRequest(idStation, source) {
 
 		try {
 				log.debug(`Sending request for station ID: ${idStation} (${source.from} - ${source.to}) to ${source.url}`);
-
-        //const response = await g(source.url);
-				//const response = await got.post(source.url, {
-				//		json: body,
-				//		responseType: 'json',
-				//});
 
 				const response = await client({
             url: source.url,
