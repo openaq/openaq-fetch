@@ -19,7 +19,7 @@ const DEFAULT_HEADERS = {
 
 /**
  * Executes HTTP requests with support for different response types and data processing methods.
- * 
+ *
  * @param {Object} options - The configuration options for the request.
  * @param {string} options.url - The URL to request.
  * @param {Object} [options.params] - URL parameters for GET requests or data for POST requests.
@@ -166,7 +166,7 @@ function toSame(body) {
 
 /**
  * Parses a CSV formatted response body using the provided options.
- * 
+ *
  * @param {string} body - The CSV string to parse.
  * @param {Object} options - The options for CSV parsing.
  * @returns {Object[]} An array of objects representing the parsed CSV data.
@@ -177,7 +177,7 @@ function toCSV(body, options) {
 
 /**
  * Parses an XML formatted response body into a cheerio object for easy manipulation and querying.
- * 
+ *
  * @param {string} body - The XML string to parse.
  * @param {Object} options - The options for XML parsing, with xmlMode set to true by default.
  * @returns {Object} A cheerio object representing the parsed XML document.
@@ -190,7 +190,7 @@ function toXML(body, options) {
 
 /**
  * Parses an HTML formatted response body into a cheerio object for easy manipulation and querying.
- * 
+ *
  * @param {string} body - The HTML string to parse.
  * @param {Object} options - The options for HTML parsing.
  * @returns {Object} A cheerio object representing the parsed HTML document.
