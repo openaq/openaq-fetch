@@ -37,5 +37,19 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "https://sistemas.oefa.gob.pe/openaq/backend/consulta/inf",
+        "adapter": "peru",
+        "name": "peru-oefa",
+        "city": "Lima",
+        "country": "PE",
+        "description": "",
+				"stationCount": 60,
+        "sourceURL": "https://www.gob.pe/oefa",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]

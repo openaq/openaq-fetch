@@ -10,11 +10,6 @@ import { load } from 'cheerio';
 
 const DEFAULT_HEADERS = {
     'User-Agent': 'OpenAQ',
-    accept: "application/json, text/javascript, */*; q=0.01",
-    "accept-language": "en-US,en;q=0.9",
-    "cache-control": "no-cache",
-    "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-    pragma: "no-cache",
 };
 
 /**
@@ -53,7 +48,7 @@ export default ({
     cookieJar,
 }) => {
 
-    let body, requestClient, toData = toSame;
+    let json, requestClient, toData = toSame;
     if (!url) throw new Error('No url passed to request client');
 
     // How would we like the data returned?
@@ -86,11 +81,14 @@ export default ({
 
     if(params && typeof(params) === 'object') {
         // convert to string
-        const q = new URLSearchParams(params);
-        if(method == 'GET') {
+        switch (method.toLowerCase()) {
+            case 'get':
+            const q = new URLSearchParams(params);
             url = `${url}?${q.toString()}`;
-        } else if(method == 'POST') {
-            body = `${q.toString()}`;
+            break;
+            case 'post':
+            json = params;
+            break;
         }
     } else if(params) {
         throw new Error(`Parameters must be passed as an object and not as ${typeof(params)}`);
@@ -107,7 +105,7 @@ export default ({
 
     const options = {
         method,
-        body,
+        json,
         https,
         cookieJar,
         responseType,
@@ -141,11 +139,13 @@ export default ({
     } catch(err) {
         throw new Error(`Could not extend request client: ${err.message}`);
     }
-    log.debug(`Requesting response from ${method}: ${url}`);
+    log.debug(`Requesting response from ${method}/${responseType}: ${url}`);
     // make the request
+
     return requestClient(url)
         .then( res => {
             // could do some checking here
+            log.debug('Request successful');
             if (res.statusCode == 200) {
                 if(!res.body) {
                     throw new Error('Request was successful but did not contain a body.');

@@ -72,7 +72,7 @@ export class RealtimeFetcherStack extends cdk.Stack {
         description: `Fetcher for ${id}`,
         code: lambda.Code.fromAsset('../src'),
         handler: 'fetch.handler',
-        memorySize: 1024,
+        memorySize: 2048,
         runtime: lambda.Runtime.NODEJS_18_X,
         timeout: cdk.Duration.seconds(900),
         environment: env,
