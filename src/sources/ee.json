@@ -15,10 +15,10 @@
     {
         "adapter": "eea-utdviewer",
         "name": "eea",
-        "description": "Estonian data from UTD service",
+        "description": "EEA data from UTD service",
         "contacts": [
             "info@openaq.org"
         ],
-        "active": false
+        "active": true
     }
 ]
