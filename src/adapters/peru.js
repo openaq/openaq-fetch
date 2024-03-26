@@ -6,6 +6,7 @@
 import got from 'got';
 import { DateTime } from 'luxon';
 import log from '../lib/logger.js';
+import client from '../lib/requests.js';
 
 import {
   FetchError,
@@ -77,7 +78,7 @@ export async function fetchData (source, cb) {
 
 /**
  * Transforms raw data from the OEFA Peru API response into a standardized format
- * 
+ *
  * @param {Object} data A single station's latest data object received from the OEFA Peru API, containing
  * pollutant levels, station information, and a timestamp.
  * @returns {Array} An array of objects, each representing a formatted measurement
@@ -118,7 +119,7 @@ function formatData (data) {
 
 /**
  * Asynchronously sends a request to the OEFA Peru API for air quality data
- * 
+ *
  * @param {Number} idStation The ID of the station for which data is being requested.
  * @param {Object} source An object containing configuration details for the data source
  * @returns {Promise<Object|null>} A promise that resolves to an object containing the station ID and the latest data object, or null if no data is available
@@ -134,24 +135,33 @@ async function createRequest(idStation, source) {
 
 		try {
 				log.debug(`Sending request for station ID: ${idStation} (${source.from} - ${source.to}) to ${source.url}`);
-				const response = await got.post(source.url, {
-						json: body,
-						responseType: 'json',
+
+        //const response = await g(source.url);
+				//const response = await got.post(source.url, {
+				//		json: body,
+				//		responseType: 'json',
+				//});
+
+				const response = await client({
+            url: source.url,
+						params: body,
+						as: 'json',
+            method: 'POST',
 				});
 
-				if (response.body.status === "3") {
-						throw new FetchError(AUTHENTICATION_ERROR, source, response.body.message);
-				} else if(response.body.status !== "1") {
-						throw new FetchError(FETCHER_ERROR, source, response.body.message);
+				if (response.status === "3") {
+						throw new FetchError(AUTHENTICATION_ERROR, source, response.message);
+				} else if(response.status !== "1") {
+						throw new FetchError(FETCHER_ERROR, source, response.message);
 				}
 
-				if (!response.body.data || response.body.data.length === 0) {
+				if (!response.data || response.data.length === 0) {
 						log.debug(`No data for station ID ${idStation}`);
 						return null;
 				} else {
 						return {
 								idStation,
-								lastDataObject: response.body.data[response.body.data.length - 1],
+								lastDataObject: response.data[response.data.length - 1],
 						};
 				}
 		} catch (error) {
