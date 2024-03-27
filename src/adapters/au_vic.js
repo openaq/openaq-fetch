@@ -1,15 +1,13 @@
 'use strict';
 
-import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import { unifyMeasurementUnits } from '../lib/utils.js';
-
-import got from 'got';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
-import parallelLimit from 'async/parallelLimit.js';
 import Bottleneck from 'bottleneck';
 
-const request = got.extend({ timeout: { request: REQUEST_TIMEOUT } });
+import { unifyMeasurementUnits } from '../lib/utils.js';
+import parallelLimit from 'async/parallelLimit.js';
+import client from '../lib/requests.js';
+import log from '../lib/logger.js';
 
 // Default rate limiting on API is set to 5 requests/sec.
 // > Please send an email to Tools.support@epa.vic.gov.au with subject
@@ -24,35 +22,22 @@ const limiter = new Bottleneck({
   minTime: (1000 / maxRequestsPerSecond) + 50 // to stagger requests out through each second adding a 50ms buffer
 });
 
+
 export const name = 'victoria';
 
-export function fetchData(source, cb) {
-  limiter.schedule(async () => {
-    try {
-      const response = await request(source.url, {
-        headers: {
-          'X-API-Key': process.env.EPA_VICTORIA_TOKEN
-        }
-      });
-      const body = response.body;
+/**
+ * This function schedules the request via a limiter to adhere to API rate limits.
+ * Upon receiving the data, it formats it using the `formatData` function before returning it through a callback.
+ *
+ * @param {Object} source The source object containing the URL and credentials for the API request.
+ * @param {Function} cb The callback function to return the data or an error.
+ */
+export async function fetchData(source, cb) {
+  const headers = { 'X-API-Key': source.credentials.token };
 
-      // Wrap everything in a try/catch in case something goes wrong
-      try {
-        // Format the data
-        formatData(body, function (err, data) {
-          // Make sure the data is valid
-          if (err || data === undefined) {
-            return cb({ message: 'Failure to parse data.' });
-          }
-          cb(null, data);
-        });
-      } catch (e) {
-        return cb({ message: 'Unknown adapter error.' });
-      }
-    } catch (error) {
-      return cb({ message: 'Failure to load data url.' });
-    }
-  });
+  limiter.schedule(() => client({ url: source.url, headers }))
+    .then(response => formatData(response, headers, cb))
+    .catch(error => cb({ message: 'Failure to load data url.', error }));
 }
 
 const parameters = {
@@ -89,21 +74,28 @@ const cities = {
   'Morwell East': 'Morwell'
 };
 
-const formatData = function (data, formatDataCB) {
-  let sites = JSON.parse(data).records;
+/**
+ * Formats raw data into a structured format suitable for further processing or storage.
+ * 
+ * @param {Object} data The raw data received from the data fetch operation.
+ * @param {Object} headers The headers used for subsequent requests for data refinement.
+ * @param {Function} formatDataCB A callback function to be called with an error or the formatted data.
+ */
+const formatData = function (data, headers, formatDataCB) {
+  log.debug(data.records[0])
+  let sites = data.records;
 
   // request measurements from each site
   const tasks = sites.map(function (site) {
       return function (cb) {
         limiter.schedule(async () => {
           try {
-            const response = await request(`https://gateway.api.epa.vic.gov.au/environmentMonitoring/v1/sites/${site.siteID}/parameters`, {
-              headers: {
-                'X-API-Key': process.env.EPA_VICTORIA_TOKEN
-              }
+            const response = await client({
+              url:`https://gateway.api.epa.vic.gov.au/environmentMonitoring/v1/sites/${site.siteID}/parameters`,
+              headers: headers
             });
-            const body = response.body;
-            const source = JSON.parse(body);
+            const body = response;
+            const source = body;
 
             // base properties shared for all measurements at this site
             const baseProperties = {
@@ -159,7 +151,7 @@ const formatData = function (data, formatDataCB) {
 
             cb(null, measurements);
           } catch (error) {
-            console.error(error, response);
+            log.error(error, response);
             return cb({ message: 'Failure to load data url.' });
           }
         });
