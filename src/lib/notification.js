@@ -58,12 +58,14 @@ export function reportAndRecordFetch (fetchReport, sources, env, apiURL, webhook
         failures.map(r => {
             log.debug(r);
         });
-        log.info(`Dry run finished with ${successes.length} successes and ${failures.length} failures in ${(fetchReport.timeEnded - fetchReport.timeStarted)/1000} seconds`);
+        log.info(`Finished with ${successes.length} successes and ${failures.length} failures in ${(fetchReport.timeEnded - fetchReport.timeStarted)/1000} seconds`);
 
         if (!env.dryrun) {
 		        await publish(fetchReport.results, 'fetcher/success');
         } else {
-            fetchReport.results.map( r => log.debug(`Parameters for ${r.sourceName}`, r.parameters));
+            // for dev purposes
+            failures.map(r => console.warn(`No results`, r));
+            fetchReport.results.map( r => log.debug(`Parameters for ${r.sourceName} - ${r.parameters}`));
         }
 
         return 0;

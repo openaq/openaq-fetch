@@ -56,7 +56,7 @@ async function fetchDataByCode(paramCode) {
     const formattedStations = await Promise.all(
         stations
         // .slice(0,2) // for testing
-        .map(async (station) => { 
+        .map(async (station) => {
             const detailedStation = await wrappedfetchMeasurments(station);
             return formatData(detailedStation, paramCode);
         })
@@ -78,7 +78,6 @@ async function fetchMeasurments(paramCode, station) {
         item_code: paramCode,
         station_code: station.STATION_CODE
     };
-
 
     try {
         const body = await client({ url: baseUrl, params, responseType: 'text' });
@@ -115,7 +114,7 @@ async function fetchStations(paramCode) {
 
     try {
         const params = { itemCode: paramCode };
-        const data = await client({ url: stationsUrl, headers, method: 'POST', params });
+        const data = await client({ url: stationsUrl, headers, method: 'GET', params });
         return data.list.map((station) => ({
             ...station,
             ...paramCodes[paramCode],

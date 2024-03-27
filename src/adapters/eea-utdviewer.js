@@ -84,7 +84,10 @@ export async function fetchData(source, cb) {
  */
 async function fetchParameter(param, timestamp) {
     const url = buildUrl(param, timestamp);
-    return await client({ url, as: 'csv' });
+    const headers = {
+        accept: 'text/csv',
+    };
+    return await client({ url, as: 'csv', headers });
 }
 
 /**
