@@ -70,7 +70,7 @@ export async function fetchData (source, cb) {
       }
     });
 
-    console.debug('Example measurements', allMeasurements.slice(0,5));
+    log.debug('Example measurements', allMeasurements.slice(0,5));
 
     cb(null, { name: 'unused', measurements: allMeasurements });
   } catch (error) {
