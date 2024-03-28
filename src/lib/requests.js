@@ -139,13 +139,12 @@ export default ({
     } catch(err) {
         throw new Error(`Could not extend request client: ${err.message}`);
     }
-    log.debug(`Requesting response from ${method}/${responseType}: ${url}`);
+    log.debug(`Requesting response from ${method}/${responseType}/${timeout}:\n${url}`);
     // make the request
 
     return requestClient(url)
         .then( res => {
             // could do some checking here
-            log.debug('Request successful');
             if (res.statusCode == 200) {
                 if(!res.body) {
                     throw new Error('Request was successful but did not contain a body.');

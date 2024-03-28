@@ -6,6 +6,7 @@
 import { DateTime } from 'luxon';
 import log from '../lib/logger.js';
 import client from '../lib/requests.js';
+import { hourUTC } from '../lib/utils.js';
 
 import {
   FetchError,
@@ -13,6 +14,7 @@ import {
   DATA_PARSE_ERROR,
 	FETCHER_ERROR,
 } from '../lib/errors.js';
+
 
 export const name = 'peru';
 
@@ -50,10 +52,10 @@ export async function fetchData (source, cb) {
 		// we should migrate to using from/to to be consistent with our other services
 	  // once we make those changes this will act as a default
 		if(!source.from) {
-				source.from = DateTime.utc().toISODate();
+				source.from = hourUTC(-4);
 		}
 		if(!source.to) {
-				source.to = DateTime.utc().toISODate();
+				source.to = hourUTC();
 		}
 
     const postResponses = stationIds.map(id =>createRequest(id, source));
@@ -133,7 +135,6 @@ async function createRequest(idStation, source) {
 		};
 
 		try {
-				log.debug(`Sending request for station ID: ${idStation} (${source.from} - ${source.to}) to ${source.url}`);
 
 				const response = await client({
             url: source.url,
@@ -149,7 +150,7 @@ async function createRequest(idStation, source) {
 				}
 
 				if (!response.data || response.data.length === 0) {
-						log.debug(`No data for station ID ${idStation}`);
+						log.debug(`No data for station ID ${idStation} / ${response.status} / ${response.message}`);
 						return null;
 				} else {
 						return {
