@@ -46,7 +46,12 @@ const deploymentsArray = [
     name: 'hanoi',
     source: 'hanoi-aqmn',
     offset: 12
-  }
+  },
+  {
+    // Delhi is slow and needs to be alone
+    name: 'delhi',
+    source: 'delhi-nct'
+  },
 ];
 
 export { deploymentsArray };
