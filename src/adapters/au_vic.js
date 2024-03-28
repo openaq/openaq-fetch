@@ -3,9 +3,6 @@
 import _ from 'lodash';
 import { DateTime } from 'luxon';
 import Bottleneck from 'bottleneck';
-
-import { unifyMeasurementUnits } from '../lib/utils.js';
-import parallelLimit from 'async/parallelLimit.js';
 import client from '../lib/requests.js';
 import log from '../lib/logger.js';
 
@@ -15,30 +12,12 @@ import log from '../lib/logger.js';
 // > reason if you want to get it increased for your subscriptions.
 const maxRequestsPerSecond = 5;
 const limiter = new Bottleneck({
-  reservoir: maxRequestsPerSecond, // allow 5 requests
+  reservoir: maxRequestsPerSecond,
   reservoirRefreshAmount: maxRequestsPerSecond,
-  reservoirRefreshInterval: 1000, // every 1000ms
+  reservoirRefreshInterval: 1000,
   maxConcurrent: 1,
-  minTime: (1000 / maxRequestsPerSecond) + 50 // to stagger requests out through each second adding a 50ms buffer
+  minTime: (1000 / maxRequestsPerSecond) + 50
 });
-
-
-export const name = 'victoria';
-
-/**
- * This function schedules the request via a limiter to adhere to API rate limits.
- * Upon receiving the data, it formats it using the `formatData` function before returning it through a callback.
- *
- * @param {Object} source The source object containing the URL and credentials for the API request.
- * @param {Function} cb The callback function to return the data or an error.
- */
-export async function fetchData(source, cb) {
-  const headers = { 'X-API-Key': source.credentials.token };
-
-  limiter.schedule(() => client({ url: source.url, headers }))
-    .then(response => formatData(response, headers, cb))
-    .catch(error => cb({ message: 'Failure to load data url.', error }));
-}
 
 const parameters = {
   'PM2.5': 'pm25',
@@ -56,7 +35,6 @@ const units = {
   'ppb': 'ppb'
 };
 
-// hardcoded mapping of location name -> city
 const cities = {
   'Coolaroo': 'Melbourne',
   'Dallas': 'Melbourne',
@@ -74,91 +52,116 @@ const cities = {
   'Morwell East': 'Morwell'
 };
 
+export const name = 'victoria';
+
 /**
- * Formats raw data into a structured format suitable for further processing or storage.
- * 
- * @param {Object} data The raw data received from the data fetch operation.
- * @param {Object} headers The headers used for subsequent requests for data refinement.
- * @param {Function} formatDataCB A callback function to be called with an error or the formatted data.
+ * Fetches data from the specified source.
+ * @param {Object} source - The data source configuration.
+ * @param {Function} cb - The callback function to handle the fetched data.
  */
-const formatData = function (data, headers, formatDataCB) {
-  log.debug(data.records[0])
-  let sites = data.records;
+export async function fetchData(source, cb) {
+  const headers = { 'X-API-Key': source.credentials.token };
 
-  // request measurements from each site
-  const tasks = sites.map(function (site) {
-      return function (cb) {
-        limiter.schedule(async () => {
-          try {
-            const response = await client({
-              url:`https://gateway.api.epa.vic.gov.au/environmentMonitoring/v1/sites/${site.siteID}/parameters`,
-              headers: headers
-            });
-            const body = response;
-            const source = body;
+  try {
+    const response = await limiter.schedule(() => client({ url: source.url, headers }));
+    const formattedData = await formatData(response, headers);
+    cb(null, formattedData);
+  } catch (error) {
+    cb({ message: 'Failure to load data url.', error });
+  }
+}
 
-            // base properties shared for all measurements at this site
-            const baseProperties = {
-              location: source.siteName,
-              city: cities[source.siteName] || source.siteName,
-              country: 'AU',
-              sourceName: source.name,
-              sourceType: 'government',
-              attribution: [{
-                name: 'EPA Victoria State Government of Victoria',
-                url: 'https://www.epa.vic.gov.au/EPAAirWatch'
-              }],
-              coordinates: {
-                latitude: source.geometry.coordinates[0],
-                longitude: source.geometry.coordinates[1]
-              }
-            };
+/**
+ * Fetches measurements for a specific site.
+ * @param {string} siteID - The ID of the site.
+ * @param {Object} headers - The request headers.
+ * @returns {Promise<Object>} - A promise that resolves to the measurement data.
+ */
+async function fetchMeasurements(siteID, headers) {
+  const url = `https://gateway.api.epa.vic.gov.au/environmentMonitoring/v1/sites/${siteID}/parameters`;
+  const response = await client({ url, headers });
+  return response;
+}
 
-            // list of all measurements at this site
-            let measurements = [];
-            if (source && source.parameters) {
-              measurements = source.parameters.map(function (parameter) {
-                if (parameter.name in parameters) {
-                  const measurement = _.cloneDeep(baseProperties);
-                  measurement.parameter = parameters[parameter.name];
+/**
+ * Formats a single row of measurement data.
+ * @param {Object} row - The row of measurement data.
+ * @param {Object} baseProperties - The base properties for the measurement.
+ * @returns {Object|null} - The formatted measurement object or null if the parameter is not found or invalid.
+ */
+function formatRow(row, baseProperties) {
+  const measurement = _.cloneDeep(baseProperties);
 
-                  // from the range of time series readings, find the 1HR_AV one
-                  const averageReadings = parameter.timeSeriesReadings.filter(function (timeSeriesReading) {
-                    return timeSeriesReading.timeSeriesName === '1HR_AV';
-                  });
+  if (parameters[row.name]) {
+    measurement.parameter = parameters[row.name];
+  } else {
+    // log.warn(`Parameter not found for row name: ${row.name}`);
+    return null;
+  }
 
-                  if (averageReadings.length && averageReadings[0].readings.length) {
-                    const reading = averageReadings[0].readings[0];
-                    if (reading.unit in units) {
-                      measurement.unit = units[reading.unit];
-                    measurement.averagingPeriod = { value: 1, unit: 'hours' };
-                      measurement.value = Number(reading.averageValue);
+  const averageReadings = row.timeSeriesReadings.filter(reading => reading.timeSeriesName === '1HR_AV');
 
-                      const date = DateTime.fromISO(reading.until, { zone: 'Australia/Melbourne' });
-                      measurement.date = {
-                        utc: date.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
-                        local: date.toFormat("yyyy-MM-dd'T'HH:mm:ssZZ")
-                      };
+  if (averageReadings.length && averageReadings[0].readings.length) {
+    const reading = averageReadings[0].readings[0];
+    if (reading.unit in units) {
+      measurement.unit = units[reading.unit];
+      measurement.averagingPeriod = { value: 1, unit: 'hours' };
+      measurement.value = Number(reading.averageValue);
 
-                      return unifyMeasurementUnits(measurement);
-                    }
-                  }
-                }
-              }).filter(function (measurement) {
-                return measurement !== null;
-              });
-            }
-
-            cb(null, measurements);
-          } catch (error) {
-            log.error(error, response);
-            return cb({ message: 'Failure to load data url.' });
-          }
-        });
+      const date = DateTime.fromISO(reading.until, { zone: 'Australia/Melbourne' });
+      measurement.date = {
+        utc: date.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+        local: date.toFormat("yyyy-MM-dd'T'HH:mm:ssZZ")
       };
+
+      return measurement;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Formats the fetched data.
+ * @param {Object} data - The fetched data.
+ * @param {Object} headers - The request headers.
+ * @returns {Promise<Object>} - A promise that resolves to the formatted data.
+ */
+async function formatData(data, headers) {
+  const sites = data.records;
+
+  const tasks = sites.map(site => async () => {
+    try {
+      const source = await limiter.schedule(() => fetchMeasurements(site.siteID, headers));
+
+      const baseProperties = {
+        location: source.siteName,
+        city: cities[source.siteName] || source.siteName,
+        country: 'AU',
+        sourceName: source.name,
+        sourceType: 'government',
+        attribution: [{
+          name: 'EPA Victoria State Government of Victoria',
+          url: 'https://www.epa.vic.gov.au/EPAAirWatch'
+        }],
+        coordinates: {
+          latitude: source.geometry.coordinates[0],
+          longitude: source.geometry.coordinates[1]
+        }
+      };
+
+      const measurements = source.parameters && source.parameters.length
+        ? source.parameters.map(parameter => formatRow(parameter, baseProperties)).filter(measurement => measurement !== null)
+        : [];
+
+      return measurements;
+    } catch (error) {
+      log.error(error);
+      throw error;
+    }
   });
 
-  parallelLimit(tasks, 1, function (err, measurements) {
-    formatDataCB(err, { name: 'unused', measurements: _.flatten(measurements) });
-  });
-};
+  const results = await Promise.all(tasks.map(task => task()));
+  log.info(`Fetched ${_.flatten(results).length} measurements from ${sites.length} sites`);
+  return { name: 'unused', measurements: _.flatten(results) };
+}
