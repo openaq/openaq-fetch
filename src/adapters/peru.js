@@ -56,11 +56,10 @@ export async function fetchData (source, cb) {
 				source.from = hourUTC(-4).toFormat('yyyy-MM-dd');
 		}
 		if(!source.to) {
-				source.to = hourUTC().toFormat('yyyy-MM-dd');
+				source.to = hourUTC(+1).toFormat('yyyy-MM-dd');
 		}
 
     const postResponses = stationIds.map(id =>createRequest(id, source));
-
     const results = await Promise.all(postResponses);
 
     let allMeasurements = [];
@@ -71,9 +70,8 @@ export async function fetchData (source, cb) {
       }
     });
 
-    log.debug('All measurements:', allMeasurements);
-    console.log('All measurements:', allMeasurements);
-    
+    console.debug('Example measurements', allMeasurements.slice(0,5));
+
     cb(null, { name: 'unused', measurements: allMeasurements });
   } catch (error) {
     cb(error);
@@ -89,7 +87,7 @@ export async function fetchData (source, cb) {
  */
 function formatData (data) {
   let measurements = [];
-  
+
   data.allDataObjects.forEach((dataObject) => {
     const { coordinates, date } = dataObject;
     const formattedDate = date.replace(' ', 'T').replace(' UTC', 'Z');
@@ -119,7 +117,7 @@ function formatData (data) {
       }
     });
   });
-  
+
   return measurements;
 }
 
