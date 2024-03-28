@@ -51,11 +51,12 @@ export async function fetchData (source, cb) {
 
 		// we should migrate to using from/to to be consistent with our other services
 	  // once we make those changes this will act as a default
+    // Peru OEFA API requires the date string formatted as 'yyyy-MM-dd'
 		if(!source.from) {
-				source.from = hourUTC(-4);
+				source.from = hourUTC(-4).toFormat('yyyy-MM-dd');
 		}
 		if(!source.to) {
-				source.to = hourUTC();
+				source.to = hourUTC().toFormat('yyyy-MM-dd');
 		}
 
     const postResponses = stationIds.map(id =>createRequest(id, source));
@@ -71,6 +72,8 @@ export async function fetchData (source, cb) {
     });
 
     log.debug('All measurements:', allMeasurements);
+    console.log('All measurements:', allMeasurements);
+    
     cb(null, { name: 'unused', measurements: allMeasurements });
   } catch (error) {
     cb(error);
@@ -85,36 +88,38 @@ export async function fetchData (source, cb) {
  * @returns {Array} An array of objects, each representing a formatted measurement
  */
 function formatData (data) {
-  const measurements = [];
-
-  const { coordinates, date } = data.lastDataObject;
-  const formattedDate = date.replace(' ', 'T').replace(' UTC', 'Z');
-  const dateLuxon = DateTime.fromISO(formattedDate);
-
-  pollutants.forEach((pollutant) => {
-    if (data.lastDataObject.hasOwnProperty(pollutant)) {
-      const value = data.lastDataObject[pollutant];
-      if (value !== null) {
-        measurements.push({
-          date: {
-            utc: dateLuxon.toUTC().toISO({ suppressMilliseconds: true}),
-            local: dateLuxon.setZone('America/Lima').toISO({ suppressMilliseconds: true}),
-          },
-          location: data.lastDataObject.station,
-          city: data.lastDataObject.district,
-          coordinates: {
-            latitude: parseFloat(coordinates.latitude),
-            longitude: parseFloat(coordinates.longitude),
-          },
-          parameter: pollutant,
-          value: parseFloat(value),
-          unit: 'µg/m³',
-          averagingPeriod: { unit: 'minutes', value: 5 },
-          attribution: [{ name: 'OEFA', url: 'https://www.gob.pe/oefa' }],
-        });
+  let measurements = [];
+  
+  data.allDataObjects.forEach((dataObject) => {
+    const { coordinates, date } = dataObject;
+    const formattedDate = date.replace(' ', 'T').replace(' UTC', 'Z');
+    const dateLuxon = DateTime.fromISO(formattedDate);
+    pollutants.forEach((pollutant) => {
+      if (dataObject.hasOwnProperty(pollutant)) {
+        const value = dataObject[pollutant];
+        if (value !== null) {
+          measurements.push({
+            date: {
+              utc: dateLuxon.toUTC().toISO({ suppressMilliseconds: true}),
+              local: dateLuxon.setZone('America/Lima').toISO({ suppressMilliseconds: true}),
+            },
+            location: dataObject.station,
+            city: dataObject.district,
+            coordinates: {
+              latitude: parseFloat(coordinates.latitude),
+              longitude: parseFloat(coordinates.longitude),
+            },
+            parameter: pollutant,
+            value: parseFloat(value),
+            unit: 'µg/m³',
+            averagingPeriod: { unit: 'minutes', value: 5 },
+            attribution: [{ name: 'OEFA', url: 'https://www.gob.pe/oefa' }],
+          });
+        }
       }
-    }
+    });
   });
+  
   return measurements;
 }
 
@@ -155,7 +160,8 @@ async function createRequest(idStation, source) {
 				} else {
 						return {
 								idStation,
-								lastDataObject: response.data[response.data.length - 1],
+                allDataObjects: response.data,
+
 						};
 				}
 		} catch (error) {
