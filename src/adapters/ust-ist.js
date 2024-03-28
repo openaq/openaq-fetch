@@ -19,11 +19,9 @@ const yesterday = DateTime.utc().minus({ days: 1 }).toISODate(); // format "YYYY
 const stationsUrl = 'https://api.ust.is/aq/a/getStations';
 const dataUrl = `https://api.ust.is/aq/a/getDate/date/${yesterday}`;
 
-log.debug(yesterday);
-
 /**
  * Fetches air quality data for Iceland from a specific date and compiles it into a structured format.
- * 
+ *
  * @param {Object} source - The source configuration object, including name and URL.
  * @param {Function} cb - A callback function that is called with the final dataset or an error.
  */
@@ -36,20 +34,20 @@ export async function fetchData(source, cb) {
         "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
         pragma: "no-cache"
     };
-      const allData = await client({ url: dataUrl, headers: headers}); 
+      const allData = await client({ url: dataUrl, headers: headers});
       const allMeta = await client({ url: stationsUrl, headers: headers});
       const stations = Object.keys(allData);
-  
+
       const measurements = stations.reduce((acc, stationId) => {
         const stationData = allData[stationId];
         const stationMeta = allMeta.find(s => s.local_id === stationData.local_id);
-  
+
         // Skip processing this station if metadata is missing
         if (!stationMeta) {
           console.warn(`Metadata missing for station ID: ${stationId}. Skipping...`);
-          return acc; 
+          return acc;
         }
-  
+
         const baseMeta = {
           location: stationData.name,
           city: stationMeta.municipality,
@@ -62,9 +60,9 @@ export async function fetchData(source, cb) {
             url: source.sourceURL
           }]
         };
-  
+
         const latestMeasurements = parseParams(stationData.parameters);
-  
+
         return acc.concat(latestMeasurements.map(m => ({ ...baseMeta, ...m })));
       }, []);
       log.debug(measurements[0]);
@@ -73,7 +71,7 @@ export async function fetchData(source, cb) {
       cb(e);
     }
   }
-  
+
 
 /**
  * Parse object with parameters, each with a series of measurements.
@@ -102,18 +100,18 @@ export async function fetchData(source, cb) {
 function parseParams(params) {
     // Array with the valid parameters in the object
     const validParams = Object.keys(params).filter(p => acceptableParameters.includes(p.toLowerCase().replace('.', '')));
-  
+
     return validParams.flatMap(p => {
       const measurements = Object.keys(params[p])
         .filter(key => !isNaN(parseInt(key))) // Filter out keys that are not indices
         .map(index => {
           const measurement = params[p][index];
           const date = DateTime.fromFormat(measurement.endtime.trimEnd(), 'yyyy-LL-dd HH:mm:ss', { zone: 'Atlantic/Reykjavik' });
-  
+
           const resolution = params[p].resolution === '1h'
             ? { value: 1, unit: 'hours' }
             : {};
-  
+
           return {
             date: {
               utc: date.toUTC().toISO({ suppressMilliseconds: true }),
@@ -125,8 +123,7 @@ function parseParams(params) {
             averagingPeriod: resolution
           };
         });
-  
+
       return measurements;
     });
   }
-  
