@@ -81,18 +81,22 @@ function createFetchObject (input, source, failures, dryRun) {
         from: null,
         to: null,
     };
+    const locations = [];
     const parameters = {};
 
     const stream = input.do((a) => {
-        if(!datetimes.from || datetimes.from < a.date.utc) {
+        if(!datetimes.from || (datetimes.from > a.date.utc)) {
             datetimes.from = a.date.utc;
         }
-        if(!datetimes.to || datetimes.to < a.date.utc) {
+        if(!datetimes.to || (datetimes.to < a.date.utc)) {
             datetimes.to = a.date.utc;
         }
         const param = a.parameter;
         if(!Object.keys(parameters).includes(param)) {
             parameters[param] = { min: 0, max: 0, nulls: 0, errors: 0, count: 0 };
+        }
+        if(!locations.includes(a.location)) {
+            locations.push(a.location);
         }
         // only go through this effort when developing
         if(dryRun) {
@@ -141,6 +145,9 @@ function createFetchObject (input, source, failures, dryRun) {
         get parameters () {
             return dryRun ? parameters : Object.keys(parameters);
         },
+        get locations () {
+            return locations.length;
+        },
         get count () {
             return fetchEnded && counts.total;
         },
@@ -165,6 +172,7 @@ function createFetchObject (input, source, failures, dryRun) {
                     failures: this.failures,
                     count: this.count,
                     duration: this.duration,
+                    locations: this.locations,
                     from: this.from,
                     to: this.to,
                     parameters: this.parameters,
