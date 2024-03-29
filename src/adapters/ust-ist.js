@@ -106,7 +106,7 @@ function parseParams(params) {
         .filter(key => !isNaN(parseInt(key))) // Filter out keys that are not indices
         .map(index => {
           const measurement = params[p][index];
-          const date = DateTime.fromFormat(measurement.endtime.trimEnd(), 'yyyy-LL-dd HH:mm:ss', { zone: 'Atlantic/Reykjavik' });
+          const date = DateTime.fromFormat(measurement.endtime.trimEnd(), 'yyyy-LL-dd HH:mm:ss', { zone: 'Atlantic/Reykjavik' }).plus({ hours: 1 });
 
           const resolution = params[p].resolution === '1h'
             ? { value: 1, unit: 'hours' }
