@@ -1,15 +1,10 @@
 'use strict';
 
-import _ from 'lodash';
 import { DateTime } from 'luxon';
 import Bottleneck from 'bottleneck';
 import client from '../lib/requests.js';
 import log from '../lib/logger.js';
 
-// Default rate limiting on API is set to 5 requests/sec.
-// > Please send an email to Tools.support@epa.vic.gov.au with subject
-// > 'EPA API Access Request: Increase rate-limiting' and a justified
-// > reason if you want to get it increased for your subscriptions.
 const maxRequestsPerSecond = 5;
 const limiter = new Bottleneck({
   reservoir: maxRequestsPerSecond,
@@ -64,8 +59,22 @@ export async function fetchData(source, cb) {
 
   try {
     const response = await limiter.schedule(() => client({ url: source.url, headers }));
-    const formattedData = await formatData(response, headers);
-    cb(null, formattedData);
+    const stations = response.records;
+
+    const measurements = [];
+
+    for (const station of stations) {
+      try {
+        const stationMeasurements = await limiter.schedule(() => fetchMeasurements(station.siteID, headers));
+        const formattedMeasurements = formatData(stationMeasurements);
+        measurements.push(...formattedMeasurements);
+      } catch (error) {
+        log.error(error);
+      }
+    }
+
+    log.info(`Fetched ${measurements.length} measurements from ${stations.length} stations`);
+    cb(null, { name: 'unused', measurements });
   } catch (error) {
     cb({ message: 'Failure to load data url.', error });
   }
@@ -90,12 +99,11 @@ async function fetchMeasurements(siteID, headers) {
  * @returns {Object|null} - The formatted measurement object or null if the parameter is not found or invalid.
  */
 function formatRow(row, baseProperties) {
-  const measurement = _.cloneDeep(baseProperties);
+  const measurement = { ...baseProperties };
 
   if (parameters[row.name]) {
     measurement.parameter = parameters[row.name];
   } else {
-    // log.warn(`Parameter not found for row name: ${row.name}`);
     return null;
   }
 
@@ -122,46 +130,29 @@ function formatRow(row, baseProperties) {
 }
 
 /**
- * Formats the fetched data.
- * @param {Object} data - The fetched data.
- * @param {Object} headers - The request headers.
- * @returns {Promise<Object>} - A promise that resolves to the formatted data.
+ * Formats the measurements data for a single station.
+ * @param {Object} measurements - The measurements data for a station.
+ * @param {Object} station - The station object.
+ * @returns {Object[]} - An array of formatted measurement objects.
  */
-async function formatData(data, headers) {
-  const sites = data.records;
-
-  const tasks = sites.map(site => async () => {
-    try {
-      const source = await limiter.schedule(() => fetchMeasurements(site.siteID, headers));
-
-      const baseProperties = {
-        location: source.siteName,
-        city: cities[source.siteName] || source.siteName,
-        country: 'AU',
-        sourceName: source.name,
-        sourceType: 'government',
-        attribution: [{
-          name: 'EPA Victoria State Government of Victoria',
-          url: 'https://www.epa.vic.gov.au/EPAAirWatch'
-        }],
-        coordinates: {
-          latitude: source.geometry.coordinates[0],
-          longitude: source.geometry.coordinates[1]
-        }
-      };
-
-      const measurements = source.parameters && source.parameters.length
-        ? source.parameters.map(parameter => formatRow(parameter, baseProperties)).filter(measurement => measurement !== null)
-        : [];
-
-      return measurements;
-    } catch (error) {
-      log.error(error);
-      throw error;
+function formatData(measurements) {
+  const baseProperties = {
+    location: measurements.siteName,
+    city: cities[measurements.siteName] || measurements.siteName,
+    country: 'AU',
+    sourceName: measurements.name,
+    sourceType: 'government',
+    attribution: [{
+      name: 'EPA Victoria State Government of Victoria',
+      url: 'https://www.epa.vic.gov.au/EPAAirWatch'
+    }],
+    coordinates: {
+      latitude: measurements.geometry.coordinates[0],
+      longitude: measurements.geometry.coordinates[1]
     }
-  });
+  };
 
-  const results = await Promise.all(tasks.map(task => task()));
-  log.info(`Fetched ${_.flatten(results).length} measurements from ${sites.length} sites`);
-  return { name: 'unused', measurements: _.flatten(results) };
+  return measurements.parameters && measurements.parameters.length
+    ? measurements.parameters.map(parameter => formatRow(parameter, baseProperties)).filter(measurement => measurement !== null)
+    : [];
 }
