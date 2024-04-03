@@ -12,12 +12,9 @@ import log from '../lib/logger.js';
 
 export const name = 'ust-ist';
 
-// the dataUrl only works for the current date - 1 day.
 // a list of endpoints can be found at https://api.ust.is/aq/a
-// the old endpoint https://api.ust.is/aq/a/getLatest is not returning data anymore
-const yesterday = DateTime.utc().minus({ days: 1 }).toISODate(); // format "YYYY-MM-DD"
 const stationsUrl = 'https://api.ust.is/aq/a/getStations';
-const dataUrl = `https://api.ust.is/aq/a/getDate/date/${yesterday}`;
+const dataUrl = `https://api.ust.is/aq/a/getLatest`
 
 /**
  * Fetches air quality data for Iceland from a specific date and compiles it into a structured format.
@@ -44,7 +41,7 @@ export async function fetchData(source, cb) {
 
         // Skip processing this station if metadata is missing
         if (!stationMeta) {
-          console.warn(`Metadata missing for station ID: ${stationId}. Skipping...`);
+          log.warn(`Metadata missing for station ID: ${stationId}. Skipping...`);
           return acc;
         }
 
@@ -66,6 +63,7 @@ export async function fetchData(source, cb) {
         return acc.concat(latestMeasurements.map(m => ({ ...baseMeta, ...m })));
       }, []);
       log.debug(measurements[0]);
+      console.log(measurements, {depth: null});
       cb(null, { name: 'unused', measurements });
     } catch (e) {
       cb(e);
@@ -124,6 +122,6 @@ function parseParams(params) {
           };
         });
 
-      return measurements;
+        return measurements;
     });
   }
