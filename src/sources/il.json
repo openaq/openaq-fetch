@@ -1,7 +1,7 @@
 [
     {
         "url": "https://air-api.sviva.gov.il/v1/envista/",
-        "adapter": "envista",
+        "adapter": "israel-envista",
         "name": "israel-envista",
         "country": "IL",
         "description": "",
