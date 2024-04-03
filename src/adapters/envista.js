@@ -4,7 +4,7 @@ import log from '../lib/logger.js';
 import client from '../lib/requests.js';
 
 import { DateTime } from 'luxon';
-import { parallel, parallelLimit } from 'async';
+import { parallelLimit } from 'async';
 import { convertUnits, unifyMeasurementUnits } from '../lib/utils.js';
 
 const headers = {
@@ -14,69 +14,57 @@ const headers = {
 export const name = 'envista';
 
 export async function fetchData(source, cb) {
-  let regionListUrl = source.url + 'regions';
+  const regionListUrl = source.url + 'regions';
 
+  try {
     const regionList = await client({
       url: regionListUrl,
       headers: headers,
     });
-    
-    let tasks = regionList.map((region) => {
-      return new Promise((resolve, reject) => {
-        handleRegion(
-          source,
-          region
-        )((err, results) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(results);
-          }
-        });
-      });
-    });
 
-    Promise.all(tasks)
-      .then((results) => {
-        results = results.flat(Infinity);
-        results = convertUnits(results);
-        return cb(null, { name: 'unused', measurements: results });
-      })
-      .catch((err) => {
-        return cb(err, []);
-      });
+    const tasks = regionList.map((region) => handleRegion(source, region));
+
+    const results = await Promise.all(tasks);
+    const flatResults = results.flat(Infinity);
+    const convertedResults = convertUnits(flatResults);
+
+    return cb(null, { name: 'unused', measurements: convertedResults });
+  } catch (err) {
+    log.error(`Error fetching data: ${err.message}`);
+    return cb({ message: 'Failure to load data url.' });
+  }
 }
 
-const handleRegion = function (source, region) {
-  let stationList = region.stations;
+async function handleRegion(source, region) {
+  const stationList = region.stations.filter(
+    (station) => station.active && hasAcceptedParameters(station)
+  );
 
-  return function (done) {
-    let tasks = [];
+  const limit = 15; // Magic number to avoid rate limiting is 16.
 
-    stationList.forEach((station) => {
-      if (station.active && hasAcceptedParameters(station)) {
-        tasks.push(function (callback) {
-          handleStation(source, region.name, station)
-            .then((measurements) => callback(null, measurements))
-            .catch((err) => callback(err));
-        });
+  return new Promise((resolve, reject) => {
+    parallelLimit(
+      stationList.map((station) => (callback) =>
+        handleStation(source, region.name, station).then(
+          (measurements) => callback(null, measurements),
+          (err) => callback(err)
+        )
+      ),
+      limit,
+      (err, results) => {
+        if (err) {
+          log.error(`Error in handleRegion: ${err.message}`);
+          reject(err);
+        } else {
+          resolve(results);
+        }
       }
-    });
+    );
+  });
+}
 
-    let limit = 15; // Magic number to avoid rate limiting is 16.
-
-    parallelLimit(tasks, limit, (err, results) => {
-      if (err) {
-        log.error(`Error in handleRegion: ${err.message}`);
-        return done(err, []);
-      }
-      return done(null, results);
-    });
-  };
-};
-
-const handleStation = async function (source, regionName, station) {
-  let stationUrl = source.url + 'stations/' + station.stationId + '/data/latest';
+async function handleStation(source, regionName, station) {
+  const stationUrl = `${source.url}stations/${station.stationId}/data/latest`;
 
   try {
     const data = await client({
@@ -90,12 +78,12 @@ const handleStation = async function (source, regionName, station) {
       });
     });
   } catch (err) {
-    log.error(`Error fetching data: ${err.message}`);
-    throw err; // Re-throw the error to be caught by the caller
+    log.error(`Error fetching station data: ${err.message}`);
+    return [];
   }
-};
+}
 
-const formatData = function (source, regionName, station, data, cb) {
+function formatData(source, regionName, station, data, cb) {
   const base = {
     location: station.name,
     city: regionName,
@@ -112,60 +100,55 @@ const formatData = function (source, regionName, station, data, cb) {
     ],
   };
 
-  const measurements = data.data.map((datapoint) =>
-    formatChannels(base, station, datapoint)
-  );
+  const measurements = data.data
+    .map((datapoint) => formatChannels(base, station, datapoint))
+    .flat()
+    .filter((measurement) => measurement);
+
   return cb(measurements);
-};
+}
 
-const formatChannels = function (base, station, datapoint) {
-  base.date = getDate(datapoint.datetime);
-  const datapoints = datapoint.channels.map((channel) => {
-    if (isAcceptedParameter(channel.name)) {
-      return getMeasurement(base, station, channel);
-    }
-  });
-  const filteredData = datapoints.filter((point) => point); // removes undefined/invalid measurements
-  return filteredData;
-};
+function formatChannels(base, station, datapoint) {
+  const date = getDate(datapoint.datetime);
 
-const hasAcceptedParameters = function (station) {
+  return datapoint.channels
+    .filter((channel) => isAcceptedParameter(channel.name))
+    .map((channel) => ({
+      ...base,
+      ...date,
+      parameter: channel.name.toLowerCase().split('.').join(''),
+      value: channel.value,
+      unit: getUnit(station, channel),
+    }))
+    .map(unifyMeasurementUnits);
+}
+
+function hasAcceptedParameters(station) {
   const stationParameters = station.monitors.map((monitor) =>
     monitor.name.toLowerCase().split('.').join('')
   );
-  const stationAcceptableParameters = acceptableParameters.filter(
-    (param) => !stationParameters.includes(param)
+  return acceptableParameters.some((param) =>
+    stationParameters.includes(param)
   );
-  return Boolean(stationAcceptableParameters);
-};
+}
 
-const isAcceptedParameter = function (parameter) {
+function isAcceptedParameter(parameter) {
   return acceptableParameters.includes(
     parameter.toLowerCase().split('.').join('')
   );
-};
+}
 
-const getMeasurement = function (base, station, channel) {
-  let measurement = { ...base };
-  let parameterName = channel.name.toLowerCase().split('.').join('');
-  measurement.parameter = parameterName;
-  measurement.value = channel.value;
-  measurement.unit = getUnit(station, channel);
-  measurement = unifyMeasurementUnits(measurement);
-  return measurement;
-};
-
-const getUnit = function (station, channel) {
+function getUnit(station, channel) {
   return station.monitors.find(
     (monitor) => monitor.channelId === channel.id
   ).units;
-};
+}
 
 function getDate(value) {
   const dt = DateTime.fromISO(value).setZone('Asia/Jerusalem');
   const utc = dt.toUTC().toISO({ suppressMilliseconds: true });
   const local = dt.toISO({ suppressMilliseconds: true });
-  return { utc, local };
+  return { date: { utc, local } };
 }
 
 const acceptableParameters = [
