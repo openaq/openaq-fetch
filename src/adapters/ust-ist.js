@@ -12,12 +12,9 @@ import log from '../lib/logger.js';
 
 export const name = 'ust-ist';
 
-// the dataUrl only works for the current date - 1 day.
 // a list of endpoints can be found at https://api.ust.is/aq/a
-// the old endpoint https://api.ust.is/aq/a/getLatest is not returning data anymore
-const yesterday = DateTime.utc().minus({ days: 1 }).toISODate(); // format "YYYY-MM-DD"
 const stationsUrl = 'https://api.ust.is/aq/a/getStations';
-const dataUrl = `https://api.ust.is/aq/a/getDate/date/${yesterday}`;
+const dataUrl = `https://api.ust.is/aq/a/getLatest`;
 
 /**
  * Fetches air quality data for Iceland from a specific date and compiles it into a structured format.
@@ -44,7 +41,7 @@ export async function fetchData(source, cb) {
 
         // Skip processing this station if metadata is missing
         if (!stationMeta) {
-          console.warn(`Metadata missing for station ID: ${stationId}. Skipping...`);
+          log.warn(`Metadata missing for station ID: ${stationId}. Skipping...`);
           return acc;
         }
 
@@ -65,7 +62,7 @@ export async function fetchData(source, cb) {
 
         return acc.concat(latestMeasurements.map(m => ({ ...baseMeta, ...m })));
       }, []);
-      log.debug(measurements[0]);
+      console.debug("Example measurements", measurements.slice(-5));
       cb(null, { name: 'unused', measurements });
     } catch (e) {
       cb(e);
@@ -102,28 +99,36 @@ function parseParams(params) {
     const validParams = Object.keys(params).filter(p => acceptableParameters.includes(p.toLowerCase().replace('.', '')));
 
     return validParams.flatMap(p => {
-      const measurements = Object.keys(params[p])
-        .filter(key => !isNaN(parseInt(key))) // Filter out keys that are not indices
-        .map(index => {
-          const measurement = params[p][index];
-          const date = DateTime.fromFormat(measurement.endtime.trimEnd(), 'yyyy-LL-dd HH:mm:ss', { zone: 'Atlantic/Reykjavik' });
+        const measurements = Object.keys(params[p])
+              .filter(key => !isNaN(parseInt(key))) // Filter out keys that are not indices
+              .map(index => {
+                  const measurement = params[p][index];
+                  // arguement for assuming time beginning even though the variable name is 'endtime'
+                  // ----------------------------------------------------------------------------------
+                  // When we look at their endpoint for a full days worth of data e.g. https://api.ust.is/aq/a/getDate/date/2024-04-02
+                  // We see 24 hours with the first hour having an endtime of 00:00:00 and the last hour being 23:00:00
+                  // and so we assume that the data here is time beginning (i.e. the data for 23:00:00 is the average from 11pm to midnight)
+                  // And then when we look at the latest data we see essentially the same thing
+                  // where the two endpoints overlap the data for the overlapping hours match
+                  // and we dont see data for the previous hour, always for 2 hours back, suggesting the previous hour is marked time beginning
+                  const date = DateTime.fromFormat(measurement.endtime.trimEnd(), 'yyyy-LL-dd HH:mm:ss', { zone: 'Atlantic/Reykjavik' }).plus({ hours: 1 });
 
-          const resolution = params[p].resolution === '1h'
-            ? { value: 1, unit: 'hours' }
-            : {};
+                  const resolution = params[p].resolution === '1h'
+                        ? { value: 1, unit: 'hours' }
+                        : {};
 
-          return {
-            date: {
-              utc: date.toUTC().toISO({ suppressMilliseconds: true }),
-              local: date.toISO({ suppressMilliseconds: true })
-            },
-            parameter: p.toLowerCase().replace('.', ''),
-            value: parseFloat(measurement.value),
-            unit: params[p].unit,
-            averagingPeriod: resolution
-          };
-        });
+                  return {
+                      date: {
+                          utc: date.toUTC().toISO({ suppressMilliseconds: true }),
+                          local: date.toISO({ suppressMilliseconds: true })
+                      },
+                      parameter: p.toLowerCase().replace('.', ''),
+                      value: parseFloat(measurement.value),
+                      unit: params[p].unit,
+                      averagingPeriod: resolution
+                  };
+              });
 
-      return measurements;
+        return measurements;
     });
-  }
+}
