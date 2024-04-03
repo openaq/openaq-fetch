@@ -16,7 +16,6 @@ export const name = 'envista';
 export async function fetchData(source, cb) {
   let regionListUrl = source.url + 'regions';
 
-  try {
     const regionList = await client({
       url: regionListUrl,
       headers: headers,
@@ -46,9 +45,6 @@ export async function fetchData(source, cb) {
       .catch((err) => {
         return cb(err, []);
       });
-  } catch (err) {
-    return cb({ message: 'Failure to load data url.' });
-  }
 }
 
 const handleRegion = function (source, region) {
