@@ -1,19 +1,17 @@
 'use strict';
 
+import log from '../lib/logger.js';
+import client from '../lib/requests.js';
+
+import got from 'got';
 import { default as baseRequest } from 'request';
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import { DateTime } from 'luxon';
-const { difference, flattenDeep } = pkg;
-import pkg from 'lodash';
 import { parallel, parallelLimit } from 'async';
 import { convertUnits, unifyMeasurementUnits } from '../lib/utils.js';
 
 const headers = {
-  'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0',
-  'Accept': 'text/html,application/json,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-  'Content-Type': 'text/html; charset=utf-8',
-  'envi-data-source': 'MANA',
-  'Authorization': 'ApiToken ' + `${process.env.ISRAEL_ENVISTA_TOKEN}`
+  'Authorization': 'ApiToken ' + `1cab20bf-0248-493d-aedc-27aa94445d15`,
 };
 
 const requestHeaders = baseRequest.defaults({
@@ -42,7 +40,7 @@ export function fetchData (source, cb) {
       if (err) {
         return cb(err, []);
       }
-      results = flattenDeep(results);
+      results = results.flat(Infinity);
       results = convertUnits(results);
       return cb(err, {name: 'unused', measurements: results});
     });
@@ -115,13 +113,13 @@ const formatChannels = function (base, station, datapoint) {
       return getMeasurement(base, station, channel);
     }
   });
-  const filteredData = datapoints.filter(point => (point)); // removes undefined/invalid measurements
+  const filteredData = datapoints.filter(point => point); // removes undefined/invalid measurements
   return filteredData;
 };
 
 const hasAcceptedParameters = function (station) {
   const stationParameters = station.monitors.map(monitor => monitor.name.toLowerCase().split('.').join(""));
-  const stationAcceptableParameters = difference(acceptableParameters, stationParameters);
+  const stationAcceptableParameters = acceptableParameters.filter(param => !stationParameters.includes(param));
   return Boolean(stationAcceptableParameters);
 };
 
@@ -130,7 +128,7 @@ const isAcceptedParameter = function (parameter) {
 };
 
 const getMeasurement = function (base, station, channel) {
-  let measurement = Object.assign({}, base); 
+  let measurement = { ...base };
   let parameterName = channel.name.toLowerCase().split('.').join("");
   measurement.parameter = parameterName;
   measurement.value = channel.value
@@ -150,16 +148,9 @@ function getDate(value) {
   return { utc, local };
 }
 
-const acceptableParameters = [ // expanded params can be added by uncommenting these lines
-  // 'no',
-  // 'nox',
-  // 'ws',
-  // 'wd',
-  // 'rh',
-  // 'temp', // unit is °C, change to °F or C ?
-  // 'benzene',
+const acceptableParameters = [
   'pm25',
-  'pm10',
+  'pm10', 
   'co',
   'so2',
   'no2',
