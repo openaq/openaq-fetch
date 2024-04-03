@@ -111,7 +111,7 @@ function parseParams(params) {
                   // And then when we look at the latest data we see essentially the same thing
                   // where the two endpoints overlap the data for the overlapping hours match
                   // and we dont see data for the previous hour, always for 2 hours back, suggesting the previous hour is marked time beginning
-                  const date = DateTime.fromFormat(measurement.endtime.trimEnd(), 'yyyy-LL-dd HH:mm:ss', { zone: 'Atlantic/Reykjavik' }).plus({ hours: 1 });
+                  const date = DateTime.fromFormat(measurement.endtime.trimEnd(), 'yyyy-LL-dd HH:mm:ss', { zone: 'Atlantic/Reykjavik' });
 
                   const resolution = params[p].resolution === '1h'
                         ? { value: 1, unit: 'hours' }
