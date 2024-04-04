@@ -103,15 +103,8 @@ function parseParams(params) {
               .filter(key => !isNaN(parseInt(key))) // Filter out keys that are not indices
               .map(index => {
                   const measurement = params[p][index];
-                  // arguement for assuming time beginning even though the variable name is 'endtime'
-                  // ----------------------------------------------------------------------------------
-                  // When we look at their endpoint for a full days worth of data e.g. https://api.ust.is/aq/a/getDate/date/2024-04-02
-                  // We see 24 hours with the first hour having an endtime of 00:00:00 and the last hour being 23:00:00
-                  // and so we assume that the data here is time beginning (i.e. the data for 23:00:00 is the average from 11pm to midnight)
-                  // And then when we look at the latest data we see essentially the same thing
-                  // where the two endpoints overlap the data for the overlapping hours match
-                  // and we dont see data for the previous hour, always for 2 hours back, suggesting the previous hour is marked time beginning
-                  const date = DateTime.fromFormat(measurement.endtime.trimEnd(), 'yyyy-LL-dd HH:mm:ss', { zone: 'Atlantic/Reykjavik' }).plus({ hours: 1 });
+                  // datetime for the measurement is 'time ending" using /getLatest endpoint
+                  const date = DateTime.fromFormat(measurement.endtime.trimEnd(), 'yyyy-LL-dd HH:mm:ss', { zone: 'Atlantic/Reykjavik' });
 
                   const resolution = params[p].resolution === '1h'
                         ? { value: 1, unit: 'hours' }
