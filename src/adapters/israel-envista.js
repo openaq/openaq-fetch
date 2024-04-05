@@ -35,7 +35,6 @@ export async function fetchData(source, cb) {
     const convertedResults = convertUnits(flatResults);
 
     log.debug(`Example measurements: ${convertedResults.slice(0,5)} .`);
-
     return cb(null, { name: 'unused', measurements: convertedResults });
   } catch (err) {
     log.error(`Error fetching data: ${err.message}`);
@@ -163,7 +162,7 @@ function formatChannels(base, station, datapoint) {
       ...base,
       ...date,
       parameter: channel.name.toLowerCase().split('.').join(''),
-      value: channel.value === -9.999 ? -9999 : channel.value === 9.999 ? 9999 : channel.value,
+      value: channel.value,
       unit: getUnit(station, channel),
     }))
     .map(unifyMeasurementUnits);
