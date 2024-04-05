@@ -132,7 +132,14 @@ function formatData(source, regionName, station, data, cb) {
     ],
   };
 
-  const measurements = data.data
+  const timeWindow = DateTime.utc().minus({ hours: 6 });
+
+  const filteredData = data.data.filter((datapoint) => {
+    const measurementDateTime = DateTime.fromISO(datapoint.datetime);
+    return measurementDateTime >= timeWindow;
+  });
+
+  const measurements = filteredData
     .map((datapoint) => formatChannels(base, station, datapoint))
     .flat()
     .filter((measurement) => measurement);
@@ -156,7 +163,7 @@ function formatChannels(base, station, datapoint) {
       ...base,
       ...date,
       parameter: channel.name.toLowerCase().split('.').join(''),
-      value: channel.value,
+      value: channel.value === -9.999 ? -9999 : channel.value === 9.999 ? 9999 : channel.value,
       unit: getUnit(station, channel),
     }))
     .map(unifyMeasurementUnits);
