@@ -94,7 +94,6 @@ async function handleStation(source, regionName, station) {
       url: stationUrl,
       headers: headers,
     });
-
     return new Promise((resolve) => {
       formatData(source, regionName, station, data, (measurements) => {
         resolve(measurements);
@@ -122,7 +121,7 @@ function formatData(source, regionName, station, data, cb) {
       latitude: parseFloat(station.location.latitude),
       longitude: parseFloat(station.location.longitude),
     },
-    averagingPeriod: { unit: 'hours', value: 0.25 }, // Believed to update every 15 minutes
+    averagingPeriod: { unit: 'minutes', value: 5 }, // Updates every 5 minutes
     attribution: [
       {
         name: source.organization,
