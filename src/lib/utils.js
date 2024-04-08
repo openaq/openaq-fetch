@@ -31,6 +31,11 @@ export function convertUnits (input) { return input; }
 export function unifyMeasurementUnits (m) {
   if (!m || typeof m.unit !== 'string' || isNaN(+m.value)) return;
 
+  // ignore and pass through values that are known error codes
+  if (m.value === -9999 || m.value === 9999) {
+    return m;
+  }
+
   m.unit = m.unit && m.unit.toLowerCase();
 
   switch (m.unit) {
