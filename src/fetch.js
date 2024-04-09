@@ -37,8 +37,6 @@ const { DataStream } = sj;
 const env = _env();
 
 const {
-  apiURL,
-  webhookKey,
   processTimeout,
   maxParallelAdapters,
   strict,
@@ -182,8 +180,6 @@ export function handler (event, context) {
               fetchReport,
               sourcesArray,
               env,
-              apiURL,
-              webhookKey
             )
           )
       );
