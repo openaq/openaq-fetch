@@ -55,7 +55,7 @@ async function fetchDataByCode(paramCode) {
     const wrappedfetchMeasurments = limiter.wrap(fetchMeasurments.bind(null, paramCode));
     const formattedStations = await Promise.all(
         stations
-        // .slice(0,2) // for testing
+        // .slice(0,5) // for testing
         .map(async (station) => {
             const detailedStation = await wrappedfetchMeasurments(station);
             return formatData(detailedStation, paramCode);
@@ -134,7 +134,7 @@ function formatData(station, paramCode) {
     const dateTime = DateTime.fromFormat(
         station.ENG_DATA_TIME,
         'yyyy-MM-dd : HH',
-        { zone: 'UTC' }
+        { zone: 'Asia/Seoul' }
     );
 
     return {
@@ -146,8 +146,8 @@ function formatData(station, paramCode) {
         },
         parameter: station.name.toLowerCase().replace('.', ''),
         date: {
-            utc: dateTime.toISO({suppressMilliseconds: true}),
-            local: dateTime.setZone('Asia/Seoul').toISO({suppressMilliseconds: true}),
+            utc: dateTime.toUTC().toISO({suppressMilliseconds: true}),
+            local: dateTime.toISO({suppressMilliseconds: true}),
         },
         value: station.measurementValue,
         unit: paramCodes[paramCode].unit,
