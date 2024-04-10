@@ -13,6 +13,8 @@ import {
   unifyParameters,
   removeUnwantedParameters,
 } from '../lib/utils.js';
+import log from '../lib/logger.js';
+
 import got from 'got';
 import { DateTime } from 'luxon';
 import async from 'async';
@@ -46,31 +48,40 @@ const gotInstance = got.extend({
 
 export const name = 'mexico';
 
-export async function fetchData(source, cb) {
 /**
  * Fetches the data for a given source and returns an appropriate object
  * @param {object} source A valid source object
  * @param {function} cb A callback of the form cb(err, data)
  */
-  const tasks = fetchAllStationSites(
-    await gotInstance(source.sourceURL).text(),
-    source.url
-  ).map((e) => {
-    return async function () {
-      const response = await gotInstance(e);
-      return response.body;
-    };
-  });
-  async.parallel(tasks, function (err, results) {
-    if (err) {
-      return cb({ message: 'Failure to load data urls.' });
-    }
-    const data = formatData(results);
-    if (data === undefined) {
-      return cb({ message: 'Failure to parse data.' });
-    }
-    cb(null, data);
-  });
+export async function fetchData(source, cb) {
+  try {
+    log.debug(`Checking - ${source.sourceURL}`);
+    const tasks = fetchAllStationSites(
+      await gotInstance(source.sourceURL).text(),
+      source.url
+    ).map((e) => {
+      return async function () {
+        const response = await gotInstance(e);
+        return response.body;
+      };
+    });
+
+    async.parallel(tasks, function (err, results) {
+      if (err) {
+        return cb({ message: 'Failure to load data urls.' });
+      }
+
+      const data = formatData(results);
+      if (data === undefined) {
+        return cb({ message: 'Failure to parse data.' });
+      }
+
+      cb(null, data);
+    });
+  } catch (error) {
+    log.error(`Error occurred: ${error.message}`);
+    cb({ message: `An error occurred while fetching the data: ${error.message}` });
+  }
 }
 
 /**
