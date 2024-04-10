@@ -33,26 +33,31 @@ let formatData = function (source, data) {
     return name.trim();
   }
 
-  function sanitizeDate (dateString) {
+  function sanitizeDate(dateString) {
+    log.debug(`Sanitizing date: ${dateString}`);
+    let adjustedDateString = dateString.replace(/(\d{2})(\d{2}:)/, '$1 $2');
+  
     try {
       const date = DateTime.fromFormat(
-        dateString,
-        'dd/MM/yyyyHH:mm',
-        {
-          zone: 'Europe/London',
-        }
+        adjustedDateString,
+        'dd/MM/yyyy HH:mm:ss',
+        { zone: 'Europe/London' }
       );
-
+  
+      if (!date.isValid) {
+        log.debug('Invalid DateTime after adjustment:', adjustedDateString);
+        return null;
+      }
       return {
         utc: date.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
         local: date.toFormat("yyyy-MM-dd'T'HH:mm:ssZZ"),
       };
     } catch (error) {
       log.error('Error parsing date:', error);
-      throw new Error('Error parsing date');
+      return null;
     }
   }
-
+  
   function getValue(measuredValue) {
     if (measuredValue === 'n/a' || measuredValue === 'n/m') {
       return NaN;
