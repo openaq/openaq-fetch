@@ -55,6 +55,7 @@ export const name = 'mexico';
  */
 export async function fetchData(source, cb) {
   try {
+    log.debug(`Checking - ${source.sourceURL}`);
     const tasks = fetchAllStationSites(
       await gotInstance(source.sourceURL).text(),
       source.url
@@ -78,8 +79,8 @@ export async function fetchData(source, cb) {
       cb(null, data);
     });
   } catch (error) {
-    log.error('Error occurred:', error);
-    cb({ message: 'An error occurred while fetching the data.' });
+    log.error(`Error occurred: ${error.message}`);
+    cb({ message: `An error occurred while fetching the data: ${error.message}` });
   }
 }
 
