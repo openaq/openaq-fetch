@@ -16,10 +16,15 @@ export const name = 'israel-envista';
  * @param {Function} cb - The callback function to handle the fetched data.
  */
 export async function fetchData(source, cb) {
-  const headers = {
-    Authorization: 'ApiToken ' + `${source.credentials.token}`,
-  };
-  
+  let headers = {};
+
+  if (source.credentials && source.credentials.token) {
+    headers.Authorization = 'ApiToken ' + source.credentials.token;
+  } else {
+    log.error('Missing credentials or token');
+    return cb({ message: 'Missing credentials or token' });
+  }
+
   const regionListUrl = source.url + 'regions';
 
   try {
@@ -29,12 +34,12 @@ export async function fetchData(source, cb) {
     });
 
     const tasks = regionList.map((region) => handleRegion(source, region));
-
     const results = await Promise.all(tasks);
     const flatResults = results.flat(Infinity);
     const convertedResults = convertUnits(flatResults);
 
-    log.debug(`Example measurements: ${convertedResults.slice(0,5)} .`);
+    log.debug(`Example measurements: ${convertedResults.slice(0, 5)}.`);
+
     return cb(null, { name: 'unused', measurements: convertedResults });
   } catch (err) {
     log.error(`Error fetching data: ${err.message}`);
