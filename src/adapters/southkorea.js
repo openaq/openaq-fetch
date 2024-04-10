@@ -96,7 +96,7 @@ function formatData(station, paramCode) {
     );
 
     return {
-        location: station.STATION_ADDR,
+        location: station.STATION_NAME,
         city: '',
         coordinates: {
             latitude: parseFloat(station.DM_Y),
