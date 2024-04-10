@@ -35,17 +35,15 @@ let formatData = function (source, data) {
 
   function sanitizeDate(dateString) {
     log.debug(`Sanitizing date: ${dateString}`);
-    let adjustedDateString = dateString.replace(/(\d{2})(\d{2}:)/, '$1 $2');
-  
     try {
       const date = DateTime.fromFormat(
-        adjustedDateString,
-        'dd/MM/yyyy HH:mm:ss',
+        dateString,
+        'dd/MM/yyyyHH:mm:ss',
         { zone: 'Europe/London' }
       );
   
       if (!date.isValid) {
-        log.debug('Invalid DateTime after adjustment:', adjustedDateString);
+        log.debug('Invalid DateTime after adjustment:', dateString);
         return null;
       }
       return {
