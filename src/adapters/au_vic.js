@@ -55,9 +55,9 @@ export const name = 'victoria';
  * @param {Function} cb - The callback function to handle the fetched data.
  */
 export async function fetchData(source, cb) {
-  const headers = { 'X-API-Key': source.credentials.token };
 
   try {
+    const headers = { 'X-API-Key': source.credentials.token };
     const response = await limiter.schedule(() => client({ url: source.url, headers }));
     const stations = response.records;
 
