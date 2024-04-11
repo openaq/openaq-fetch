@@ -1,10 +1,7 @@
 'use strict';
 
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
-import {
-  FetchError,
-  DATA_PARSE_ERROR,
-} from '../lib/errors.js';
+import { FetchError, DATA_PARSE_ERROR } from '../lib/errors.js';
 import log from '../lib/logger.js';
 import { acceptableParameters, convertUnits } from '../lib/utils.js';
 import got from 'got';
@@ -34,8 +31,7 @@ const hourlyParameters = difference(
 
 export const name = 'arpalazio';
 
-
-export async function fetchData (source, cb) {
+export async function fetchData(source, cb) {
   try {
     const stream = await fetchStream(source, cb);
     const measurements = await stream.toArray();
@@ -46,51 +42,48 @@ export async function fetchData (source, cb) {
   }
 }
 
-
 async function fetchStream(source) {
-
-  const body = await client({ url: source.url, responseType: 'text' });
-
-  let $;
   try {
-    $ = load(body);
-  } catch (e) {
-    throw new FetchError(DATA_PARSE_ERROR, source, e);
+    const body = await client({
+      url: source.url,
+      responseType: 'text',
+    });
+    let $ = load(body);
+    const provinces = $('#provincia option')
+      .filter((i, el) => Number($(el).attr('value')) >= 0)
+      .map((i, el) => ({
+        id: $(el).attr('value'),
+        name: $(el).text(),
+      }))
+      .get();
+
+    const out = new MultiStream();
+    for (const province of provinces) {
+      const provinceHourlyURL = `${baseUrl}${provinceQueryPath}?provincia=${province.id}&dati=${hourlyAvgParam}`;
+      const provinceDailyURL = `${baseUrl}${provinceQueryPath}?provincia=${province.id}&dati=${dailyAvgParam}`;
+
+      out.add(
+        await handleProvince(
+          province.name,
+          provinceHourlyURL,
+          hourlyAvgPeriod,
+          source
+        )
+      );
+      out.add(
+        await handleProvince(
+          province.name,
+          provinceDailyURL,
+          dailyAvgPeriod,
+          source
+        )
+      );
+    }
+
+    return out.mux();
+  } catch (error) {
+    throw new FetchError(DATA_PARSE_ERROR, source, error);
   }
-
-  const provinces = $('#provincia option')
-    .filter(function (i, el) {
-      return Number($(this).attr('value')) >= 0;
-    })
-    .map(function (i, el) {
-      return { id: $(this).attr('value'), name: $(this).text() };
-    })
-    .get();
-
-  const out = new MultiStream();
-  provinces.forEach(async (province) => {
-    const provinceHourlyURL = `${baseUrl}${provinceQueryPath}?provincia=${province.id}&dati=${hourlyAvgParam}`;
-    const provinceDailyURL = `${baseUrl}${provinceQueryPath}?provincia=${province.id}&dati=${dailyAvgParam}`;
-
-    out.add(
-      await handleProvince(
-        province.name,
-        provinceHourlyURL,
-        hourlyAvgPeriod,
-        source
-      )
-    );
-    out.add(
-     await handleProvince(
-       province.name,
-       provinceDailyURL,
-       dailyAvgPeriod,
-       source
-     )
-    );
-  });
-
-  return out.mux();
 }
 
 const handleProvince = async function (
@@ -99,22 +92,21 @@ const handleProvince = async function (
   averagingPeriod,
   source
 ) {
-
   const body = await client({ url, responseType: 'text' });
 
   const $ = load(body);
-		const pollutantURLs = $('a')
-					.map(function () {
-							const pollutant = $(this).text().toLowerCase().replace('.', '');
-							const currentParameters = getParameters(averagingPeriod);
-							if (currentParameters.indexOf(pollutant) >= 0) {
-									const href = $(this).attr('href');
-									return `${baseUrl}${href}`;
-							} else {
-									return null;
-							}
-					})
-					.get();
+  const pollutantURLs = $('a')
+    .map(function () {
+      const pollutant = $(this).text().toLowerCase().replace('.', '');
+      const currentParameters = getParameters(averagingPeriod);
+      if (currentParameters.indexOf(pollutant) >= 0) {
+        const href = $(this).attr('href');
+        return `${baseUrl}${href}`;
+      } else {
+        return null;
+      }
+    })
+    .get();
 
   const arrayOfPromises = pollutantURLs.map((dataUrl) =>
     getStream(name, dataUrl, averagingPeriod, source, url)
