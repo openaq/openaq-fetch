@@ -3,14 +3,13 @@
 import { REQUEST_TIMEOUT } from '../lib/constants.js';
 import {
   FetchError,
-  DATA_URL_ERROR,
   DATA_PARSE_ERROR,
 } from '../lib/errors.js';
 import log from '../lib/logger.js';
 import { acceptableParameters, convertUnits } from '../lib/utils.js';
 import got from 'got';
 import sj from 'scramjet';
-import cheerio from 'cheerio';
+import { load } from 'cheerio';
 import difference from 'lodash/difference.js';
 import { DateTime } from 'luxon';
 
@@ -42,18 +41,19 @@ export async function fetchData (source, cb) {
     const measurements = await stream.toArray();
     cb(null, { name: stream.name, measurements });
   } catch (e) {
-    cb({ message: `fetchData error: ${e.message}` });
+    log.error(`fetchData error: ${e.message}`);
+    cb(e);
   }
 }
 
 
-async function fetchStream(source, cb) {
+async function fetchStream(source) {
 
   const body = await client({ url: source.url, responseType: 'text' });
 
   let $;
   try {
-    $ = cheerio.load(body);
+    $ = load(body);
   } catch (e) {
     throw new FetchError(DATA_PARSE_ERROR, source, e);
   }
@@ -102,7 +102,7 @@ const handleProvince = async function (
 
   const body = await client({ url, responseType: 'text' });
 
-  const $ = cheerio.load(body);
+  const $ = load(body);
 		const pollutantURLs = $('a')
 					.map(function () {
 							const pollutant = $(this).text().toLowerCase().replace('.', '');
@@ -122,7 +122,7 @@ const handleProvince = async function (
 
   return new MultiStream(
     await Promise.all(arrayOfPromises).catch((err) => {
-      log.verbose(`Promise error ${err}`);
+      log.error(`Promise error ${err}`);
       return arrayOfPromises;
     })
   ).mux();
@@ -151,7 +151,7 @@ export const getStream = function (
     /[\w]{2}_([\w.]{2,})_([\d]{4})(?:_gg)?.txt/
   );
   if (!match || match.length < 2) {
-    log.verbose(`Failed to match url ${url}`);
+    log.error(`Failed to match url ${url}`);
   }
   const parameter = match[1].toLowerCase().replace('.', '');
   const year = match[2];
@@ -161,7 +161,7 @@ export const getStream = function (
   const fewDaysAgo = +parseFloat(
     DateTime.local().setZone(timezone).minus({ days: 4 }).ordinal
   );
-  log.verbose(`Fetching data from ${url}`);
+  log.debug(`Fetching data from ${url}`);
 
   const stations = {};
   return StringStream.from(getter.stream(url))
