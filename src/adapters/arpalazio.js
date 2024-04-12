@@ -158,6 +158,9 @@ export const getStream = function (
   const stations = {};
   return StringStream.from(getter.stream(url))
     .lines(StringStream.SPLIT_LINE)
+    .catch((error) => {
+      log.error('Stream error: ', error);
+    })
     .map((x) => x.replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, ''))
     .parse((row) => row.trim().split(/\s+/g))
     .shift(1, ([header]) => {
