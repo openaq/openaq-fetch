@@ -1,6 +1,5 @@
 import Bottleneck from 'bottleneck';
 import { DateTime } from 'luxon';
-import { load } from 'cheerio';
 
 import { FetchError, DATA_URL_ERROR } from '../lib/errors.js';
 import client from '../lib/requests.js';
@@ -9,7 +8,6 @@ import log from '../lib/logger.js';
 // maximum number of concurrent requests to make to the API.
 const maxConcurrent = 32;
 
-const baseUrl = 'https://www.airkorea.or.kr/eng/vicinityStation';
 const stationsUrl = 'https://www.airkorea.or.kr/web/mRealAirInfoAjax';
 
 const paramCodes = {
@@ -52,51 +50,11 @@ export async function fetchData(source, cb) {
  */
 async function fetchDataByCode(paramCode) {
     const stations = await fetchStations(paramCode);
-    const wrappedfetchMeasurments = limiter.wrap(fetchMeasurments.bind(null, paramCode));
-    const formattedStations = await Promise.all(
-        stations
-        // .slice(0,2) // for testing
-        .map(async (station) => {
-            const detailedStation = await wrappedfetchMeasurments(station);
-            return formatData(detailedStation, paramCode);
-        })
-    );
-    const filteredStations = formattedStations.filter(station => station.value !== null);
-    return filteredStations;
-}
-
-/**
- * This fetches HTML to get the measurement value. URLs are constructed with the station code and the parameter code.
- * @param {number} paramCode - The parameter code for the pollutant being measured.
- * @param {Object} station - An object representing a station, including its code.
- * @returns {Promise<Object>} - A promise that resolves to an object containing the original station
- *                              information along with the measured value of the pollutant.
- */
-async function fetchMeasurments(paramCode, station) {
-
-    const params = {
-        item_code: paramCode,
-        station_code: station.STATION_CODE
-    };
-
-    try {
-        const body = await client({ url: baseUrl, params, responseType: 'text' });
-
-        const $ = load(body);
-        const concentrationText = $('tr.al2')
-              .filter(function () {
-                  return $(this).find('th').text().trim() === 'concentration';
-              })
-              .find('td')
-              .text()
-              .trim();
-        const measurementValue = parseFloat(concentrationText.split(' ')[0]);
-
-        return { ...station, measurementValue };
-    } catch (error) {
-        log.error('Error fetching details for station:', station.STATION_CODE, error.message);
-        return station;
-    }
+    const formattedStations = stations
+        // .slice(0, 10) // for testing
+        .map(station => formatData(station, paramCode))
+        .filter(station => station.value !== null);
+    return formattedStations;
 }
 
 /**
@@ -134,11 +92,11 @@ function formatData(station, paramCode) {
     const dateTime = DateTime.fromFormat(
         station.ENG_DATA_TIME,
         'yyyy-MM-dd : HH',
-        { zone: 'UTC' }
+        { zone: 'Asia/Seoul' }
     );
 
     return {
-        location: station.STATION_ADDR,
+        location: station.STATION_NAME,
         city: '',
         coordinates: {
             latitude: parseFloat(station.DM_Y),
@@ -146,10 +104,10 @@ function formatData(station, paramCode) {
         },
         parameter: station.name.toLowerCase().replace('.', ''),
         date: {
-            utc: dateTime.toISO({suppressMilliseconds: true}),
-            local: dateTime.setZone('Asia/Seoul').toISO({suppressMilliseconds: true}),
+            utc: dateTime.toUTC().toISO({suppressMilliseconds: true}),
+            local: dateTime.toISO({suppressMilliseconds: true}),
         },
-        value: station.measurementValue,
+        value: parseFloat(station.VALUE),
         unit: paramCodes[paramCode].unit,
         attribution: [
             {
