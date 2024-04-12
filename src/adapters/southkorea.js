@@ -95,6 +95,9 @@ function formatData(station, paramCode) {
         { zone: 'Asia/Seoul' }
     );
 
+    let value = parseFloat(station.VALUE);
+    if(isNaN(value)) value = 9999;
+
     return {
         location: station.STATION_NAME,
         city: '',
@@ -107,7 +110,7 @@ function formatData(station, paramCode) {
             utc: dateTime.toUTC().toISO({suppressMilliseconds: true}),
             local: dateTime.toISO({suppressMilliseconds: true}),
         },
-        value: parseFloat(station.VALUE),
+        value: value,
         unit: paramCodes[paramCode].unit,
         attribution: [
             {
