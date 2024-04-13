@@ -7,10 +7,6 @@
 
 import log from '../lib/logger.js';
 import client from '../lib/requests.js';
-import {
-  unifyMeasurementUnits,
-} from '../lib/utils.js';
-
 import { DateTime } from 'luxon';
 
 export const parameters = {
@@ -31,77 +27,75 @@ export const name = 'nsw';
 
 export async function fetchData(source, cb) {
   try {
+    // get an object with all the stations, keyed by Site_Id
     const stations = await fetchStations();
-    const measurements = await fetchMeasurements();
+      // get a list of all the measurements, filtered to the ones we want
+    const measures = await fetchMeasurements();
+      // format them
+    const measurements = measures.map( m => {
+        // get the station
+        const station = stations[`${m.Site_Id}`];
+        if(station) {
+            return formatData(m, stations[`${m.Site_Id}`]);
+        } else {
+            log.warn(`Could not find site information for ${m.Site_Id}`);
+            return null;
+        }
+    }).filter(d=>!!d);
 
-    const combinedData = combineData(stations, measurements);
-    const unifiedData = combinedData.map((data) => {
-      return unifyMeasurementUnits(data);
-    })
-    console.dir(unifiedData, { depth: null}
-      // .slice(0,5)
-    );
-    return cb(null, unifiedData);
+
+    return cb(null, { measurements });
   } catch (error) {
     log.error('Failed to fetch data', error);
     cb(error);
   }
 }
 
+
 async function fetchStations() {
   try {
     const response = await client({ url: stationsUrl });
-    log.debug('Stations fetched:', response.slice(0,1));
-    return response;
+    log.debug('Stations fetched:', response.length);
+    // returns an array but reshaping will make it easier to use later
+    const stations = Object.assign({}, ...response.map(item => ({[`${item.Site_Id}`]: item})));
+    return stations;
   } catch (error) {
-    log.error('Error fetching stations:', error);
-    // throw error;
+    throw new Error(`Fetch stations error: ${error.message}`);
   }
 }
 
 async function fetchMeasurements() {
   try {
 
-    const response = await client({
+    const measurements = await client({
       url: measurementsUrl,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
 
-    const filteredResponse = response.filter(measurement => {
-      // Check if the parameter is defined in our object and the unit matches
-      const paramKey = Object.keys(parameters).find(key => 
-        key.toUpperCase() === measurement.Parameter.ParameterCode.toUpperCase() &&
-        parameters[key].unit === measurement.Parameter.Units
-      );
-      return paramKey && measurement.Value !== null && measurement.Parameter.Frequency === 'Hourly average';
+      // only hourly values of core parameters
+      // we want nulls because they are missing measurements
+      // we assume that they are not measurements we could get later
+    const filteredResponse = measurements.filter(m => {
+        return parameters[m.Parameter.ParameterCode] && m.Parameter.Frequency === 'Hourly average';
     });
 
-    log.debug('Filtered Measurements:', filteredResponse.slice(0,1));
+    console.log('Filtered Measurements:', filteredResponse.slice(0,1));
     return filteredResponse;
   } catch (error) {
-    log.error('Error fetching measurements:', error);
-    // throw error; 
+      throw new Error(`Fetch measurements error: ${error.message}`);
   }
 }
 
 
-function combineData(stations, measurements) {
-  return measurements.map(measurement => {
-    const station = stations.find(s => s.Site_Id === measurement.Site_Id);
-    if (!station) {
-      log.warn('Station not found for measurement:', measurement);
-      return null;
-    }
-    return formatMeasurement(measurement, station);
-  }).filter(measurement => measurement);
-}
 
-function formatMeasurement(measurement, station) {
+function formatData(measurement, station) {
+
   const utcDate = DateTime.fromISO(`${measurement.Date}T${String(measurement.Hour).padStart(2, '0')}:00:00Z`);
   const localDate = utcDate.setZone("Australia/Sydney");
 
-  const parameterDetails = parameters[measurement.Parameter.ParameterCode]
+  const parameterDetails = parameters[measurement.Parameter.ParameterCode];
+
   return {
     location: station.SiteName,
     city: station.Region,
