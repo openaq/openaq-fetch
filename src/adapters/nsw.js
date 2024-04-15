@@ -42,8 +42,6 @@ export async function fetchData(source, cb) {
             return null;
         }
     }).filter(d=>!!d);
-
-
     return cb(null, { measurements });
   } catch (error) {
     log.error('Failed to fetch data', error);
@@ -79,8 +77,7 @@ async function fetchMeasurements() {
     const filteredResponse = measurements.filter(m => {
         return parameters[m.Parameter.ParameterCode] && m.Parameter.Frequency === 'Hourly average';
     });
-
-    console.log('Filtered Measurements:', filteredResponse.slice(0,1));
+    log.debug('Filtered Measurements:', filteredResponse.slice(0,1));
     return filteredResponse;
   } catch (error) {
       throw new Error(`Fetch measurements error: ${error.message}`);
@@ -90,9 +87,8 @@ async function fetchMeasurements() {
 
 
 function formatData(measurement, station) {
-
-  const utcDate = DateTime.fromISO(`${measurement.Date}T${String(measurement.Hour).padStart(2, '0')}:00:00Z`);
-  const localDate = utcDate.setZone("Australia/Sydney");
+  // source data is in Sydney time
+  const localDate = DateTime.fromISO(`${measurement.Date}T${String(measurement.Hour).padStart(2, '0')}:00:00`, { zone: 'Australia/Sydney' });
 
   const parameterDetails = parameters[measurement.Parameter.ParameterCode];
 
@@ -107,7 +103,7 @@ function formatData(measurement, station) {
       longitude: parseFloat(station.Longitude),
     },
     date: {
-      utc: utcDate.toUTC().toISO({suppressMilliseconds: true}),
+      utc: localDate.toUTC().toISO({suppressMilliseconds: true}),
       local: localDate.toISO({suppressMilliseconds: true})
     },
     averagingPeriod: {

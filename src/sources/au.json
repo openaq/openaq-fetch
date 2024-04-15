@@ -1,13 +1,13 @@
 [
     {
-        "url": " ",
+        "url": "https://data.airquality.nsw.gov.au/api/Data/get_Observations",
         "adapter": "nsw",
         "name": "Australia - New South Wales",
         "city": " ",
         "country": "AU",
         "description": "Measurements from the State of New South Wales (Department of Planning, Industry and Environment).",
         "resolution": "1 hr",
-        "sourceURL": " ",
+        "sourceURL": "https://www.airquality.nsw.gov.au/",
         "contacts": [
             "info@openaq.org",
             "olaf@developmentseed.org"
