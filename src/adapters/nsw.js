@@ -94,6 +94,7 @@ function formatData(measurement, station) {
 
   return {
     location: station.SiteName,
+    sourceId: station.Site_Id,
     city: station.Region,
     parameter: parameterDetails.name,
     value: measurement.Value,
