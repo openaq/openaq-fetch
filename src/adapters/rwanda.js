@@ -57,10 +57,11 @@ const formatData = function (features) {
       Object.entries(dataItem).forEach(([key, value]) => {
         try { 
           if (value !== null && Object.keys(parameters).includes(key)) {
-            const utcTime = DateTime.fromISO(dataItem.time, {
-              zone: 'utc',
-            });
-            const localTime = utcTime.setZone('Africa/Kigali');
+            // The dates appear to be in local time, not UTC
+            const dateString = dataItem.time.replace('Z', '');
+
+            const localTime = DateTime.fromISO(dateString, { zone: 'Africa/Kigali' });
+            
             const parameter = parameters[key];
 
             measurements.push({
@@ -70,7 +71,7 @@ const formatData = function (features) {
               value: value,
               unit: parameter.unit,
               date: {
-                utc: utcTime.toISO({ suppressMilliseconds: true }),
+                utc: localTime.toUTC().toISO({ suppressMilliseconds: true }),
                 local: localTime.toISO({ suppressMilliseconds: true }),
               },
               coordinates: {
