@@ -11,5 +11,14 @@
             "info@openaq.org"
         ],
         "active": false
+    },
+    {
+        "adapter": "eea-utdviewer",
+        "name": "eea",
+        "description": "EEA data from UTD service",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]

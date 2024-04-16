@@ -1,7 +1,7 @@
 [
     {
-        "url": "https://api.svivaaqm.net/v1/envista/",
-        "adapter": "envista",
+        "url": "https://air-api.sviva.gov.il/v1/envista/",
+        "adapter": "israel-envista",
         "name": "israel-envista",
         "country": "IL",
         "description": "",
@@ -12,6 +12,6 @@
         "contacts": [
             "info@openaq.org"
         ],
-        "active": false
+        "active": true
     }
 ]

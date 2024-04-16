@@ -14,6 +14,8 @@ export const ADAPTER_NOT_FOUND = Symbol('Adapter not found');
 export const ADAPTER_NAME_INVALID = Symbol('Adapter name invalid');
 export const DATA_URL_ERROR = Symbol('Source data url error');
 export const DATA_PARSE_ERROR = Symbol('Source data parsing error');
+export const AUTHENTICATION_ERROR = Symbol('User could not be authenticated');
+export const FETCHER_ERROR = Symbol('Unknown fetcher error');
 
 export const STREAM_END = Symbol('End stream');
 
@@ -171,7 +173,7 @@ export function handleMeasurementErrors (stream, failures, source) {
           throw cause;
         } else if (cause.validation && cause.validation.errors) {
           cause.validation.errors.forEach(cause => {
-            log.debug(`Validation error in "${source && source.name}":`, cause.message, cause.instance);
+            log.warn(`Validation error in "${source && source.name}":`, cause.message, cause.instance);
             failures[cause] = (failures[cause] || 0) + 1;
           });
         } else {
@@ -214,7 +216,6 @@ export async function handleUnresolvedPromises (strict) {
 export function handleFetchErrors () {
   return (error) => {
     const cause = error instanceof FetchError ? error : error.cause;
-
     if (cause instanceof FetchError) {
       if (cause.is(STREAM_END)) return cause.exitCode || 0;
       log.error('Fetch error occurred', cause.stack);

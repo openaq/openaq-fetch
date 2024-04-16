@@ -20,8 +20,8 @@ export async function fetchData (source, cb) {
     const formattedData = formatData(data);
     cb(null, { name: 'unused', measurements: formattedData });
   } catch (error) {
-    log.error('Error fetching data:', error);
-    cb(error, null);
+    log.error(`Error fetching data: ${error.message}`);
+    cb({ message: `Error fetching data: ${error.message}` });
   }
 }
 
