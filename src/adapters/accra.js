@@ -9,7 +9,7 @@ export const parameters = {
   pm25: { name: 'pm25', unit: 'µg/m³' },
   pm10: { name: 'pm10', unit: 'µg/m³' },
   no2: { name: 'no2', unit: 'µg/m³' },
-  humidity: { name: 'releativehumidity', unit: '%' },
+  humidity: { name: 'relativehumidity', unit: '%' },
 };
 
 const stationsUrl = 'https://breatheaccra.org/_next/data/sDbKIZJuzXb7sPDYTkBBo/index.json';
