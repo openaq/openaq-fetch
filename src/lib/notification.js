@@ -6,26 +6,27 @@ import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 const sns = new SNSClient();
 
 /**
- * Ping openaq-api to let it know cause fetching is complete
- * @param {function} cb A function of form func(cause) called on completion
- */
+* Ping openaq-api to let it know cause fetching is complete
+* @param {function} cb A function of form func(cause) called on completion
+*/
 async function sendUpdatedWebhook (apiURL, webhookKey) {
-    var form = {
-        key: webhookKey,
-        action: 'DATABASE_UPDATED'
-    };
-    return promisify(request.post)(apiURL, { form: form });
+  var form = {
+    key: webhookKey,
+    action: 'DATABASE_UPDATED'
+  };
+  return promisify(request.post)(apiURL, { form: form });
 }
 
 async function publish(message, subject) {
-    if(process.env.TOPIC_ARN) {
-        const cmd = new PublishCommand({
-            TopicArn: process.env.TOPIC_ARN,
-            Subject: subject,
-            Message: JSON.stringify(message),
-        });
-        await sns.send(cmd);
-    }
+		// the following just looks better in the log
+		if(process.env.TOPIC_ARN) {
+				const cmd = new PublishCommand({
+						TopicArn: process.env.TOPIC_ARN,
+						Subject: subject,
+						Message: JSON.stringify(message),
+				});
+				await sns.send(cmd);
+		}
 }
 
 /**
@@ -57,15 +58,15 @@ export function reportAndRecordFetch (fetchReport, sources, env, apiURL, webhook
         failures.map(r => {
             log.debug(r);
         });
-        successes.map(r => {
-            log.debug(r);
-        });
-        log.info(`finished with ${successes.length} successes and ${failures.length} failures in ${(fetchReport.timeEnded - fetchReport.timeStarted)/1000} seconds`);
+        log.info(`Finished with ${successes.length} successes and ${failures.length} failures in ${(fetchReport.timeEnded - fetchReport.timeStarted)/1000} seconds`);
 
         if (!env.dryrun) {
-            await publish(fetchReport.results, 'fetcher/success');
+		        await publish(fetchReport.results, 'fetcher/success');
+        } else {
+            // for dev purposes
+            failures.map(r => console.warn(`No results`, r));
+            fetchReport.results.map( r => log.debug(`${r.locations} locations from ${r.from} - ${r.to} | Parameters for ${r.sourceName}`, r.parameters));
         }
-
         return 0;
     };
 }
