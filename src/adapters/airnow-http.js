@@ -15,13 +15,13 @@ const getDate = (day, time, offset) => {
   if (!dateString || !offset) {
     return false;
   }
-
+  // Adding an hour because AirNow data is time beginning
   const utc = DateTime.fromFormat(dateString, 'MM/dd/yy HH:mm', {
     zone: 'utc',
-  });
+  }).plus({ hour: 1});
   const local = DateTime.fromFormat(dateString, 'MM/dd/yy HH:mm', {
     zone: 'utc',
-  }).setZone(offset);
+  }).plus({ hour: 1}).setZone(offset);
 
   return {
     utc: utc.toISO({ suppressMilliseconds: true }),
