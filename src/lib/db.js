@@ -97,7 +97,7 @@ export function streamMeasurementsToDBAndStorage (sourcesStream, {
     log.info(`[Dry Run] File would be saved to ${key}`);
     return sourcesStream.do(async ({ stream: measurementStream }) => {
       return measurementStream
-        //.do(m => log.verbose(JSON.stringify(m)))
+        //.do(m => console.log(m))
         .run();
     });
   } else {

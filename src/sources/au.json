@@ -1,18 +1,18 @@
 [
     {
-        "url": "http://airquality.environment.nsw.gov.au/aquisnetnswphp/getPage.php?reportid=2",
+        "url": "https://data.airquality.nsw.gov.au/api/Data/get_Observations",
         "adapter": "nsw",
         "name": "Australia - New South Wales",
-        "city": "",
+        "city": " ",
         "country": "AU",
         "description": "Measurements from the State of New South Wales (Department of Planning, Industry and Environment).",
         "resolution": "1 hr",
-        "sourceURL": "https://www.dpie.nsw.gov.au/air-quality/air-quality-concentration-data-updated-hourly",
+        "sourceURL": "https://www.airquality.nsw.gov.au/",
         "contacts": [
             "info@openaq.org",
             "olaf@developmentseed.org"
         ],
-        "active": false
+        "active": true
     },
     {
         "url": "https://apps.des.qld.gov.au/air-quality/xml/feed.php?category=1&region=ALL",
