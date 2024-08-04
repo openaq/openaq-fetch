@@ -8,9 +8,9 @@ This is the main data ingest pipeline for the [OpenAQ](https://openaq.org) proje
 
 Starting with `index.js`, there is an ingest mechanism to gather global air quality measurements from a variety of sources. This is currently run every 10 minutes and saves all unique measurements to a database.
 
-[openaq-api-v2](https://github.com/openaq/openaq-api-v2) powers the API and more information on the data format can be found in [openaq-data-format](https://github.com/openaq/openaq-data-format).
+[openaq-api-v2](https://github.com/openaq/openaq-api-v2) powers the API, and more information on the data format can be found in [openaq-data-format](https://github.com/openaq/openaq-data-format).
 
-For more info see the [OpenAQ-Fetch documentation index](docs/index.md).
+For more info, see the [OpenAQ-Fetch documentation index](docs/index.md).
 
 ## Installing & Running
 
@@ -24,7 +24,7 @@ Now you can get started with:
 
 `node index.js --help`
 
-For production deployment, you will need to have certain environment variables set as in the table below
+For production deployment, you will need to have certain environment variables set as in the table below:
 | Name | Description | Default |
 |---|---|---|
 | API_URL | URL of openaq-api | http://localhost:3004/v1/webhooks |
@@ -86,12 +86,9 @@ node index.js --dryrun --deployments japan
 
 ## Data Source Criteria
 
-This section lists the key criteria for air quality data aggregated
-onto the platform. A full explanation can be accessed
-[here](https://medium.com/@openaq/where-does-openaq-data-come-from-a5cf9f3a5c85#.919hlx2by). OpenAQ
-is an ever-evolving process that is shaped by its community: your
-feedback and questions are actively invited on the criteria listed in
-this section.
+This section lists the key criteria for air quality data aggregated onto the platform. A full explanation can be accessed
+[here](https://medium.com/@openaq/where-does-openaq-data-come-from-a5cf9f3a5c85#.919hlx2by). OpenAQ is an ever-evolving process that is shaped by its community: your
+feedback and questions are actively invited on the criteria listed inthis section.
 
 1. Data must be of one of these pollutant types: PM10, PM2.5, sulfur dioxide (SO2), carbon monoxide (CO), nitrogen dioxide (NO2), ozone (O3), and black carbon (BC).
 
@@ -105,4 +102,4 @@ this section.
 
 
 ## Contributing
-There are a lot of ways to contribute to this project, more details can be found in the [contributing guide](CONTRIBUTING.md).
+There are many ways to contribute to this project, more details can be found in the [contributing guide](CONTRIBUTING.md).
