@@ -65,7 +65,7 @@ export function reportAndRecordFetch (fetchReport, sources, env, apiURL, webhook
         } else {
             // for dev purposes
             failures.map(r => console.warn(`No results`, r));
-            fetchReport.results.map( r => log.debug(`${r.locations} locations from ${r.from} - ${r.to} | Parameters for ${r.sourceName}`, r.parameters));
+            fetchReport.results.map( r => log.debug(`${r.locations} locations of ${Object.keys(r.parameters).length} parameters from ${r.from} - ${r.to} | Parameters for ${r.sourceName}`, r.parameters));
         }
         return 0;
     };
