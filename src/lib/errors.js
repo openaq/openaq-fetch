@@ -3,6 +3,7 @@ import sj from 'scramjet';
 const { DataStream } = sj;
 
 import log from './logger.js';
+import { publish } from './notification.js';
 
 // Symbol exports
 export const MEASUREMENT_ERROR = Symbol('Measurement error');
@@ -237,28 +238,40 @@ export function resolveOnTimeout (timeout, value) {
   return new Promise((resolve) => setTimeout(() => resolve(value), timeout));
 }
 
-export async function handleSigInt (runningSources) {
+
+async function publishAfterError(runningSources, fetchReport, env) {
+  const unfinished = [];
+  Object.entries(runningSources).forEach(([key, status]) => {
+    if(status != 'filtered' && !fetchReport.results[key]) {
+      fetchReport.results[key] = {
+        message: 'not finished',
+        count: 0,
+        locations: 0,
+        sourceName: key,
+      }
+      unfinished.push(key)
+    }
+  });
+
+  if (!env.dryrun) {
+		await publish(fetchReport.results, 'fetcher/success');
+  } else {
+    Object.values(fetchReport.results)
+      .filter(r =>r.parameters)
+      .map( r => log.info(`${r.locations} locations from ${r.from} - ${r.to} | Parameters for ${r.sourceName}`, r.parameters));
+  }
+  log.warn(`Still running sources at interruption: [${unfinished}]`);
+}
+
+export async function handleSigInt (runningSources, fetchReport, env) {
   await (new Promise((resolve) => process.once('SIGINT', () => resolve())));
-
-  const unfinishedSources = Object.entries(runningSources)
-    .filter(([, v]) => v !== 'finished' && v !== 'filtered')
-    .map(([k]) => k)
-    .join(', ');
-
-  log.warn(`Still running sources at interruption: [${unfinishedSources}]`);
-
+  publishAfterError(runningSources, fetchReport, env);
   throw new Error('Process interruped');
 }
 
-export async function handleProcessTimeout (processTimeout, runningSources) {
+export async function handleProcessTimeout (processTimeout, runningSources, fetchReport, env) {
   await resolveOnTimeout(processTimeout);
-
-  const unfinishedSources = Object.entries(runningSources)
-    .filter(([, v]) => v !== 'finished' && v !== 'filtered')
-    .map(([k]) => k);
-
-  log.error(`Still running sources at time out: ${unfinishedSources}`);
-
+  publishAfterError(runningSources, fetchReport, env);
   throw new Error('Process timed out');
 }
 

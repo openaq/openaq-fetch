@@ -161,12 +161,17 @@ export function prepareCompleteResultsMessage (stream, fetchReport, {dryrun}) {
   log.info(`complete results - ${Date.now()}`);
   return stream.map(
     measurements => {
-      log.debug(`Fetch results for ${measurements.source.name}`);
+      log.debug(`Fetched results for ${measurements.source.name}`);
       const result = measurements.resultsMessage;
       // Add to inserted count if response has a count, if there was a failure
       // response will not have a count
       if (result.count > 0) {
         fetchReport.itemsInserted += result.count;
+      }
+
+
+      if (result.sourceName) {
+        fetchReport.results[result.sourceName] = result;
       }
 
       log.info(`${result.count} new measurements found for "${result.sourceName}" in ${result.duration}s`);
