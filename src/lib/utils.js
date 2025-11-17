@@ -29,7 +29,7 @@ export function convertUnits (input) { return input; }
  * @return {Array} An array of measurements converted to system-preferred units
  */
 export function unifyMeasurementUnits (m) {
-  if (!m || typeof m.unit !== 'string' || isNaN(+m.value)) return;
+  if (!m || typeof m.unit !== 'string' || isNaN(+m.value)) return m;
 
   // ignore and pass through values that are known error codes
   if (m.value === -9999 || m.value === 9999) {

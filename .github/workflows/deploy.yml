@@ -12,8 +12,9 @@ env:
   OFFSET: 0
   SUFFIX: ${{ secrets.SUFFIX }}
   ID: openaq
-  PSQL_HOST: ${{ secrets.PSQL_HOST }} 
+  PSQL_HOST: ${{ secrets.PSQL_HOST }}
   API_URL: ${{ secrets.API_URL }}
+  TOPIC_ARN: ${{ secrets.TOPIC_ARN }}
 
 jobs:
   deploy:
@@ -41,4 +42,4 @@ jobs:
         working-directory: ./cdk
         run: |
           npm install
-          cdk deploy openaq-fetcher --require-approval never 
+          cdk deploy openaq-fetcher --require-approval never

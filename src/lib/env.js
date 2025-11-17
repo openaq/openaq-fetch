@@ -125,7 +125,7 @@ const _env = process.env;
  * Read values from local file and add them to the global _env
  * this is to help with local testing
  */
-export const readEnvFromLocalFile = (envFile) => {
+const readEnvFromLocalFile = (envFile) => {
   const envs = readFileSync(envFile, 'utf8');
   envs.split('\n').forEach(function (e) {
     if (e) {

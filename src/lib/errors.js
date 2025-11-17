@@ -265,13 +265,13 @@ async function publishAfterError(runningSources, fetchReport, env) {
 
 export async function handleSigInt (runningSources, fetchReport, env) {
   await (new Promise((resolve) => process.once('SIGINT', () => resolve())));
-  publishAfterError(runningSources, fetchReport, env);
+  await publishAfterError(runningSources, fetchReport, env);
   throw new Error('Process interruped');
 }
 
 export async function handleProcessTimeout (processTimeout, runningSources, fetchReport, env) {
   await resolveOnTimeout(processTimeout);
-  publishAfterError(runningSources, fetchReport, env);
+  await publishAfterError(runningSources, fetchReport, env);
   throw new Error('Process timed out');
 }
 
