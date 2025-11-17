@@ -17,7 +17,7 @@ async function sendUpdatedWebhook (apiURL, webhookKey) {
   return promisify(request.post)(apiURL, { form: form });
 }
 
-async function publish(message, subject) {
+export async function publish(message, subject) {
 		// the following just looks better in the log
 		if(process.env.TOPIC_ARN) {
 				const cmd = new PublishCommand({
@@ -40,6 +40,7 @@ async function publish(message, subject) {
  */
 export function reportAndRecordFetch (fetchReport, sources, env, apiURL, webhookKey) {
     return async (results) => {
+        // copy over the results for now
         fetchReport.results = results;
         fetchReport.timeEnded = Date.now();
         fetchReport.errors = results.reduce((acc, {failures}) => {
@@ -65,7 +66,7 @@ export function reportAndRecordFetch (fetchReport, sources, env, apiURL, webhook
         } else {
             // for dev purposes
             failures.map(r => console.warn(`No results`, r));
-            fetchReport.results.map( r => log.debug(`${r.locations} locations from ${r.from} - ${r.to} | Parameters for ${r.sourceName}`, r.parameters));
+            fetchReport.results.map( r => log.info(`${r.locations} locations from ${r.from} - ${r.to} | Parameters for ${r.sourceName}`, r.parameters));
         }
         return 0;
     };

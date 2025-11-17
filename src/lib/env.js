@@ -60,6 +60,13 @@ const _argv = yargs
     alias: 'd',
     group: 'Main options:'
   })
+  .options('local', {
+    boolean: true,
+    describe:
+      'Run the fetch process locally, useful for testing.',
+    alias: 'l',
+    group: 'Main options:'
+  })
   .options('source', {
     describe:
       'Run the fetch process with only the defined source using source name.',
@@ -118,7 +125,7 @@ const _env = process.env;
  * Read values from local file and add them to the global _env
  * this is to help with local testing
  */
-export const readEnvFromLocalFile = (envFile) => {
+const readEnvFromLocalFile = (envFile) => {
   const envs = readFileSync(envFile, 'utf8');
   envs.split('\n').forEach(function (e) {
     if (e) {
@@ -148,6 +155,7 @@ export default () => {
     important,
     datetime,
     offset,
+    local,
     verbose: _verbose,
     quiet: _quiet,
     strict: _strict
@@ -195,6 +203,7 @@ export default () => {
     strict,
     dryrun,
     deployments,
+    local,
     nofetch,
     debug,
     source,

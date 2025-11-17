@@ -125,9 +125,17 @@ export function handler (event, context) {
 	  return true;
   }
 
+  const fetchReport = {
+    itemsInserted: 0,
+    timeStarted: Date.now(),
+    results: {}, // placeholder for the results
+    errors: null,
+    timeEnded: NaN,
+  };
+
   return Promise.race([
-    handleSigInt(runningSources),
-    handleProcessTimeout(processTimeout, runningSources),
+    handleSigInt(runningSources, fetchReport, env),
+    handleProcessTimeout(processTimeout, runningSources, fetchReport, env),
     handleUnresolvedPromises(strict),
     handleWarnings(['MaxListenersExceededWarning'], strict),
     (async function () {
@@ -138,13 +146,6 @@ export function handler (event, context) {
       } else {
         log.info('--- Full fetch started. ---');
       }
-      const fetchReport = {
-        itemsInserted: 0,
-        timeStarted: Date.now(),
-        results: null,
-        errors: null,
-        timeEnded: NaN,
-      };
 
         log.info(
           `--- Running with ${maxParallelAdapters} parallel adapters ---`
