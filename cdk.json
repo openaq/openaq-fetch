@@ -1,5 +1,5 @@
 {
-    "app": "npx ts-node --esm --prefer-ts-exts app.ts",
+    "app": "npx ts-node --prefer-ts-exts cdk/app.ts",
     "watch": {
       "include": [
         "**"
@@ -41,4 +41,3 @@
       "@aws-cdk/customresources:installLatestAwsSdkDefault": false
     }
   }
-  

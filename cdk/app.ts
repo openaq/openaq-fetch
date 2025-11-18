@@ -4,10 +4,10 @@ import { RealtimeFetcherStack } from './stack';
 
 const DOTENV = process.env.DOTENV || '.env';
 
-const envs = readFileSync(`../src/${DOTENV}`, 'utf8');
+const envs = readFileSync(`./src/${DOTENV}`, 'utf8');
 
 interface keyable {
-  [key: string]: string  
+  [key: string]: string
 }
 
 const env: keyable = {
