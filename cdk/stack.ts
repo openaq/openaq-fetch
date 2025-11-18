@@ -28,14 +28,10 @@ export class RealtimeFetcherStack extends cdk.Stack {
   ) {
     super(scope, id, props);
     // add the package.json file
-    copyFileSync('../package.json', '../src/package.json');
+    copyFileSync('./package.json', './src/package.json');
     // add the node modules
     const cmd = [
-      'yarn',
-      '--prod',
-      '--cwd ../src',
-      '--frozen-lockfile',
-      `--modules-folder ../src/node_modules`,
+      'npm ci',
     ].join(' ');
     execSync(cmd);
     env.QUEUE_NAME = `${id}-queue`;
@@ -56,10 +52,10 @@ export class RealtimeFetcherStack extends cdk.Stack {
       `${id}-scheduler-lambda`,
       {
         description: `Scheduler for ${id}-fetcher`,
-        code: lambda.Code.fromAsset('../src'),
+        code: lambda.Code.fromAsset('./src', { exclude: ['.env*', '*.sh'] }),
         handler: 'scheduler.handler',
         memorySize: 128,
-        runtime: lambda.Runtime.NODEJS_18_X,
+        runtime: lambda.Runtime.NODEJS_22_X,
         timeout: cdk.Duration.seconds(30),
         environment: env,
       }
@@ -70,10 +66,10 @@ export class RealtimeFetcherStack extends cdk.Stack {
       `${id}-fetcher-lambda`,
       {
         description: `Fetcher for ${id}`,
-        code: lambda.Code.fromAsset('../src'),
+        code: lambda.Code.fromAsset('./src', { exclude: ['.env*', '*.sh'] }),
         handler: 'fetch.handler',
         memorySize: 2048,
-        runtime: lambda.Runtime.NODEJS_18_X,
+        runtime: lambda.Runtime.NODEJS_22_X,
         timeout: cdk.Duration.seconds(900),
         environment: env,
       }

@@ -5,12 +5,15 @@ import { default as baseRequest } from 'request';
 import { default as moment } from 'moment-timezone';
 import { load } from 'cheerio';
 import proj4 from 'proj4';
-import epsg from 'proj4js-defs';
+// the following is no longer supported in node 22
+// the new pacakge would likely be proj4js-definitions
+// but it doesnt look like this adapter is running so we are leaving this as is
+//import epsg from 'proj4js-def';
 import { convertUnits, acceptableParameters } from '../lib/utils';
 const request = baseRequest.defaults({timeout: REQUEST_TIMEOUT});
 
 // Load all the EPSG definitions
-epsg(proj4);
+//epsg(proj4);
 
 export const name = 'eea';
 
