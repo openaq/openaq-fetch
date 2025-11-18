@@ -22,7 +22,8 @@ const sourcesArray = fs
           s.file = f;
           return(s);
       });
-  }).flat();
-
+  })
+    .flat()
+    .filter( d => !(d.name.startsWith('StateAir_')) && d.adapter != 'stateair')
 
 export { sourcesArray };

@@ -13,7 +13,7 @@ import log from '../lib/logger.js';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
 import client from '../lib/requests.js';
-import tough from 'tough-cookie';
+import { CookieJar } from 'tough-cookie';
 
 export const name = 'trinidadtobago';
 export const parameters = {
@@ -107,7 +107,7 @@ export async function fetchData(source, cb) {
                 try {
                     const values = await client({
                         url: sourceURL,
-                        cookieJar: new tough.CookieJar(),
+                        cookieJar: new CookieJar(),
                     });
 
                     return { meta, values, parameter };

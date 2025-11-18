@@ -92,7 +92,7 @@ async function handleStation(source, regionName, station) {
   const headers = {
     Authorization: 'ApiToken ' + `${source.credentials.token}`,
   };
-  
+
   const stationUrl = `${source.url}stations/${station.stationId}/data/latest`;
   try {
     const data = await client({

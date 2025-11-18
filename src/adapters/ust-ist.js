@@ -62,7 +62,7 @@ export async function fetchData(source, cb) {
 
         return acc.concat(latestMeasurements.map(m => ({ ...baseMeta, ...m })));
       }, []);
-      console.debug("Example measurements", measurements.slice(-5));
+      log.debug("Example measurements", measurements.slice(-5));
       cb(null, { name: 'unused', measurements });
     } catch (e) {
       cb(e);
