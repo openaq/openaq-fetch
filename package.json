@@ -30,7 +30,6 @@
     "moment-timezone": "^0.6.0",
     "node-html-parser": "^7.0.1",
     "proj4": "^2.20.2",
-    "proj4js-definitions": "^0.1.0",
     "request": "^2.88.2",
     "rss-parser": "^3.13.0",
     "s3-upload-stream": "^1.0.7",

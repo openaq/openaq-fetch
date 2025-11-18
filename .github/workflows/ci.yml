@@ -17,8 +17,8 @@ jobs:
       - name: run depcheck
         id: rundepcheck
         run: |
-          DEPCHECK=$(npx depcheck --ignores=depcheck --json) || true
-          echo "DEPCHECK_RESULT=$DEPCHECK" >> $GITHUB_ENV 
+          DEPCHECK=$(npx depcheck --ignores=depcheck,chai,ts-node,typescript,aws-cdk-lib,@babel/core,@babel/preset-env,@types/node --json) || true
+          echo "DEPCHECK_RESULT=$DEPCHECK" >> $GITHUB_ENV
       - name: Generate PR comment
         id: generate_pr_comment
         run: |
