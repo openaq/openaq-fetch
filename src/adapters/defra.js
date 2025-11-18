@@ -38,10 +38,10 @@ let formatData = function (source, data) {
     try {
       const date = DateTime.fromFormat(
         dateString,
-        'dd/MM/yyyyHH:mm:ss',
+        'dd/MM/yyyyHH:mm',
         { zone: 'Europe/London' }
       );
-  
+
       if (!date.isValid) {
         log.debug('Invalid DateTime after adjustment:', dateString);
         return null;
@@ -55,7 +55,7 @@ let formatData = function (source, data) {
       return null;
     }
   }
-  
+
   function getValue(measuredValue) {
     if (measuredValue === 'n/a' || measuredValue === 'n/m') {
       return NaN;
