@@ -83,8 +83,8 @@ const formatData = function (data, source) {
   // Loop over each item and save the object
   $('postaja').each(function (i, elem) {
     const coordinates = {
-      latitude: parseFloat($(elem).attr('ge_sirina')),
-      longitude: parseFloat($(elem).attr('ge_dolzina')),
+      latitude: parseFloat($(elem).attr('wgs84_sirina')),
+      longitude: parseFloat($(elem).attr('wgs84_dolzina')),
     };
 
     const date = getDate($(elem).children('datum_do').text());
