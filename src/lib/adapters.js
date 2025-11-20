@@ -1,5 +1,4 @@
 import log from './logger.js';
-import { promisify } from 'util';
 import { readdir, readdirSync } from 'fs';
 import { resolve } from 'path';
 import {

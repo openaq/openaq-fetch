@@ -10,6 +10,10 @@ import client from '../lib/requests.js';
 
 export const name = 'norway';
 
+// new url for data is here
+// https://api-luftmalinger.miljodirektoratet.no/swagger/index.html
+
+
 /**
  * Fetches the data for a given source and returns an appropriate object
  * @param {object} source A valid source object

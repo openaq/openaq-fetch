@@ -59,6 +59,7 @@ export function reportAndRecordFetch (fetchReport, sources, env, apiURL, webhook
         failures.map(r => {
             log.debug(r);
         });
+
         log.info(`Finished with ${successes.length} successes and ${failures.length} failures in ${(fetchReport.timeEnded - fetchReport.timeStarted)/1000} seconds`);
 
         if (!env.dryrun) {

@@ -28,10 +28,12 @@ export class RealtimeFetcherStack extends cdk.Stack {
   ) {
     super(scope, id, props);
     // add the package.json file
-    copyFileSync('./package.json', './src/package.json');
+    //copyFileSync('./package.json', './src/package.json');
     // add the node modules
     const cmd = [
       'npm ci',
+        '--prefix=src',
+        '--omit=dev',
     ].join(' ');
     execSync(cmd);
     env.QUEUE_NAME = `${id}-queue`;

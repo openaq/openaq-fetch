@@ -132,7 +132,13 @@ export async function fetchStream (source) {
           );
         }
       });
-  } catch {
-    console.log('error resolving url');
+  } catch (e) {
+      throw new Error(e)
+      throw new FetchError(
+          DATA_URL_ERROR,
+          source,
+          e,
+          `Error resolving url`
+      );
   }
 }

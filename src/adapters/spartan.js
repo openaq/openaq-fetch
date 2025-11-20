@@ -65,7 +65,6 @@ export async function fetchData (source, cb) {
 
     cb(null, data);
   } catch (error) {
-    log.error('Error fetching data for all slugs:', error);
     cb(error, null);
   }
 }

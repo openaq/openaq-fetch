@@ -15,13 +15,11 @@ export async function fetchData (source, cb) {
   try {
     const stations = await fetchStations(source);
     const measurements = transformData(stations);
-    log.debug(measurements);
     cb(null, {
       name: 'unused',
       measurements,
     });
   } catch (error) {
-    log.error(error);
     cb(error);
   }
 }

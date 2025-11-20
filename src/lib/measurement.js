@@ -288,8 +288,8 @@ export async function getCorrectedMeasurementsFromSource (source, env) {
     if (source instanceof Error) throw source;
 
     const [ret] = await DataStream.from([source])
-          .use(fetchCorrectedMeasurementsFromSourceStream, { strict: true })
-          .toArray();
+        .use(fetchCorrectedMeasurementsFromSourceStream, { strict: true })
+        .toArray();
 
     return ret;
 }
@@ -338,7 +338,6 @@ export function fetchCorrectedMeasurementsFromSourceStream (stream, env) {
             const adapter = await getAdapterForSource(source);
 
             (await getStreamFromAdapter(adapter, source)).pipe(input);
-            //console.log('finished stream')
 
             if (error) throw error;
             else error = true;

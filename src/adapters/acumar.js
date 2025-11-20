@@ -59,7 +59,6 @@ export async function fetchData (source, cb) {
       });
     }
   } catch (error) {
-    log.error(`Error fetching data: ${error.message}`);
     cb(error);
   }
 }
