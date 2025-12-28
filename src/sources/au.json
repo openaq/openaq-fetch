@@ -83,5 +83,19 @@
             "info@openaq.org"
         ],
         "active": true
+    },
+    {
+        "url": "http://ntepa.webhop.net/NTEPA/Services/AirQualityPima.asmx/GetAllStationIndexValuePerPollutant",
+        "adapter": "northern-territory",
+        "name": "Australia - Northern Territory",
+        "city": "Darwin",
+        "country": "AU",
+        "description": "Measurements from Northern Territory Environment Protection Authority (NTEPA).",
+        "resolution": "1 hr",
+        "sourceURL": "http://ntepa.webhop.net/",
+        "contacts": [
+            "info@openaq.org"
+        ],
+        "active": true
     }
 ]
