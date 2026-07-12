@@ -16,15 +16,16 @@
     "active": false
   },
   {
-    "url": "http://saaqis.environment.gov.za/ajax/getAllStationsWithoutFiltering",
+    "url": "https://saaqis.environment.gov.za/",
     "adapter": "southafrica",
     "name": "South Africa",
     "country": "ZA",
-    "description": "Air Quality data from South African Department Enviromental Affairs",
-    "sourceURL": "http://saaqis.environment.gov.za",
+    "description": "Air Quality data from the South African Air Quality Information System (DFFE/SAWS)",
+    "sourceURL": "https://saaqis.environment.gov.za",
+    "timezone": "Africa/Johannesburg",
     "contacts": [
         "info@openaq.org"
     ],
-    "active": false
+    "active": true
   }
 ]
