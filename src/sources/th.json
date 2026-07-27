@@ -14,7 +14,7 @@
         "active": false
     },
     {
-        "url": "http://air4thai.pcd.go.th/forappV2/getAQI_JSON.php",
+        "url": "https://air4thai.pcd.go.th/forappV2/getAQI_JSON.php",
         "adapter": "air4thai",
         "name": "Air4Thai",
         "city": "",

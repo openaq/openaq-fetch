@@ -21,7 +21,8 @@ export const name = 'air4thai';
  */
 
 export function fetchData (source, cb) {
-  client({ url: source.url })
+  // air4thai's cert is broken, so don't require it match. 
+  client({ url: source.url, https: { rejectUnauthorized: false } })
     .then((data) => {
 
       const formattedData = formatData(data);
