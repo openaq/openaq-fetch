@@ -14,9 +14,16 @@
  *      JSON body describing the inner Envista REST request, e.g.
  *      { url: 'regions', Method: 'GET', ... }.
  *
- * The proxied Envista responses ('regions', 'stations/{id}/data/latest')
- * have the same shapes consumed by the israel-envista adapter, so this
+ * The proxied Envista responses ('regions', 'regions/data/latest') have
+ * the same shapes consumed by the israel-envista adapter, so this
  * adapter follows its structure. No credentials are required.
+ *
+ * Data is fetched in a single bulk call
+ * ('regions/data/latest?unitConversion=true&regionsIds=...&timebase=60')
+ * rather than one request per station; unitConversion=true makes Envista
+ * serve gas concentrations in ppm/ppb (notably converting the one CO
+ * channel natively stored in mg/Nm3, a normalized-volume unit we could
+ * not convert reliably ourselves).
  */
 
 'use strict';
@@ -26,7 +33,6 @@ import client from '../lib/requests.js';
 
 import { CookieJar } from 'tough-cookie';
 import { DateTime } from 'luxon';
-import { parallelLimit } from 'async';
 import {
   convertUnits,
   unifyMeasurementUnits,
@@ -47,30 +53,43 @@ export async function fetchData(source, cb) {
     const session = await createSession(source);
     const regionList = await envistaGet(source, session, 'regions');
 
-    // One flat station queue across all regions: SAAQIS times out when
-    // hit with per-region parallelism (9 regions x N stations at once).
-    const stationList = regionList.flatMap((region) =>
-      (region.stations || [])
-        .filter((station) => station.active && hasAcceptedParameters(station))
-        .map((station) => ({ station, regionName: region.name }))
+    // Station metadata (name, coordinates, region) only comes from the
+    // regions listing, so index it by stationId for the bulk lookup.
+    const stationsById = new Map();
+    const regionIds = [];
+    for (const region of regionList) {
+      if (!region.stations || region.stations.length === 0) continue;
+      regionIds.push(region.regionId);
+      for (const station of region.stations) {
+        if (station.active && hasAcceptedParameters(station)) {
+          stationsById.set(station.stationId, {
+            station,
+            regionName: region.name,
+          });
+        }
+      }
+    }
+
+    // One bulk call for the latest hourly reading of every station,
+    // instead of ~200 per-station requests (which SAAQIS also times out
+    // on under parallelism). Silent stations are simply absent here.
+    const bulk = await envistaGet(
+      source,
+      session,
+      `regions/data/latest?unitConversion=true&regionsIds=${regionIds.join(
+        ','
+      )}&timebase=60`
     );
 
-    const limit = 10; // concurrent station requests SAAQIS handles reliably
+    const flatResults = (bulk || [])
+      .filter((entry) => entry.regionData && stationsById.has(entry.stationId))
+      .flatMap((entry) => {
+        const { station, regionName } = stationsById.get(entry.stationId);
+        return formatData(source, regionName, station, {
+          data: [entry.regionData],
+        });
+      });
 
-    const results = await new Promise((resolve, reject) => {
-      parallelLimit(
-        stationList.map(({ station, regionName }) => (callback) =>
-          handleStation(source, session, regionName, station).then(
-            (measurements) => callback(null, measurements),
-            (err) => callback(err)
-          )
-        ),
-        limit,
-        (err, res) => (err ? reject(err) : resolve(res))
-      );
-    });
-
-    const flatResults = results.flat(Infinity);
     const convertedResults = convertUnits(flatResults);
 
     log.debug(`Example measurements: ${convertedResults.slice(0, 5)}.`);
@@ -133,33 +152,6 @@ async function envistaGet(source, session, path) {
 }
 
 /**
- * Handles the processing of a single station.
- * @param {Object} source - The source configuration object.
- * @param {Object} session - The session object from createSession.
- * @param {string} regionName - The name of the region.
- * @param {Object} station - The station object.
- * @returns {Promise} A promise that resolves to an array of measurements for the station.
- */
-async function handleStation(source, session, regionName, station) {
-  try {
-    const data = await envistaGet(
-      source,
-      session,
-      `stations/${station.stationId}/data/latest`
-    );
-    return formatData(source, regionName, station, data);
-  } catch (err) {
-    // 204 = station currently reporting no data; routine on this network.
-    if (err.message && err.message.includes('204')) {
-      log.debug(`No current data for station ${station.name}`);
-    } else {
-      log.error(`Error fetching station data: ${err.message}`);
-    }
-    return [];
-  }
-}
-
-/**
  * Formats the data for a single station.
  * @param {Object} source - The source configuration object.
  * @param {string} regionName - The name of the region.
@@ -219,8 +211,8 @@ function formatChannels(base, datapoint) {
       unit: channel.units,
     }))
     .map(unifyMeasurementUnits)
-    // A few stations report CO in units we cannot convert reliably
-    // (e.g. mg/Nm3, a normalized-volume unit); drop those measurements.
+    // unitConversion=true plus unifyMeasurementUnits should leave only
+    // system units; guard against any residual exotic units regardless.
     .filter((m) => ['µg/m³', 'ppm', 'ppb'].includes(m.unit));
 }
 
