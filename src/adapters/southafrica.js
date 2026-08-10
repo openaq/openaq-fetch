@@ -43,6 +43,9 @@ export const name = 'southafrica';
 
 const TIMEZONE = 'Africa/Johannesburg';
 
+// Ignore cert issues
+const HTTPS_OPTIONS = { rejectUnauthorized: false };
+
 /**
  * Fetches data from the SAAQIS Envista web API.
  * @param {Object} source - The source configuration object.
@@ -116,6 +119,7 @@ async function createSession(source) {
     method: 'POST',
     params: {},
     cookieJar,
+    https: HTTPS_OPTIONS,
   });
   if (!response || !response.key) {
     throw new Error('SAAQIS did not issue an API token');
@@ -136,6 +140,7 @@ async function envistaGet(source, session, path) {
     url: `${source.url}api`,
     method: 'POST',
     cookieJar: session.cookieJar,
+    https: HTTPS_OPTIONS,
     headers: {
       Authorization: session.key,
       Referer: source.url,
