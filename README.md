@@ -2,6 +2,13 @@
 
 [![Build Status](https://travis-ci.org/openaq/openaq-fetch.svg?branch=master)](https://travis-ci.org/openaq/openaq-fetch)
 
+
+> [!WARNING]
+> The repository is in maintenance-only status. OpenAQ is in the process of migrating to
+> a new data fetching process. OpenAQ fetch will remain in place while this migration is
+> active and will be archive once fully complete. New issues will only be accepted for fixing
+> exsiting adapters.
+
 ## Overview
 
 This is the main data ingest pipeline for the [OpenAQ](https://openaq.org) project.
